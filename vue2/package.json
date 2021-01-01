@@ -1,0 +1,18 @@
+{
+  "name": "wumo-vue2",
+  "version": "0.1.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "rollup -c -w"
+  },
+  "keywords": [],
+  "author": "wuyibo <760478279wyb@gmail.com>",
+  "license": "ISC",
+  "devDependencies": {
+    "@babel/core": "^7.12.10",
+    "@babel/preset-env": "^7.12.11",
+    "rollup": "^2.35.1",
+    "rollup-plugin-babel": "^4.4.0"
+  }
+}
