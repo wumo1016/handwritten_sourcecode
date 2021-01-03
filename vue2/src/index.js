@@ -1,8 +1,9 @@
+
 import {
   initMixin
 } from "./init"
 
-window.log = console.log
+
 
 function Vue(options) {
   this._init(options)
