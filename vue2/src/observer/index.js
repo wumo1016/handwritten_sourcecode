@@ -1,7 +1,9 @@
 import {
   isObject
 } from "../utils";
-import { arrayMethods } from "./array";
+import {
+  arrayMethods
+} from "./array";
 
 class Observer {
   constructor(data) {
@@ -20,7 +22,7 @@ class Observer {
       this.walk(data)
     }
   }
-  observeArray(data){
+  observeArray(data) {
     data.forEach(item => {
       observe(item)
     })
@@ -39,7 +41,6 @@ function defineReactive(data, key, value) {
       return value
     },
     set(newValue) {
-      log(data, key, value)
       observe(newValue) // 如果用户赋值一个新对象，需要劫持
       value = newValue
     }
@@ -50,7 +51,7 @@ export function observe(data) {
   if (!isObject(data)) {
     return
   }
-  if(data.__ob__){ // 说明已经被监测过了
+  if (data.__ob__) { // 说明已经被监测过了
     return
   }
   return new Observer(data)

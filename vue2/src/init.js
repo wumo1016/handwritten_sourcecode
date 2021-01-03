@@ -1,4 +1,6 @@
-import { initState } from "./state"
+import {
+  initState
+} from "./state"
 
 export function initMixin(Vue) { // 在Vue的基础上做混合操作
   Vue.prototype._init = function (options) {

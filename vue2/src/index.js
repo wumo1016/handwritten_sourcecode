@@ -1,4 +1,6 @@
-import { initMixin } from "./init"
+import {
+  initMixin
+} from "./init"
 
 window.log = console.log
 
