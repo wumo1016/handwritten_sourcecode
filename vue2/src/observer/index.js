@@ -1,32 +1,56 @@
-import { isObject } from "../utils";
+import {
+  isObject
+} from "../utils";
+import { arrayMethods } from "./array";
 
 class Observer {
-  constructor(data){
-    this.walk(data)
+  constructor(data) {
+    // 特别注意，这里不能直接定义 data.__ob__ = this 会造成死循环(Observer.__ob__ = Observer)
+    Object.defineProperty(data, '__ob__', {
+      enumerable: false,
+      value: this
+    })
+
+    if (Array.isArray(data)) {
+      // 重写数组方法 切片编程
+      data.__proto__ = arrayMethods
+      // 如果数组中的数据是对象，需要监控对象的变化
+      this.observeArray(data)
+    } else {
+      this.walk(data)
+    }
   }
-  walk(data){ // 循环所有属性
+  observeArray(data){
+    data.forEach(item => {
+      observe(item)
+    })
+  }
+  walk(data) { // 循环所有属性
     Object.keys(data).forEach(key => {
       defineReactive(data, key, data[key])
     })
   }
 }
 
-function defineReactive(data, key, value){
+function defineReactive(data, key, value) {
   observe(value) // 递归处理
   Object.defineProperty(data, key, {
-    get(){
+    get() {
       return value
     },
-    set(newValue){
-      observe(observe) // 如果用户赋值一个新对象，需要劫持
+    set(newValue) {
+      log(data, key, value)
+      observe(newValue) // 如果用户赋值一个新对象，需要劫持
       value = newValue
     }
   })
-  // log(data, key, value)
 }
 
-export function observe(data){
-  if(!isObject(data)){
+export function observe(data) {
+  if (!isObject(data)) {
+    return
+  }
+  if(data.__ob__){ // 说明已经被监测过了
     return
   }
   return new Observer(data)

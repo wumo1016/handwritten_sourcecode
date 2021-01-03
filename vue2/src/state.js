@@ -18,7 +18,6 @@ function proxy(vm, data, key) {
       return vm[data][key]
     },
     set(newValue) {
-      log(123465)
       vm[data][key] = newValue
     }
   })
