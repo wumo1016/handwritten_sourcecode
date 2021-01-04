@@ -2,6 +2,9 @@ import {
   compileToFunction
 } from "./compiler/index"
 import {
+  mountComponent
+} from "./lifecycle"
+import {
   initState
 } from "./state"
 export function initMixin(Vue) { // 在Vue的基础上做混合操作
@@ -18,6 +21,7 @@ export function initMixin(Vue) { // 在Vue的基础上做混合操作
     }
 
   }
+
   Vue.prototype.$mount = function (el) {
     const vm = this
     const options = vm.$options
@@ -30,5 +34,6 @@ export function initMixin(Vue) { // 在Vue的基础上做混合操作
       }
       options.render = compileToFunction(template)
     }
+    mountComponent(vm, el)
   }
 }

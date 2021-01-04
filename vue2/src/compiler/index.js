@@ -6,8 +6,8 @@ export function compileToFunction(template) {
 
   const ast = parserHTML(template)
   const code = generate(ast)
-  // log(code)
-
+  const render = new Function(`with(this){ return ${code} }`) // 将生成得字符串转化成函数执行
+  return render
 }
 
 /* 

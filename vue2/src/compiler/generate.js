@@ -54,11 +54,9 @@ function gen(el) {
 }
 // return _c('div',{id:'app',test:'wyb'},'hello' )
 export function generate(ast) {
-  log(ast)
   let children = genChildren(ast)
   let code = `_c('${ast.tag}',${
     ast.attrs.length ? genProps(ast.attrs) : 'undefined'
   }${children ? `,${children}` : ''})`
-  log(code)
   return code
 }
