@@ -25,7 +25,7 @@ export function initMixin(Vue) { // 在Vue的基础上做混合操作
   Vue.prototype.$mount = function (el) {
     const vm = this
     const options = vm.$options
-    el = document.querySelector(el)
+    el = vm.$el = document.querySelector(el)
 
     if (!vm.$options.render) {
       let template = options.template

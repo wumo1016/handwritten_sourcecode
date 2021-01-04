@@ -1,3 +1,4 @@
+import { isObject } from "./utils"
 import { createElement, createTextElement } from "./vdom/index"
 
 export function renderMixin(Vue){
@@ -14,14 +15,13 @@ export function renderMixin(Vue){
 
   // 处理变量
   Vue.prototype._s = function(value){
-    return JSON.stringify(value)
+    return isObject(value) ? JSON.stringify(value) : value
   }
 
   Vue.prototype._render = function(){
     const vm = this
     const render = vm.$options.render
     const vnode = render.call(vm)
-    log(vnode)
-    // log('_render')
+    return vnode
   }
 }
