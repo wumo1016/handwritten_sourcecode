@@ -2,6 +2,7 @@ import {
   popTarget,
   pushTarget
 } from "./dep"
+import { queueWatcher } from "./scheduler"
 
 let id = 0
 
@@ -24,13 +25,19 @@ class Watcher {
   }
 
   get() {
+    log(this)
     pushTarget(this)
     this.getter()
     popTarget()
   }
 
-  update(){
+  run(){
     this.get()
+  }
+
+  update(){
+    // 多次调用一个watcher，先缓存，等一会一起更新
+    queueWatcher(this)
   }
 
   addDep(dep) { // 应该去重

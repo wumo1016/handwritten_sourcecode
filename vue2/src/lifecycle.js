@@ -1,4 +1,5 @@
 import Watcher from "./observer/watcher"
+import { nextTick } from "./utils"
 import { patch } from "./vdom/patch"
 
 export function lifecycleMixin(Vue) {
@@ -9,6 +10,7 @@ export function lifecycleMixin(Vue) {
     vm.$el = patch(vm.$el, vnode) // 更新实例保存的dom 因为原来的已经被删除了
 
   }
+  Vue.prototype.$nextTick = nextTick
 }
 
 export function mountComponent(vm, el) {

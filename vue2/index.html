@@ -12,7 +12,7 @@
 
 <body>
   <div id='app' test="wyb" style="color:red;background:#fff">
-    hello{{name}}world{{name}}
+    {{name}}:{{age}}
   </div>
   <script src="dist/vue.js"></script>
   <script>
@@ -20,12 +20,14 @@
       el: '#app',
       data() {
         return {
-          name: 'wyb123'
+          name: 'wyb',
+          age: 18
         }
       }
     })
     setTimeout(() => {
-      vm.name = 123
+      vm.name = 'zf'
+      vm.age = 20
     }, 1000)
 
   </script>
