@@ -39,13 +39,13 @@ function defineReactive(data, key, value) {
   let dep = new Dep()
   Object.defineProperty(data, key, {
     get() {
-      if(Dep.target){
+      if (Dep.target) {
         dep.depend()
       }
       return value
     },
     set(newValue) {
-      if(newValue !== value){
+      if (newValue !== value) {
         observe(newValue) // 如果用户赋值一个新对象，需要劫持
         value = newValue
         dep.notify()
