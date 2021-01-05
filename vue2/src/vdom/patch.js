@@ -24,5 +24,7 @@ export function patch(oldVnode, vnode){
     parentElm.insertBefore(elm, oldVnode.nextSibling)
 
     parentElm.removeChild(oldVnode) // 最后删除老的dom
+
+    return elm
   }
 }

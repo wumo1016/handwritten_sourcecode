@@ -1,3 +1,4 @@
+import Watcher from "./observer/watcher"
 import { patch } from "./vdom/patch"
 
 export function lifecycleMixin(Vue) {
@@ -5,7 +6,7 @@ export function lifecycleMixin(Vue) {
 
     const vm = this
 
-    patch(vm.$el, vnode)
+    vm.$el = patch(vm.$el, vnode) // 更新实例保存的dom 因为原来的已经被删除了
 
   }
 }
@@ -19,5 +20,9 @@ export function mountComponent(vm, el) {
     // log(vdom)
     vm._update(vnode)
   }
-  updateComponent()
+  // updateComponent()
+  // true 代表渲染 watcher
+  new Watcher(vm, updateComponent, () => {
+    log('更新啦')
+  }, true)
 }

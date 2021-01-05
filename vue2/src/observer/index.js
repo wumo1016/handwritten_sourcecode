@@ -4,7 +4,7 @@ import {
 import {
   arrayMethods
 } from "./array";
-
+import Dep from "./dep";
 class Observer {
   constructor(data) {
     // 特别注意，这里不能直接定义 data.__ob__ = this 会造成死循环(Observer.__ob__ = Observer)
@@ -36,13 +36,20 @@ class Observer {
 
 function defineReactive(data, key, value) {
   observe(value) // 递归处理
+  let dep = new Dep()
   Object.defineProperty(data, key, {
     get() {
+      if(Dep.target){
+        dep.depend()
+      }
       return value
     },
     set(newValue) {
-      observe(newValue) // 如果用户赋值一个新对象，需要劫持
-      value = newValue
+      if(newValue !== value){
+        observe(newValue) // 如果用户赋值一个新对象，需要劫持
+        value = newValue
+        dep.notify()
+      }
     }
   })
 }
