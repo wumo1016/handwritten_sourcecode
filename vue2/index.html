@@ -12,7 +12,7 @@
 
 <body>
   <div id='app' test="wyb" style="color:red;background:#fff">
-    {{name}}:{{age}}
+    {{ name }}
   </div>
   <script src="dist/vue.js"></script>
   <script>
@@ -20,16 +20,15 @@
       el: '#app',
       data() {
         return {
-          name: 'wyb',
-          age: 18
+          name: [
+            [1, 2, 3]
+          ],
         }
       }
     })
     setTimeout(() => {
-      vm.name = 'zf'
-      vm.age = 20
+      vm.name[0].push(3)
     }, 1000)
-
   </script>
 </body>
 

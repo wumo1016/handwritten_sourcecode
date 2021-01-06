@@ -5,7 +5,6 @@ let has = {} // 做 watcher 维护
 let pedding = false
 
 function flushSchedulerQueue() {
-  log('执行更新操作')
   for (let i = 0; i < queue.length; i++) {
     queue[i].run()
   }

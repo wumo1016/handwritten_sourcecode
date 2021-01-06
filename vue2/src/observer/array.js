@@ -30,8 +30,10 @@ methods.forEach(method => {
     }
     // 如果有新增的内容，继续劫持
     if (inserted) {
-      ob.observeArray(observeArray)
+      ob.observeArray(inserted)
     }
+    // 触发更新
+    ob.dep.notify()
   }
 
 })
