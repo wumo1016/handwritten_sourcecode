@@ -25,7 +25,6 @@ class Watcher {
   }
 
   get() {
-    log(this)
     pushTarget(this)
     this.getter()
     popTarget()
