@@ -12,7 +12,7 @@
 
 <body>
   <div id='app' test="wyb" style="color:red;background:#fff">
-    {{ name }}
+    {{ fullName }}
   </div>
   <script src="dist/vue.js"></script>
   <script>
@@ -20,21 +20,19 @@
       el: '#app',
       data() {
         return {
-          name: 'wyb',
+          firstName: 'h',
+          lastName: '1',
         }
       },
-      watch: {
-        name(newVal, oldVal) {
-          log(newVal, oldVal)
+      computed: {
+        fullName() {
+          return this.firstName + this.lastName
         }
       }
     })
     setTimeout(() => {
-      vm.name = 'zf'
+      vm.firstName = 123
     }, 1000)
-    setTimeout(() => {
-      vm.name = 'zf1'
-    }, 2000)
   </script>
 </body>
 

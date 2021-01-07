@@ -39,11 +39,11 @@ class Observer {
   }
 }
 
-function dependArray(value){
+function dependArray(value) {
   for (let i = 0; i < value.length; i++) {
     const current = value[i] // 数组中的数组
     current.__ob__ && current.__ob__.dep.depend()
-    if(Array.isArray(current)){ // 递归处理
+    if (Array.isArray(current)) { // 递归处理
       dependArray(current)
     }
   }
@@ -61,7 +61,7 @@ function defineReactive(data, key, value) {
           childOb.dep.depend()
         }
         // 当页面中使用到数值的数组的时候 直接将内层是数组的值进行依赖收集
-        if(Array.isArray(value)){ // 数组中的数组，主动收集依赖
+        if (Array.isArray(value)) { // 数组中的数组，主动收集依赖
           dependArray(value)
         }
         dep.depend()

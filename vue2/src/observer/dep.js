@@ -7,25 +7,28 @@ class Dep {
   }
   // 将 watcher 存入dep
   // 将 dep 存入watcher
-  depend(){
+  depend() {
     Dep.target.addDep(this)
   }
-  addSub(watcher){
+  addSub(watcher) {
     this.subs.push(watcher)
   }
-  notify(newValue, value){
-    this.subs.forEach(watcher => watcher.update(newValue, value))
+  notify() {
+    this.subs.forEach(watcher => watcher.update())
   }
 }
 
 Dep.target = null
 
+const stack = []
 export function pushTarget(watcher) {
   Dep.target = watcher
+  stack.push(watcher)
 }
 
 export function popTarget() {
-  Dep.target = null
+  stack.pop()
+  Dep.target = stack[stack.length - 1]
 }
 
 export default Dep
