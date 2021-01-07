@@ -7,6 +7,7 @@ import {
 import {
   renderMixin
 } from "./render"
+import { stateMixin } from "./state"
 
 
 function Vue(options) {
@@ -16,5 +17,6 @@ function Vue(options) {
 initMixin(Vue)
 renderMixin(Vue) // _render
 lifecycleMixin(Vue) // _update
+stateMixin(Vue)
 
 export default Vue

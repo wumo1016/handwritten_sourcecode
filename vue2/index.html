@@ -20,15 +20,21 @@
       el: '#app',
       data() {
         return {
-          name: [
-            [1, 2, 3]
-          ],
+          name: 'wyb',
+        }
+      },
+      watch: {
+        name(newVal, oldVal) {
+          log(newVal, oldVal)
         }
       }
     })
     setTimeout(() => {
-      vm.name[0].push(3)
+      vm.name = 'zf'
     }, 1000)
+    setTimeout(() => {
+      vm.name = 'zf1'
+    }, 2000)
   </script>
 </body>
 

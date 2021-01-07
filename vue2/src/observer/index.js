@@ -71,8 +71,8 @@ function defineReactive(data, key, value) {
     set(newValue) {
       if (newValue !== value) {
         observe(newValue) // 如果用户赋值一个新对象，需要劫持
-        value = newValue
         dep.notify()
+        value = newValue
       }
     }
   })
