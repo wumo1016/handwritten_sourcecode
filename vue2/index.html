@@ -12,27 +12,25 @@
 
 <body>
   <div id='app' test="wyb" style="color:red;background:#fff">
-    {{ fullName }}
+
   </div>
   <script src="dist/vue.js"></script>
   <script>
+    Vue.mixin({
+      beforeCreate() {
+        log('brforeCreate1')
+      }
+    })
     const vm = new Vue({
       el: '#app',
       data() {
-        return {
-          firstName: 'h',
-          lastName: '1',
-        }
+        return {}
       },
-      computed: {
-        fullName() {
-          return this.firstName + this.lastName
-        }
+      beforeCreate() {
+        log('brforeCreate2')
       }
     })
-    setTimeout(() => {
-      vm.firstName = 123
-    }, 1000)
+    setTimeout(() => {}, 1000)
   </script>
 </body>
 

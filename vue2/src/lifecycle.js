@@ -1,6 +1,10 @@
 import Watcher from "./observer/watcher"
-import { nextTick } from "./utils"
-import { patch } from "./vdom/patch"
+import {
+  nextTick
+} from "./utils"
+import {
+  patch
+} from "./vdom/patch"
 
 export function lifecycleMixin(Vue) {
   Vue.prototype._update = function (vnode) {
@@ -22,9 +26,24 @@ export function mountComponent(vm, el) {
     // log(vdom)
     vm._update(vnode)
   }
+
+  // 挂载之前
+  callHook(vm, 'beforeMount')
+
   // updateComponent()
   // true 代表渲染 watcher
   new Watcher(vm, updateComponent, () => {
     log('更新啦')
   }, true)
+}
+
+// 调用钩子函数
+export function callHook(vm, hook) {
+  // log(vm.$options)
+  const handler = vm.$options[hook]
+  if (handler) {
+    for (let i = 0; i < handler.length; i++) {
+      handler[i].call(vm)
+    }
+  }
 }
