@@ -48,6 +48,7 @@ export function nextTick(cb) {
 
 // mergeOptions
 const strats = {}
+// 生命周期合并策略
 const lifeCycleHooks = [
   'beforeCreate',
   'created',
@@ -75,6 +76,18 @@ function mergeHook(parentVal, childVal) {
   }
 }
 
+// components 合并策略
+// 组件自己定义的组件和全局组件冲突 使当前组件的 components.__proto__ 能找到全局的components
+strats.components = function(parentVal, childVal){
+  let components = Object.create(parentVal)
+  if(childVal){
+    for (const key in childVal) {
+      components[key] = childVal[key]
+    }
+  }
+  return components
+}
+
 export function mergeOptions(parent, child) {
   const options = {}
   for (const key in parent) {
@@ -82,7 +95,7 @@ export function mergeOptions(parent, child) {
   }
   for (const key in child) {
     if (parent.hasOwnProperty(key)) {
-      break
+      continue
     }
     mergeField(key)
   }
@@ -93,18 +106,21 @@ export function mergeOptions(parent, child) {
     // 策略模式
     // 如果有对象的策略 走策略方法
     const strat = strats[key] || defaultStrat
-    options[key] = strat(parentVal, childVal, key)
+    options[key] = strat(parentVal, childVal)
   }
 
-  function defaultStrat(parentVal, childVal, key) {
+  function defaultStrat(parentVal, childVal) {
+    let targetVal
     if (isObject(parentVal) && isObject(childVal)) {
-      options[key] = {
+      targetVal = {
         ...parentVal,
         ...childVal
       }
     } else {
-      options[key] = childVal
+      targetVal = childVal || parentVal
     }
+    return targetVal
   }
+  console.log(options);
   return options
 }

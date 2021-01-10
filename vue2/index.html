@@ -12,22 +12,19 @@
 
 <body>
   <div id='app' test="wyb" style="color:red;background:#fff">
-
+    <wm-button></wm-button>
   </div>
   <script src="dist/vue.js"></script>
   <script>
-    Vue.mixin({
-      beforeCreate() {
-        log('brforeCreate1')
-      }
+    Vue.component('wm-button', {
+      template: '<button>测试1</button>'
     })
     const vm = new Vue({
       el: '#app',
-      data() {
-        return {}
-      },
-      beforeCreate() {
-        log('brforeCreate2')
+      components: {
+        'wm-button': {
+          template: '<button>测试2</button>'
+        }
       }
     })
     setTimeout(() => {}, 1000)
