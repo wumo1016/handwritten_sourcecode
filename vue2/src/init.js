@@ -44,6 +44,6 @@ export function initMixin(Vue) { // 在Vue的基础上做混合操作
       }
       options.render = compileToFunction(template)
     }
-    mountComponent(vm, el)
+    mountComponent(vm)
   }
 }

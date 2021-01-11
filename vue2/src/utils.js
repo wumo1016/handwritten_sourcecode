@@ -2,6 +2,11 @@ export const isFunction = value => typeof value === 'function'
 
 export const isObject = value => (typeof value === 'object') && value !== null
 
+export const isReservedTag = tagName => {
+  let str = 'div,span,ul,li,p,img,button,a'
+  return str.split(',').includes(tagName)
+}
+
 // nextTick
 let cbs = [],
   waiting = false
@@ -78,9 +83,9 @@ function mergeHook(parentVal, childVal) {
 
 // components 合并策略
 // 组件自己定义的组件和全局组件冲突 使当前组件的 components.__proto__ 能找到全局的components
-strats.components = function(parentVal, childVal){
+strats.components = function (parentVal, childVal) {
   let components = Object.create(parentVal)
-  if(childVal){
+  if (childVal) {
     for (const key in childVal) {
       components[key] = childVal[key]
     }
@@ -121,6 +126,5 @@ export function mergeOptions(parent, child) {
     }
     return targetVal
   }
-  console.log(options);
   return options
 }

@@ -12,6 +12,7 @@
 
 <body>
   <div id='app' test="wyb" style="color:red;background:#fff">
+    <div>测试</div>
     <wm-button></wm-button>
   </div>
   <script src="dist/vue.js"></script>
@@ -23,11 +24,10 @@
       el: '#app',
       components: {
         'wm-button': {
-          template: '<button>测试2</button>'
+          template: '<button>测试2</button>',
         }
-      }
+      },
     })
-    setTimeout(() => {}, 1000)
   </script>
 </body>
 
