@@ -29,7 +29,7 @@ export function mountComponent(vm) {
   // updateComponent()
   // true 代表渲染 watcher
   new Watcher(vm, updateComponent, () => {
-    log('更新啦')
+    log('渲染watcher的回调')
   }, true)
 
   callHook(vm, 'mounted')

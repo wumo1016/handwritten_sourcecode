@@ -23,6 +23,9 @@ function createComponent(vm, tag, props, key, children, Ctor) {
     init(vnode) {
       // 此时只是初始化 进行了选项合并 并未挂载
       // 在vnode上保存一个当前组件的实例 方便patch中createElm中执行组件渲染后 可以拿到 vm.$el
+      if(!Ctor){
+        throw new Error(`请注册组件${tag}`)
+      }
       const vm = vnode.componentInstance = new Ctor({ isComponent: true })
       vm.$mount()
       // 挂载完就可以拿到$el
@@ -44,7 +47,7 @@ function vnode(vm, tag, data, key, children, text, componentOptions) {
     tag,
     data,
     key,
-    children,
+    children: children || [],
     text,
     componentOptions
   }

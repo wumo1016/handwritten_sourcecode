@@ -8,8 +8,8 @@ function createComponent(vnode) {
     }
   }
 }
-
-function createElm(vnode) {
+// 将vnode生成真实节点
+export function createElm(vnode) {
   const {
     vm,
     tag,
@@ -24,6 +24,7 @@ function createElm(vnode) {
       return vnode.componentInstance.$el
     }
     vnode.el = document.createElement(tag)
+    patchProps(vnode) // 设置属性
     if (children) {
       children.forEach(child => {
         vnode.el.appendChild(createElm(child))
@@ -51,5 +52,119 @@ export function patch(oldVnode, vnode) {
     parentElm.removeChild(oldVnode) // 最后删除老的dom
 
     return elm
+  } else { // 新旧 vnode diff
+    // 新的和旧的标签不一样 直接替换
+    if (oldVnode.tag !== vnode.tag) {
+      return oldVnode.el.parentNode.replaceChild(createElm(vnode), oldVnode.el)
+    }
+
+    // 新的和旧的标签一样 复用老的el
+    let el = vnode.el = oldVnode.el
+    // 如果两个节点是文本节点 比较文本内容
+    if (!vnode.tag) {
+      if (vnode.text !== oldVnode.text) {
+        el.textContent = vnode.text
+      }
+      return
+    }
+    // 比较属性
+    patchProps(vnode, oldVnode)
+
+    // 比对 chlidren
+    const oldChildren = oldVnode.children
+    const newChildren = vnode.children
+    if (oldChildren.length > 0 && newChildren.length > 0) { // 都有chlidren
+      patchChildren(el, oldChildren, newChildren)
+    } else if (newChildren.length > 0) { // 新的有 老的没有
+      for (let i = 0; i < newChildren.length; i++) {
+        const child = createElm(newChildren[i])
+        el.appendChild(child)
+      }
+    } else if (oldChildren.length > 0) { // 老的有 新的没有
+      el.innerHTML = ''
+    }
   }
+}
+
+// 初次渲染以及更新属性
+function patchProps(vnode, oldVnode) {
+  const newProps = vnode.data || {}
+  const oldProps = oldVnode && oldVnode.data || {}
+  const el = vnode.el
+  for (const [key, value] of Object.entries(newProps)) {
+    if (key === 'style') {
+      for (const sn in value) {
+        el.style[sn] = value[sn]
+      }
+    } else {
+      el.setAttribute(key, value)
+    }
+  }
+  for (const key in oldProps) {
+    if (key === 'style') {
+      for (const sn in oldProps[key]) {
+        if (!newProps[key][sn]) {
+          el.style[sn] = null
+        }
+      }
+      continue
+    }
+    if (!newProps[key]) {
+      el.removeAttribute(key)
+    }
+  }
+}
+
+// 比对children
+function patchChildren(el, oldChildren, newChildren) {
+  // 分别取 老的和新children的第一个和最后的索引和值
+  let oldStartIndex = 0
+  let oldStartVnode = oldChildren[oldStartIndex]
+  let oldEndIndex = oldChildren.length - 1
+  let oldEndVnode = oldChildren[oldEndIndex]
+
+  let newStartIndex = 0
+  let newStartVnode = newChildren[newStartIndex]
+  let newEndIndex = newChildren.length - 1
+  let newEndVnode = newChildren[newEndIndex]
+
+  // 循环新旧指针 有一方指针重合时 结束比对
+  while (oldStartIndex <= oldEndIndex && newStartIndex <= newEndIndex) {
+    if (sameVnode(oldStartVnode, newStartVnode)) { // diff1 头头比较 标签一致 直接patch
+      patch(oldStartVnode, newStartVnode)
+      oldStartVnode = oldChildren[++oldStartIndex]
+      newStartVnode = newChildren[++newStartIndex]
+    } else if (sameVnode(oldEndVnode, newEndVnode)) { // diff3 尾尾比较
+      patch(oldEndVnode, newEndVnode)
+      oldEndVnode = oldChildren[--oldEndIndex]
+      newEndVnode = newChildren[--newEndIndex]
+    } else if(sameVnode(oldStartVnode, newEndVnode)) { // diff5 旧头新尾比较 旧头后移 新尾前移 并且将前面的元素移动到oldEndVnode的前面
+      patch(oldStartVnode, newEndVnode)
+      el.insertBefore(oldStartVnode.el, oldEndVnode.el.nextSibling)
+      oldStartVnode = oldChildren[++oldStartIndex]
+      newEndVnode = newChildren[--newEndIndex]
+    } else if(sameVnode(newStartVnode, oldEndVnode)){ // diff6 新头旧尾
+      patch(oldStartVnode, newEndVnode)
+      el.insertBefore(oldEndVnode.el, oldStartVnode.el)
+      oldEndVnode = oldChildren[--oldEndIndex]
+      newStartVnode = newChildren[++newStartIndex]
+    }
+  }
+
+  while (newStartIndex <= newEndIndex) { // diff2 头尾新增
+    // 取尾指针的下一个元素 作为插入标记 如果有下一个元素就是往前插入 没有就是往后插
+    const anchor = newChildren[newEndIndex + 1]
+    el.insertBefore(createElm(newStartVnode), anchor && anchor.el || null)
+    newStartVnode = newChildren[++newStartIndex]
+  }
+  while(oldStartIndex <= oldEndIndex){ // diff4 头尾减少
+    el.removeChild(oldStartVnode.el)
+    oldStartVnode = oldChildren[++oldStartIndex]
+  }
+
+}
+
+// 是否是同一节点
+function sameVnode(oldVnode, newVnode) {
+  return (oldVnode.tag === newVnode.tag) && (oldVnode.key === newVnode.key)
 }
