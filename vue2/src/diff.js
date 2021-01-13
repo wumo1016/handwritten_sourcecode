@@ -104,7 +104,7 @@ let newTemplate = `<ul>
     <li key='a'>a</li>
   </ul>`
 
-  /* ----------------- diff6 ---------------------- */
+/* ----------------- diff6 ---------------------- */
 let oldTemplate = `<ul>
 <li key='a'>a</li>
 <li key='b'>b</li>
@@ -118,3 +118,18 @@ let newTemplate = `<ul>
   <li key='b'>b</li>
   <li key='a'>a</li>
 </ul>`
+/* ----------------- diff7 ---------------------- */
+let oldTemplate = `<ul>
+  <li key='c'>c</li>
+  <li key='a'>a</li>
+  <li key='b'>b</li>
+  <li key='d'>d</li>
+</ul>`
+
+let newTemplate = `<ul>
+    <li key='b'>b</li>
+    <li key='c'>c</li>
+    <li key='d'>d</li>
+    <li key='a'>a</li>
+    <li key='e'>e</li>
+  </ul>`

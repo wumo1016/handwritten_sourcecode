@@ -60,6 +60,7 @@ export function patch(oldVnode, vnode) {
 
     // 新的和旧的标签一样 复用老的el
     let el = vnode.el = oldVnode.el
+
     // 如果两个节点是文本节点 比较文本内容
     if (!vnode.tag) {
       if (vnode.text !== oldVnode.text) {
@@ -83,6 +84,7 @@ export function patch(oldVnode, vnode) {
     } else if (oldChildren.length > 0) { // 老的有 新的没有
       el.innerHTML = ''
     }
+    return el
   }
 }
 
@@ -128,8 +130,24 @@ function patchChildren(el, oldChildren, newChildren) {
   let newEndIndex = newChildren.length - 1
   let newEndVnode = newChildren[newEndIndex]
 
+  const getIndexByKey = (children) => {
+    return children.reduce((obj, current, index) => {
+      obj[current.key] = index
+      return obj
+    }, {})
+  }
+  const keysMap = getIndexByKey(oldChildren) // { a: 0, b: 1, c: 2, d: 3 }
+
   // 循环新旧指针 有一方指针重合时 结束比对
   while (oldStartIndex <= oldEndIndex && newStartIndex <= newEndIndex) {
+    // 如果出现null的情况，直接跳到下一个
+    if (!oldStartVnode) {
+      oldStartVnode = oldChildren[++oldStartIndex]
+      continue
+    } else if (!oldEndVnode) {
+      oldEndVnode = oldChildren[--oldEndIndex]
+      continue
+    }
     if (sameVnode(oldStartVnode, newStartVnode)) { // diff1 头头比较 标签一致 直接patch
       patch(oldStartVnode, newStartVnode)
       oldStartVnode = oldChildren[++oldStartIndex]
@@ -138,15 +156,28 @@ function patchChildren(el, oldChildren, newChildren) {
       patch(oldEndVnode, newEndVnode)
       oldEndVnode = oldChildren[--oldEndIndex]
       newEndVnode = newChildren[--newEndIndex]
-    } else if(sameVnode(oldStartVnode, newEndVnode)) { // diff5 旧头新尾比较 旧头后移 新尾前移 并且将前面的元素移动到oldEndVnode的前面
+    } else if (sameVnode(oldStartVnode, newEndVnode)) { // diff5 旧头新尾 旧头后移 新尾前移 并且将前面的元素移动到oldEndVnode的前面
       patch(oldStartVnode, newEndVnode)
       el.insertBefore(oldStartVnode.el, oldEndVnode.el.nextSibling)
       oldStartVnode = oldChildren[++oldStartIndex]
       newEndVnode = newChildren[--newEndIndex]
-    } else if(sameVnode(newStartVnode, oldEndVnode)){ // diff6 新头旧尾
-      patch(oldStartVnode, newEndVnode)
+    } else if (sameVnode(newStartVnode, oldEndVnode)) { // diff6 新头旧尾
+      patch(oldEndVnode, newStartVnode)
       el.insertBefore(oldEndVnode.el, oldStartVnode.el)
       oldEndVnode = oldChildren[--oldEndIndex]
+      newStartVnode = newChildren[++newStartIndex]
+    } else { // diff7 乱序比对
+      // 需要做一个 key 的映射表
+      const moveIndex = keysMap[newStartVnode.key]
+      if (moveIndex) {
+        const moveVnode = oldChildren[moveIndex]
+        oldChildren[moveIndex] = null // 将移走的节点设置成null
+        log(oldChildren)
+        el.insertBefore(moveVnode.el, oldStartVnode.el)
+        patch(moveVnode, newStartVnode)
+      } else { // 如果新节点老的没有 直接将新的插入到老的当前节点前面
+        el.insertBefore(createElm(newStartVnode), oldStartVnode.el)
+      }
       newStartVnode = newChildren[++newStartIndex]
     }
   }
@@ -157,8 +188,8 @@ function patchChildren(el, oldChildren, newChildren) {
     el.insertBefore(createElm(newStartVnode), anchor && anchor.el || null)
     newStartVnode = newChildren[++newStartIndex]
   }
-  while(oldStartIndex <= oldEndIndex){ // diff4 头尾减少
-    el.removeChild(oldStartVnode.el)
+  while (oldStartIndex <= oldEndIndex) { // diff4 头尾减少
+    if (oldStartVnode) el.removeChild(oldStartVnode.el)
     oldStartVnode = oldChildren[++oldStartIndex]
   }
 

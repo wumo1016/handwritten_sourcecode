@@ -9,7 +9,13 @@ import {
 export function lifecycleMixin(Vue) {
   Vue.prototype._update = function (vnode) {
     const vm = this
-    vm.$el = patch(vm.$el, vnode) // 更新实例保存的dom 因为原来的已经被删除了
+    const prevVnode = vm._vnode // 取上一次的vnode
+    if (!prevVnode) {
+      vm.$el = patch(vm.$el, vnode) // 更新实例保存的dom 因为原来的已经被删除了
+    } else {
+      vm.$el = patch(prevVnode, vnode)
+    }
+    vm._vnode = vnode
   }
   Vue.prototype.$nextTick = nextTick
 }
