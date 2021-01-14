@@ -172,7 +172,6 @@ function patchChildren(el, oldChildren, newChildren) {
       if (moveIndex) {
         const moveVnode = oldChildren[moveIndex]
         oldChildren[moveIndex] = null // 将移走的节点设置成null
-        log(oldChildren)
         el.insertBefore(moveVnode.el, oldStartVnode.el)
         patch(moveVnode, newStartVnode)
       } else { // 如果新节点老的没有 直接将新的插入到老的当前节点前面
