@@ -1,4 +1,3 @@
-
 const HhmlWebpackPlugin = require('html-webpack-plugin')
 const {
   merge

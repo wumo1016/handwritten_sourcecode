@@ -6,7 +6,9 @@
   <title>Document</title>
 </head>
 <body>
+  <!-- 插入编译后的字符串 -->
   <!--vue-ssr-outlet-->
-  <script src="/client.bundle.js"></script>
+  <!-- ejs模板 -->
+  <script src="<%=htmlWebpackPlugin.options.client%>"></script>
 </body>
 </html>

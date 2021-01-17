@@ -20,6 +20,7 @@ module.exports = merge(base, {
       filename: 'server.html',
       excludeChunks: ['server'], // 不将生成 server 文件加入到 hmtl 中
       minify: false, // 不压缩
+      client: '/client.bundle.js',
     }),
   ]
 })
