@@ -11,15 +11,14 @@
 
 // html-webpack-plugin 将打包的
 
-const HhmlWebpackPlugin = require('html-webpack-plugin')
 const VueLoaderPlugin = require('vue-loader/lib/plugin')
 
 const path = require('path')
 module.exports = {
   mode: 'development',
-  entry: path.resolve(__dirname, 'src/main.js'),
   output: {
-    filename: '[name].bundle.js' // 默认是dist目录
+    filename: '[name].bundle.js', // 默认是dist目录
+    path: path.resolve(__dirname, '../dist')
   },
   module: {
     rules: [{
@@ -39,7 +38,7 @@ module.exports = {
       {
         test: /\.css$/,
         use: [
-          'vue-style-loader', 
+          'vue-style-loader',
           {
             loader: 'css-loader',
             options: {
@@ -51,9 +50,6 @@ module.exports = {
     ]
   },
   plugins: [
-    new HhmlWebpackPlugin({
-      template: path.resolve(__dirname, 'public/index.html')
-    }),
-    new VueLoaderPlugin()
+    new VueLoaderPlugin() // 配合 vue-loader 使用
   ]
 }
