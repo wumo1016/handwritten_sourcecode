@@ -8,10 +8,14 @@
 
 <script>
 export default {
-  asyncData(store){ // 服务端返回页面之前会调用
-    return store.dispatch('changeName', 'test')
-  }
-}
+  asyncData(store) {
+    // 服务端返回页面之前会调用
+    // return store.dispatch('changeName', 'test')
+  },
+  mounted() {
+    this.$store.dispatch("changeName", "test")
+  },
+};
 </script>
 
 <style lang="scss" scoped>
