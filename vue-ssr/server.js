@@ -11,7 +11,7 @@ const router = new Router()
 
 const serverBundle = fs.readFileSync(path.resolve(__dirname, 'dist/server.bundle.js'), 'utf8')
 const template = fs.readFileSync(path.resolve(__dirname, 'dist/server.html'), 'utf8')
-const render = VueServerRenderer.createBundleRenderer(serverBundle, {
+const render = VueServerRenderer.createBundleRenderer(serverBundle, { // 获取vue的实例
   template: template
 })
 
@@ -39,7 +39,7 @@ router.get('/(.*)', async (ctx) => {
 
 // 如果有index.html文件 注意需要把路由放在上面 因为访问根路径时会默认找index.html 如果找到 就不会再走router
 
-//当客户端发送请求时 会先去dist目录下查找
+// 当客户端发送请求时 会先去dist目录下查找
 app.use(static(path.resolve(__dirname, 'dist')))
 // 将路由注册到应用上
 app.use(router.routes())
