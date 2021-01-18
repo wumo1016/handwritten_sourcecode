@@ -1,13 +1,13 @@
 <template>
   <div id="app">
-    123456
+    {{ $store.state.name }}
+    <button @click="$store.state.name++">increment</button>
   </div>
 </template>
 
 <script>
-
 export default {
-  name: 'App',
+  name: "App",
 }
 </script>
 
