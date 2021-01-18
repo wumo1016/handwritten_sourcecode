@@ -15,10 +15,12 @@ const render = VueServerRenderer.createBundleRenderer(serverBundle, {
   template: template
 })
 
+// renderToString 执行的就是前端导出的实例方法
+
 // 这些写才能时样式生效
 router.get('/', async (ctx) => {
   ctx.body = await new Promise((r, j) => {
-    render.renderToString((err, html) => {
+    render.renderToString({ url: ctx.url }, (err, html) => {
       if(err) j(err)
       r(html)
     })
@@ -28,8 +30,8 @@ router.get('/', async (ctx) => {
 // 当用户访问一个不存在的路径 通过前端的js渲染的时候 会重新根据路劲渲染组件
 router.get('/(.*)', async (ctx) => {
   ctx.body = await new Promise((r, j) => {
-    render.renderToString((err, html) => {
-      if(err) j(err)
+    render.renderToString({ url: ctx.url }, (err, html) => {
+      if(err && err.code == 404) r(`not found`)
       r(html)
     })
   })

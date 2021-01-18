@@ -4,12 +4,12 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "npm run dev:client",
+    "start": "npm run dev:server",
     "dev:client": "webpack serve --config scripts/webpack.dev.js",
+    "dev:server": "nodemon server",
+    "build:all": "concurrently \"npm run build:client\" \"npm run build:server\"",
     "build:client": "webpack --config scripts/webpack.dev.js --watch",
-    "build:server": "webpack --config scripts/webpack.server.js --watch",
-    "run:all": "concurrently \"npm run build:client\" \"npm run build:server\"",
-    "dev:server": "nodemon server"
+    "build:server": "webpack --config scripts/webpack.server.js --watch"
   },
   "keywords": [],
   "author": "wuyibo <760478279wyb@gmail.com>",
