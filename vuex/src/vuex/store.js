@@ -3,7 +3,7 @@ import {
 } from './install'
 
 class Store {
-
+  
   constructor(options) {
     const {
       state,
