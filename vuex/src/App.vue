@@ -1,13 +1,27 @@
 <template>
   <div id="app">
-  
+    <h2>store</h2>
     {{ $store.state.name }}
     {{ $store.getters.myName }}
-    {{ $store.getters.myName }}
+    <div>
+      <button @click="$store.commit('changeName', 1)">commit</button>
+    </div>
 
-    <button @click="$store.state.name++">increment1</button>
-    <button @click="$store.commit('changeName', 10)">commit increment10</button>
-    <button @click="$store.dispatch('changeName', 10)">dispatch increment10</button>
+    <h2>a</h2>
+
+    {{ $store.state.a.name }}
+    {{ $store.getters.myNamea }}
+    <div>
+      <!-- <button @click="$store.commit('a/changeName', 1)">commit</button> -->
+    </div>
+
+    <!-- <h2>b</h2>
+
+    {{ $store.state.b.name }}
+    {{ $store.getters['b/myNameb'] }}
+    <div>
+      <button @click="$store.commit('b/changeName', 1)">commit</button>
+    </div> -->
 
   </div>
 </template>
@@ -15,8 +29,8 @@
 <script>
 export default {
   name: "App",
-  methods: {}
-}
+  methods: {},
+};
 </script>
 
 <style>
