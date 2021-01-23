@@ -115,6 +115,12 @@ class Store {
       })
     }
 
+    if(options.plugins){
+      options.plugins.forEach(plugin => {
+        plugin(this)
+      })
+    }
+
   }
 
   get state() {
