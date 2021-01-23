@@ -6,6 +6,12 @@ import {
   forEach
 } from './util'
 
+function newNewState(store, path){
+  return path.reduce((memo, current) => {
+    return memo[current]
+  }, store.state)
+}
+
 function installModule(store, rootState, path, currentModule) {
 
   // 根据 path 生成命名空间
@@ -26,14 +32,17 @@ function installModule(store, rootState, path, currentModule) {
   // 没有 namespace getters都放在根上 actions和mutations会被合并成数组
   currentModule.forEachGetter((fn, key) => {
     store.wrapperGetters[nsKey(key)] = function () {
-      return fn.call(store, currentModule.state)
+      return fn.call(store, newNewState(store, path))
     }
   })
 
   currentModule.forEachMutation((fn, key) => {
     store.mutations[nsKey(key)] = store.mutations[nsKey(key)] || []
     store.mutations[nsKey(key)].push((payload) => {
-      return fn.call(store, currentModule.state, payload)
+      fn.call(store, newNewState(store, path), payload)
+      store._subscribes.forEach(fn => {
+        fn({ type: nsKey(key), payload }, store.state)
+      })
     })
   })
 
@@ -60,6 +69,7 @@ class Store {
     this.getters = {}
     this.mutations = {}
     this.actions = {}
+    this._subscribes = []
 
     const computed = {}
 
@@ -83,6 +93,12 @@ class Store {
       computed
     })
 
+    if(options.plugins){
+      options.plugins.forEach(plugin => {
+        plugin(this)
+      })
+    }
+
   }
 
   get state() {
@@ -95,6 +111,14 @@ class Store {
 
   dispatch = (type, payload) => {
     this.actions[type] && this.actions[key].forEach(fn => fn(payload))
+  }
+
+  subscribe(fn){
+    this._subscribes.push(fn)
+  }
+
+  replaceState(newState){
+    this._vm._data.$$state = newState
   }
 
 }

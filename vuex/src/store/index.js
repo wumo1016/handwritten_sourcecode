@@ -1,7 +1,7 @@
 import Vue from 'vue'
-import Vuex from 'vuex'
+// import Vuex from 'vuex'
 // import logger from 'vuex/dist/logger'
-// import Vuex from '@/vuex'
+import Vuex from '@/vuex'
 
 Vue.use(Vuex)
 
@@ -12,7 +12,6 @@ Vue.use(Vuex)
 //       console.log('prevState', prevState)
 //       console.log('mutation', mutation);
 //       console.log('currentState', JSON.stringify(state))
-
 //       prevState = JSON.stringify(state)
 //     })
 //   }
