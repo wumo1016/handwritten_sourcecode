@@ -35,6 +35,15 @@ class ModuleCollection {
 
     return newModule
   }
+
+  getNamespace(path){ // return a/c
+    let root = this.root
+    return path.reduce((ns, key) => {
+      const module = root.getChild(key)
+      root = module
+      return module.namespaced ? `${ns}${key}/` : ns
+    }, '')
+  }
 }
 
 export default ModuleCollection

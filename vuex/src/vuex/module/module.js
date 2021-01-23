@@ -32,6 +32,10 @@ class Module {
     forEach(this._children, cb)
   }
 
+  get namespaced(){
+    return !!this._raw.namespaced
+  }
+
 }
 
 export default Module

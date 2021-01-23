@@ -8,6 +8,10 @@ import {
 
 function installModule(store, rootState, path, currentModule) {
 
+  // 根据 path 生成命名空间
+  const ns = store.modules.getNamespace(path)
+  const nsKey = key => ns + key
+
   // 组装 state 关系
   if (path.length > 0) {
     // 需要找到对应的父模块 将当前模块的state声明到父模块中的state中
@@ -21,21 +25,21 @@ function installModule(store, rootState, path, currentModule) {
 
   // 没有 namespace getters都放在根上 actions和mutations会被合并成数组
   currentModule.forEachGetter((fn, key) => {
-    store.wrapperGetters[key] = function () {
+    store.wrapperGetters[nsKey(key)] = function () {
       return fn.call(store, currentModule.state)
     }
   })
 
   currentModule.forEachMutation((fn, key) => {
-    store.mutations[key] = store.mutations[key] || []
-    store.mutations[key].push((payload) => {
+    store.mutations[nsKey(key)] = store.mutations[nsKey(key)] || []
+    store.mutations[nsKey(key)].push((payload) => {
       return fn.call(store, currentModule.state, payload)
     })
   })
 
   currentModule.forEachAction((fn, key) => {
-    store.actions[key] = store.actions[key] || []
-    store.actions[key].push((payload) => {
+    store.actions[nsKey(key)] = store.actions[nsKey(key)] || []
+    store.actions[nsKey(key)].push((payload) => {
       return fn.call(store, store, payload)
     })
   })
@@ -62,6 +66,8 @@ class Store {
     // 组装 state getters mutations actions 等模块
     const state = options.state
     installModule(this, state, [], this.modules.root)
+
+    console.log(this);
 
     forEach(this.wrapperGetters, (getter, key) => {
       computed[key] = getter
