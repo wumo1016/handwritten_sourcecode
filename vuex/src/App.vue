@@ -15,13 +15,31 @@
       <button @click="$store.commit('a/changeName', 1)">commit</button>
     </div>
 
+    <h3>b</h3>
+    <button @click="regiterModule">动态注册</button>
+    {{ $store.state.b && $store.state.b.name }}
+    {{ $store.getters['b/myName'] }}
+
   </div>
 </template>
 
 <script>
+import store from './store'
 export default {
   name: "App",
-  methods: {},
+  methods: {
+    regiterModule(){
+      store.registerModule('b', {
+        namespaced: true,
+        state: {
+          name: 123
+        },
+        getters: {
+          myName: (state) => state.name + 1
+        }
+      })
+    }
+  },
 };
 </script>
 

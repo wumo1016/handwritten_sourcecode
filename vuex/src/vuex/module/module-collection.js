@@ -16,6 +16,7 @@ class ModuleCollection {
   register(path, rawModule) {
 
     const newModule = new Module(rawModule)
+    rawModule.newModule = newModule
 
     if (path.length === 0) {
       this.root = newModule
