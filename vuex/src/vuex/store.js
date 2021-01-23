@@ -145,7 +145,7 @@ class Store {
   }
 
   dispatch = (type, payload) => {
-    this.actions[type] && this.actions[key].forEach(fn => fn(payload))
+    this.actions[type] && this.actions[type].forEach(fn => fn(payload))
   }
 
   subscribe(fn) {

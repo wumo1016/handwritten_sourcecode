@@ -5,17 +5,17 @@ import Vuex from '@/vuex'
 
 Vue.use(Vuex)
 
-// function logger(){
-//   return function(store){
-//     let prevState = JSON.stringify(store.state)
-//     store.subscribe((mutation, state) => {
-//       console.log('prevState', prevState)
-//       console.log('mutation', mutation);
-//       console.log('currentState', JSON.stringify(state))
-//       prevState = JSON.stringify(state)
-//     })
-//   }
-// }
+function logger(){
+  return function(store){
+    let prevState = JSON.stringify(store.state)
+    store.subscribe((mutation, state) => {
+      console.log('prevState', prevState)
+      console.log('mutation', mutation);
+      console.log('currentState', JSON.stringify(state))
+      prevState = JSON.stringify(state)
+    })
+  }
+}
 
 // 持久化
 function persists(){
@@ -34,7 +34,7 @@ const store =  new Vuex.Store({
   strict: true,
   plugins: [
     // logger()
-    persists()
+    // persists()
   ],
   state: {
     name: 'wyb',
@@ -50,6 +50,9 @@ const store =  new Vuex.Store({
     }
   },
   actions: {
+    changeNames({commit}, paylaod){
+      commit('changeName', paylaod)
+    }
   },
   modules: {
     a: {

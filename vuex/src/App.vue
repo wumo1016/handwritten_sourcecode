@@ -1,16 +1,24 @@
 <template>
   <div id="app">
-    <h2>store</h2>
+    <!-- <h2>store</h2>
     {{ $store.state.name }}
     {{ $store.getters.myName }}
+    
     <div>
       <button @click="$store.commit('changeName', 1)">commit</button>
-      <button @click="$store.state.name+=1">直接更改</button>
+      <button @click="$store.dispatch('changeNames', 1)">action</button>
+    </div> -->
 
+    <h2>store</h2>
+    {{ name }}
+    {{ myName }}
+    
+    <div>
+      <button @click="changeName(1)">commit</button>
+      <button @click="changeNames(1)">action</button>
     </div>
 
     <h2>a</h2>
-
     {{ $store.state.a.name }}
     {{ $store.getters['a/myNamea'] }}
     <div>
@@ -27,9 +35,17 @@
 
 <script>
 import store from './store'
+// import { mapState, mapGetters } from 'vuex'
+import { mapState, mapGetters, mapMutations, mapActions } from '@/vuex'
 export default {
   name: "App",
+  computed: {
+    ...mapState(['name']),
+    ...mapGetters(['myName']),
+  },
   methods: {
+    ...mapMutations(['changeName']),
+    ...mapActions(['changeNames']),
     regiterModule(){
       store.registerModule('b', {
         namespaced: true,
