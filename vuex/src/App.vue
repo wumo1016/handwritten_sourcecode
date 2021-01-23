@@ -5,6 +5,8 @@
     {{ $store.getters.myName }}
     <div>
       <button @click="$store.commit('changeName', 1)">commit</button>
+      <button @click="$store.state.name+=1">直接更改</button>
+
     </div>
 
     <h2>a</h2>

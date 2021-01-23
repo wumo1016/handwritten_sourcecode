@@ -25,8 +25,9 @@ function installModule(store, rootState, path, currentModule) {
       return memo[key]
     }, rootState)
     // 由于有可能是新添加的属性 所以需要设置响应式 (动态注册模块)
-    Vue.set(parentState, path[path.length - 1], currentModule.state)
-    // parentState[path[path.length - 1]] = currentModule.state
+    store._withcommitting(() => {
+      Vue.set(parentState, path[path.length - 1], currentModule.state)
+    })
   }
 
   // 没有 namespace getters都放在根上 actions和mutations会被合并成数组
@@ -39,7 +40,9 @@ function installModule(store, rootState, path, currentModule) {
   currentModule.forEachMutation((fn, key) => {
     store.mutations[nsKey(key)] = store.mutations[nsKey(key)] || []
     store.mutations[nsKey(key)].push((payload) => {
-      fn.call(store, newNewState(store, path), payload)
+      store._withcommitting(() => { // 监控非法修改state
+        fn.call(store, newNewState(store, path), payload)
+      })
       store._subscribes.forEach(fn => {
         fn({
           type: nsKey(key),
@@ -86,8 +89,17 @@ function resetVM(store, state) {
     computed
   })
 
-  if(oldVm) Vue.nextTick(() => oldVm.$destroy())
-  
+  if (store.strict) { // 严格模式
+    store._vm.$watch(() => store._vm._data.$$state, () => {
+      console.assert(store._committing, '不是通过mutation更改的state');
+    }, {
+      deep: true,
+      sync: true // 同步 watcher
+    })
+  }
+
+  if (oldVm) Vue.nextTick(() => oldVm.$destroy())
+
 }
 
 class Store {
@@ -97,11 +109,12 @@ class Store {
     this.modules = new ModuleCollection(options) // 模块格式化
 
     this.wrapperGetters = {}
-    
+
     this.mutations = {}
     this.actions = {}
     this._subscribes = []
-
+    this._committing = false // 默认不是在 mutation 中更改的
+    this.strict = !!options.strict
 
     // 组装 state getters mutations actions 等模块
     const state = options.state
@@ -115,7 +128,7 @@ class Store {
       })
     }
 
-    if(options.plugins){
+    if (options.plugins) {
       options.plugins.forEach(plugin => {
         plugin(this)
       })
@@ -140,7 +153,9 @@ class Store {
   }
 
   replaceState(newState) {
-    this._vm._data.$$state = newState
+    this._withcommitting(() => { // 监控非法修改
+      this._vm._data.$$state = newState
+    })
   }
 
   registerModule(path, module) {
@@ -151,6 +166,12 @@ class Store {
     installModule(this, this.state, path, module.newModule)
 
     resetVM(this, this.state)
+  }
+
+  _withcommitting(fn) {
+    this._committing = true
+    fn() // 同步函数
+    this._committing = false
   }
 
 }
