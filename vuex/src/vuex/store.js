@@ -67,8 +67,6 @@ class Store {
     const state = options.state
     installModule(this, state, [], this.modules.root)
 
-    console.log(this);
-
     forEach(this.wrapperGetters, (getter, key) => {
       computed[key] = getter
       Object.defineProperty(this.getters, key, {

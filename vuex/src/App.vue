@@ -10,18 +10,10 @@
     <h2>a</h2>
 
     {{ $store.state.a.name }}
-    {{ $store.getters.myNamea }}
+    {{ $store.getters['a/myNamea'] }}
     <div>
-      <!-- <button @click="$store.commit('a/changeName', 1)">commit</button> -->
+      <button @click="$store.commit('a/changeName', 1)">commit</button>
     </div>
-
-    <!-- <h2>b</h2>
-
-    {{ $store.state.b.name }}
-    {{ $store.getters['b/myNameb'] }}
-    <div>
-      <button @click="$store.commit('b/changeName', 1)">commit</button>
-    </div> -->
 
   </div>
 </template>
