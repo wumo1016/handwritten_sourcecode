@@ -35,9 +35,20 @@ class VueRouter {
     const setUpListener = () => {
       history.setUpListener()
     }
+
     // 第一跳转添加监听函数
     history.transitionTo(history.getCurrentLocation(), setUpListener)
-    // console.log(app)
+
+    history.listen(route => {
+      // 监听 current 变化 重新给 _route 赋值
+      app._route = route
+    })
+  }
+
+  push(path) {
+    this.history.transitionTo(path, () => {
+      window.location.hash = path
+    })
   }
 }
 

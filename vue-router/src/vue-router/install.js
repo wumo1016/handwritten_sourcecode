@@ -16,6 +16,8 @@ export default function install(_Vue) {
 
         // 初始化逻辑
         this._router.init(this)
+        // 什么地方使用$route 什么时候收集依赖
+        Vue.util.defineReactive(this, '_route', this._router.history.current)
       } else {
         this._routerRoot = this.$parent && this.$parent._routerRoot
       }
@@ -29,7 +31,11 @@ export default function install(_Vue) {
     }
   })
 
-  Object.defineProperty(Vue.prototype, '$route', {})
+  Object.defineProperty(Vue.prototype, '$route', {
+    get() {
+      return this._routerRoot._route
+    }
+  })
 
   // 扩展全局组件 router-link router-view
   Vue.component('router-link', RouterLink)
