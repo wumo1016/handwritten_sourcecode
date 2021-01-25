@@ -21,6 +21,8 @@ class VueRouter {
       default:
         break
     }
+
+    this.beforeHooks = []
   }
 
   match(path) {
@@ -49,6 +51,10 @@ class VueRouter {
     this.history.transitionTo(path, () => {
       window.location.hash = path
     })
+  }
+
+  beforeEach(fn) {
+    this.beforeHooks.push(fn)
   }
 }
 

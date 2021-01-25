@@ -12,6 +12,15 @@ function createRoute(record, path) {
   }
 }
 
+function runQueue(queue, interator, cb) {
+  function step(index) {
+    if (index >= queue.length) return cb()
+    const hook = queue[index]
+    interator(hook, () => step(index + 1))
+  }
+  step(0)
+}
+
 export default class History {
   constructor(router) {
     this.router = router
@@ -44,9 +53,23 @@ export default class History {
     ) {
       return
     }
+
+    // this.router.beforeHooks.forEach(fn => {})
+    const queue = this.router.beforeHooks
+    const interator = (hook, next) => {
+      hook(record, this.current.matched[this.current.matched.length - 1], next)
+    }
+
+    runQueue(queue, interator, () => {
+      this.updateRoute(newCurrent)
+      cb && cb()
+    })
+  }
+
+  updateRoute(route) {
+    this.current = route
     // 因为收集依赖是对 _route 也就是对 current和$route 收集的 而直接修改 current 并不会触发更新
-    this.current = newCurrent
-    this.cb && this.cb(newCurrent)
-    cb && cb()
+    // 更新 _route
+    this.cb && this.cb(route)
   }
 }
