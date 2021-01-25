@@ -21,6 +21,11 @@ function runQueue(queue, interator, cb) {
   step(0)
 }
 
+function transObj(obj) {
+  if (typeof obj === 'object') return JSON.parse(JSON.stringify(obj))
+  return obj
+}
+
 export default class History {
   constructor(router) {
     this.router = router
@@ -57,7 +62,11 @@ export default class History {
     // this.router.beforeHooks.forEach(fn => {})
     const queue = this.router.beforeHooks
     const interator = (hook, next) => {
-      hook(record, this.current.matched[this.current.matched.length - 1], next)
+      hook(
+        transObj(record),
+        transObj(this.current.matched[this.current.matched.length - 1]),
+        next
+      )
     }
 
     runQueue(queue, interator, () => {

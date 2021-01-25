@@ -1,5 +1,5 @@
 import Vue from 'vue'
-// import VueRouter from "vue-router";
+// import VueRouter from 'vue-router'
 import VueRouter from '@/vue-router'
 import Home from '../views/Home.vue'
 import About from '../views/About.vue'
@@ -39,7 +39,8 @@ const router = new VueRouter({
 })
 
 router.beforeEach((to, from, next) => {
-  console.log(to, from)
+  console.log(to)
+  console.log(from)
   next()
 })
 
