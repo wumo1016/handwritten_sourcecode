@@ -5,7 +5,17 @@ export default class HTML5History extends History {
     super(router)
   }
 
-  getCurrentLocation() {}
+  getCurrentLocation() {
+    return window.location.pathname
+  }
 
-  setUpListener() {}
+  setUpListener() {
+    window.addEventListener('popstate', () => {
+      this.transitionTo(window.location.pathname)
+    })
+  }
+
+  pushState(path) {
+    history.pushState({}, null, path)
+  }
 }

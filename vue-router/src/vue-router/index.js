@@ -49,7 +49,7 @@ class VueRouter {
 
   push(path) {
     this.history.transitionTo(path, () => {
-      window.location.hash = path
+      this.history.pushState(path)
     })
   }
 
