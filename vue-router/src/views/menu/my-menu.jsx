@@ -1,8 +1,9 @@
+import WuMenu from './wu-menu'
 import WuSubmenu from './wu-submenu'
 import WuMenuItem from './wu-menu-item'
 
 export default {
-  components: { WuSubmenu, WuMenuItem },
+  components: { WuMenu, WuSubmenu, WuMenuItem },
   props: {
     data: Array
   },
