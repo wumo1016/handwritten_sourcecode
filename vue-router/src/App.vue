@@ -5,8 +5,51 @@
       <router-link to="/about">About</router-link>
     </div>
     <router-view />
+
+    <Level tag="h1">111111111</Level>
+    <Level tag="h2">2222222222</Level>
+
+    <MyMenu :data="tree" />
   </div>
 </template>
+
+<script>
+import Level from '@/views/level'
+import MyMenu from '@/views/menu/my-menu.jsx'
+export default {
+  components: { Level, MyMenu },
+  data: function() {
+    return {
+      tree: [
+        {
+          title: '菜单1',
+          children: [
+            {
+              title: '菜单1-1'
+            }
+          ]
+        },
+        {
+          title: '菜单2',
+          children: [
+            {
+              title: '菜单2-1',
+              children: [
+                {
+                  title: '菜单2-1-1'
+                }
+              ]
+            }
+          ]
+        },
+        {
+          title: '菜单3'
+        }
+      ]
+    }
+  }
+}
+</script>
 
 <style>
 #app {
