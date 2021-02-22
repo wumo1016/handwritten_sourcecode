@@ -8,7 +8,7 @@
     "name": "VueShared",
     "formats": [
       "cjs",
-      "esm-bundler"
+      "esm"
     ]
   }
 }
