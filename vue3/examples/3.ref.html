@@ -18,7 +18,6 @@
       shallowRef,
     } = VueReactivity
     const name = ref('wyb')
-    console.log(name);
     effect(() => {
       app.innerHTML = name.value
     })
