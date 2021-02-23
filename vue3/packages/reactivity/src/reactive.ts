@@ -20,7 +20,7 @@ export function shallowReadonly(target) {
 // 缓存代理结果
 const reactiveMap = new WeakMap()
 const readonlyMap = new WeakMap()
-export function createReactiveObject(target, isReadonly, baseHandlers) {
+function createReactiveObject(target, isReadonly, baseHandlers) {
   // 如果不是对象 直接返回
   if (!isObject(target)) {
     return target
