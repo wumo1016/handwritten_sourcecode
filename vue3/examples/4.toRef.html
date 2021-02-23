@@ -24,7 +24,6 @@
     })
     const name = toRef(state, 'name')
     const person = toRefs(state)
-    console.log(person);
     effect(() => {
       app.innerHTML = person.name.value
     })
