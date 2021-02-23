@@ -36,4 +36,6 @@ export function createReactiveObject(target, isReadonly, baseHandlers) {
 
   const proxy = new Proxy(target, baseHandlers)
   proxyMap.set(target, proxy)
+
+  return  proxy
 }

@@ -7,8 +7,6 @@
   "buildOptions": {
     "name": "VueReactivity",
     "formats": [
-      "cjs",
-      "esm",
       "global"
     ]
   }
