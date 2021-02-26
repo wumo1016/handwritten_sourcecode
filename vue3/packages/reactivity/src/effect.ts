@@ -43,7 +43,7 @@ WeakMap[
   {name: 'wyb'}: Map[
     name: Set[ effect1, effect2 ]
   ]
-] 
+]
 */
 
 export function track(target, type, key) {
