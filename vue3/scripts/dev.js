@@ -4,7 +4,7 @@ const fs = require('fs')
 const execa = require('execa') // 开启子进程进行打包 最终还是使用rollup
 
 // 要打包的模块名
-const name = 'reactivity'
+const name = 'runtime-dom'
 
 build(name)
 
