@@ -95,7 +95,11 @@ export function tigger(target, type, key, newValue?, oldValue?) {
   }
 
   effects.forEach((effect: any) => {
-    effect()
+    if(effect.options.scheduler){
+      effect.options.scheduler(effect)
+    } else {
+      effect()
+    }
   })
 
 }
