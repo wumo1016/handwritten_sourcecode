@@ -18,8 +18,12 @@
     } = VueRuntimeDom
 
     const App = {
-      render(){
-        console.log('render');
+      setup(props, ctx){
+        console.log(props, ctx);
+        return
+      },
+      render(proxy){
+        console.log('render', proxy.b);
       }
     }
 
