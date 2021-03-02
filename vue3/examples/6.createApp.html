@@ -19,18 +19,20 @@
 
     const App = {
       setup(props, ctx){
-        console.log(props, ctx);
-        return
+        // console.log(props, ctx);
+        return {
+          a: 1,
+          b: 2
+        }
       },
       render(proxy){
-        console.log('render', proxy.b);
+        console.log('render', proxy);
       }
     }
 
     const app = createApp(App, { name: 'wyb', age: 12 })
     app.mount('#app')
     
-    // console.log(renderOptions);
   </script>
 </body>
 

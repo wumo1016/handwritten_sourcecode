@@ -22,12 +22,12 @@ function processComponent(n1, n2, container){
 function mountComponent(vnode, container){
   // 1.创建组件实例
   const instance = vnode.component = createComponentInstance(vnode)
-  // 2.初始化实例
+  // 2.初始化实例(生成render)
   setupComponent(instance)
-  // 3.创建effect 执行render
-  setupRenderEffect()
+  // 3.创建effect(执行render)
+  setupRenderEffect(instance)
 }
 
-function setupRenderEffect(){
-
+function setupRenderEffect(instance){
+  instance.render(instance.proxy)
 }

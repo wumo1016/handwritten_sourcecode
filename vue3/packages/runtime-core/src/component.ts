@@ -1,4 +1,4 @@
-import { ShapeFlags } from "@vue/shared/src"
+import { isFunction, isObject, ShapeFlags } from "@vue/shared/src"
 import { PublicInstanceProxyHandlers } from "./componentPublicInstance"
 
 export function createComponentInstance(vnode) {
@@ -8,8 +8,8 @@ export function createComponentInstance(vnode) {
     props: {},
     attrs: {},
     slots: {},
-    setupState: { b: 2 }, // setup返回的对象
-    data: { c: 3 },
+    setupState: {}, // setup返回的对象
+    data: {},
     ctx: {},
     render: null,
     isMounted: false // 是否挂载过
@@ -31,17 +31,16 @@ export function setupComponent(instance) {
 }
 
 function setupStatefulComponent(instance) {
-
   // 1.代理
   instance.proxy = new Proxy(instance.ctx, PublicInstanceProxyHandlers as any)
   // 2.获取组件的setup
-  const { setup, render } = instance.type
+  const { setup } = instance.type
   if (setup) {
-    setup(instance.props, createSetupContext(instance))
+    const setupResult = setup(instance.props, createSetupContext(instance)) // 对象或者函数
+    handleSetupResult(instance, setupResult)
   }
-  if(render){
-    render(instance.proxy)
-  }
+
+  finishComponentSetup(instance)
 }
 
 function createSetupContext(instance) {
@@ -54,6 +53,27 @@ function createSetupContext(instance) {
   }
 }
 
+function handleSetupResult(instance, setupResult) {
+  if (isFunction(setupResult)) {
+    instance.render = setupResult
+  } else if (isObject(setupResult)) {
+    instance.setupState = setupResult
+  }
+}
+
+function finishComponentSetup(instance) {
+  let { render, template } = instance.type
+  if (!instance.render) {
+    // 将template编译成render函数 并挂载到实例上
+    if (!render && template) {
+
+    }
+    instance.render = render
+  }
+  // 对vue2.x Api处理
+
+}
+
 // instance 描述组件的各种状态
-// context setup的参数 就4哥参数 开始方便使用
+// context setup的参数 就4个参数 开始方便使用
 // proxy render的参数
