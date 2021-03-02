@@ -5,6 +5,7 @@ import { TiggerOpTypes, TrackOpTypes } from './operators'
 
 function createGetter(isReadonly = false, shallow = false) {
   return function get(target, key, receiver) {
+    
     const res = Reflect.get(target, key)
     if (!isReadonly) { // 可能会修改 需要收集依赖
       track(target, TrackOpTypes.Get, key)

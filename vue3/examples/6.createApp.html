@@ -14,19 +14,27 @@
   <script>
     const {
       createApp,
-      h
+      h,
+      reactive
     } = VueRuntimeDom
 
     const App = {
       setup(props, ctx){
-        return {
-          a: 1,
-          b: 2
+        const state = reactive({ count: 1 })
+        const fn = function(){
+          state.count++
+          state.count++
+          state.count++
+          state.count++
+        }
+        return () => {
+          return h('div', { style: { color: 'red' }, onClick: fn }, [ 'hello ', state.count ])
         }
       },
-      render(proxy){
-        return h('div', { style: { color: 'red' } }, 'hello world')
-      }
+      // render(proxy){
+      //   console.log(proxy.count);
+      //   return h('div', { style: { color: 'red' }, onClick: () => { proxy.proxy = 2 } }, [ 'hello ', proxy.count ])
+      // }
     }
 
     const app = createApp(App, { name: 'wyb', age: 12 })
