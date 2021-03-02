@@ -10,7 +10,7 @@ export const createVNode = (type, props, chlidren = null) => {
     __v_isVnode: true, // 是vnode节点
     type, // 组件对象 / 标签
     props,
-    chlidren,
+    chlidren, // 字符串或数组
     component: null, // 组件实例
     key: props && props.key,
     el: null,
@@ -23,12 +23,14 @@ export const createVNode = (type, props, chlidren = null) => {
 
 }
 
+export const isVnode = obj => obj && obj.__v_isVnode
+
 // 对孩子进行处理
 function normalizeChildren(vnode, chlidren) {
   let type = 0
   if (chlidren == null) {
     chlidren == null
-  } else if(isArray(chlidren)){
+  } else if (isArray(chlidren)) {
     type = ShapeFlags.ARRAY_CHILDREN
   } else {
     type = ShapeFlags.TEXT_CHILDREN

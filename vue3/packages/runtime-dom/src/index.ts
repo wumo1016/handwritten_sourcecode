@@ -1,7 +1,8 @@
+import { createRenderer } from "@vue/runtime-core/src";
 import { extend } from "@vue/shared/src";
 import { nodeOps } from "./nodeOps";
 import { patchProps } from "./patchProps";
-import { createRenderer } from "@vue/runtime-core/src";
+export * from "@vue/runtime-core/src";
 
 // nodeOps是对象 patchProps是函数
 
@@ -19,8 +20,4 @@ export function createApp(rootComp, rootProps = null){
   }
 
   return app
-}
-
-export {
-  renderOptions
 }

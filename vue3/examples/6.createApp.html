@@ -14,19 +14,18 @@
   <script>
     const {
       createApp,
-      renderOptions
+      h
     } = VueRuntimeDom
 
     const App = {
       setup(props, ctx){
-        // console.log(props, ctx);
         return {
           a: 1,
           b: 2
         }
       },
       render(proxy){
-        console.log('render', proxy);
+        return h('div', { style: { color: 'red' } }, 'hello world')
       }
     }
 
