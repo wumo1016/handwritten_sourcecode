@@ -1,6 +1,6 @@
 import { apiCreateApp } from './apiCreateApp'
 import { effect } from "@vue/reactivity/src";
-import { ShapeFlags } from "@vue/shared/src"
+import { hasOwn, ShapeFlags } from "@vue/shared/src"
 import { createComponentInstance, setupComponent } from "./component";
 import { normailzeVNode, Text } from './vnode';
 import { queueJob } from './scheduler';
@@ -16,17 +16,36 @@ export function createRenderer(renderOptions) {
     createText: hostCreateText,
     setText: hostSetText,
     patchProps: hostPatchProps,
+    nextSibling: hostNextSibling,
   } = renderOptions
 
-  function patch(n1, n2, container) {
+  function isSameVNodeType(n1, n2) {
+    return n1.type == n2.type && n1.key == n2.key
+  }
+
+  function unmount(vnode) {
+    hostRemove(vnode.el)
+  }
+
+  function patch(n1, n2, container, anchor = null) {
+
     const { shapeFlag, type } = n2
+
+    // 如果新旧的不是同一个类型的节点 直接删除老dom
+    if (n1 && !isSameVNodeType(n1, n2)) {
+      // 取得当前节点的下一个节点 防止更新错误
+      anchor = hostNextSibling(n1.el)
+      unmount(n1) // 卸载老节点
+      n1 = null // 相当与重新渲染 n2的内容
+    }
+
     switch (type) {
       case Text:  // 处理多个子文本的情况
         processText(n1, n2, container)
         break
       default:
         if (shapeFlag & ShapeFlags.ELEMENT) { // 元素节点
-          processElement(n1, n2, container)
+          processElement(n1, n2, container, anchor)
         } else if (shapeFlag & ShapeFlags.STATEFUL_COMPONENT) { // 组件
           processComponent(n1, n2, container)
         }
@@ -35,22 +54,24 @@ export function createRenderer(renderOptions) {
   }
 
   /* ---------------- 文本相关 ----------------------- */
-  function processText(n1, n2, container){
-    if(n1 == null){
+  function processText(n1, n2, container) {
+    if (n1 == null) {
       hostInsert(n2.el = hostCreateText(n2.children), container)
+    } else { // 文本更新
+
     }
   }
 
   /* ---------------- 元素相关 ----------------------- */
-  function processElement(n1, n2, container) {
+  function processElement(n1, n2, container, anchor) {
     if (n1 == null) { // 初始化
-      mountElement(n2, container)
-    } else { // 更新
-
+      mountElement(n2, container, anchor)
+    } else { // 元素更新
+      patchElement(n1, n2, container)
     }
   }
 
-  function mountElement(vnode, container) {
+  function mountElement(vnode, container, anchor) {
     const { type, props, shapeFlag, children } = vnode
     const el = vnode.el = hostCeateElemnet(type)
     if (props) {
@@ -63,7 +84,48 @@ export function createRenderer(renderOptions) {
     } else if (shapeFlag & ShapeFlags.ARRAY_CHILDREN) {
       mountChildren(children, el)
     }
-    hostInsert(el, container)
+    hostInsert(el, container, anchor)
+  }
+
+  function patchElement(oldVnode, newVnode, container) {
+    // 复用老dom
+    const el = newVnode.el = oldVnode.el
+    // 更新属性
+    const oldProps = oldVnode.props || {}
+    const newProps = newVnode.props || {}
+    patchProps(el, oldProps, newProps)
+    // 更新children
+    patchChildren(oldVnode, newVnode, el)
+
+  }
+
+  function patchProps(el, oldProps, newProps) {
+    if (oldProps !== newProps) {
+      // 新的覆盖旧的
+      for (const key in newProps) {
+        if (oldProps[key] !== newProps[key]) {
+          hostPatchProps(el, key, oldProps[key], newProps[key])
+        }
+      }
+      // 老的有新的没有 删除旧的
+      for (const key in oldProps) {
+        if (!(key in newProps)) {
+          hostPatchProps(el, key, oldProps[key], null)
+        }
+      }
+    }
+  }
+
+  function patchChildren(el, oldProps, newProps){
+    const c1 = oldProps.children
+    const c2 = newProps.children
+    // 新的有 老的没有
+
+    // 新的没有 老得有
+
+    // 都是文本
+
+    // 其他
   }
 
   // children可能是多个文本节点
@@ -74,7 +136,7 @@ export function createRenderer(renderOptions) {
     }
   }
 
-  /* ------------- 组件相关 ----------------------- */
+  /* ------------------- 组件相关 ----------------------- */
   function processComponent(n1, n2, container) {
     if (n1 == null) { // 初始化
       mountComponent(n2, container)
@@ -99,21 +161,26 @@ export function createRenderer(renderOptions) {
         instance.isMounted = true
         patch(null, subTree, container)
       } else {
-        console.log('更新啦');
+        const prevTree = instance.subTree
+        const newTree = instance.render.call(instance.proxy, instance.proxy)
+
+        patch(prevTree, newTree, container)
+        instance.subTree = newTree
+
       }
     }, { // 自定义更新流程
       scheduler: queueJob
     })
   }
 
-  /* --------------- 创建renderer --------------- */
+  /* --------------- 创建render --------------- */
 
-  const renderer = (vnode, container) => {
+  const render = (vnode, container) => {
     // 根据不同虚拟节点创建对应的真实元素
     patch(null, vnode, container)
   }
 
   return {
-    createApp: apiCreateApp(renderer)
+    createApp: apiCreateApp(render)
   }
 }

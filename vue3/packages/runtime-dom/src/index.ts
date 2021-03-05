@@ -6,7 +6,7 @@ export * from "@vue/runtime-core/src";
 
 // nodeOps是对象 patchProps是函数
 
-// 渲染用到的所有方法
+// 渲染用到的所有方法 node操作api
 const renderOptions = extend({ patchProps }, nodeOps)
 
 export function createApp(rootComp, rootProps = null){
