@@ -20,10 +20,10 @@ export function createRenderer(renderOptions) {
   } = renderOptions
 
   function isSameVNodeType(n1, n2) {
-    return n1.type == n2.type && n1.key == n2.key
+    return n1 && n2 && n1.type == n2.type && n1.key == n2.key
   }
 
-  function unmount(vnode) {
+  function unmount(vnode) { // 如果是组件 需要特殊操作
     hostRemove(vnode.el)
   }
 
@@ -87,6 +87,13 @@ export function createRenderer(renderOptions) {
     hostInsert(el, container, anchor)
   }
 
+  function mountChildren(children, container) {// children可能是多个文本节点
+    for (let i = 0; i < children.length; i++) {
+      const child = normailzeVNode(children[i])
+      patch(null, child, container)
+    }
+  }
+
   function patchElement(oldVnode, newVnode, container) {
     // 复用老dom
     const el = newVnode.el = oldVnode.el
@@ -116,24 +123,121 @@ export function createRenderer(renderOptions) {
     }
   }
 
-  function patchChildren(el, oldProps, newProps){
-    const c1 = oldProps.children
-    const c2 = newProps.children
-    // 新的有 老的没有
+  function patchChildren(oldVnode, newVnode, el) {
+    const c1 = oldVnode.children
+    const c2 = newVnode.children
 
-    // 新的没有 老得有
-
-    // 都是文本
-
-    // 其他
+    const oldShapeFlag = oldVnode.shapeFlag
+    const newShapeFlag = newVnode.shapeFlag
+    if (newShapeFlag & ShapeFlags.TEXT_CHILDREN) { // 新孩子是文本
+      // 老孩子是数组 需要遍历移除
+      if (oldShapeFlag & ShapeFlags.ARRAY_CHILDREN) {
+        unmountChildren(c1) // 如果中包含组件 需要销毁组件
+      }
+      if (c2 !== c1) {
+        hostSetElementText(el, c2)
+      }
+    } else { // 新孩子是元素 或 null
+      if (oldShapeFlag & ShapeFlags.ARRAY_CHILDREN) { // 老孩子是数组 
+        if (newShapeFlag & ShapeFlags.ARRAY_CHILDREN) { // 新孩子是数组
+          // diff算法
+          patchKeyedChildren(c1, c2, el)
+        } else { // 新的没有孩子 删除老的孩子
+          unmountChildren(c1)
+        }
+      } else { // 老孩子是文本 或 null
+        if (oldShapeFlag & ShapeFlags.TEXT_CHILDREN) { // 老孩子是文本
+          hostSetElementText(el, '')
+        }
+        if (newShapeFlag & ShapeFlags.ARRAY_CHILDREN) { // 新孩子是数组
+          mountChildren(c2, el)
+        }
+      }
+    }
   }
 
-  // children可能是多个文本节点
-  function mountChildren(children, container) {
+  function unmountChildren(children) {
     for (let i = 0; i < children.length; i++) {
-      const child = normailzeVNode(children[i])
-      patch(null, child, container)
+      unmount(children[i])
     }
+  }
+
+  function patchKeyedChildren(c1, c2, el) {
+
+    let i = 0 // 头部指针
+    let e1 = c1.length - 1 // 旧的尾部指针
+    const l2 = c2.length
+    let e2 = l2 - 1 // 新的尾部指针
+
+    while (i <= e1 && i <= e2) { // diff1: 头头比较 sync from start
+      const n1 = c1[i]
+      const n2 = c2[i]
+      if (isSameVNodeType(n1, n2)) {
+        patch(n1, n2, el)
+      } else {
+        break
+      }
+      i++
+    }
+
+    while (i <= e1 && i <= e2) { // diff2: 尾尾比较 sync from end
+      const n1 = c1[e1]
+      const n2 = c2[e2]
+      if (isSameVNodeType(n1, n2)) {
+        patch(n1, n2, el)
+      } else {
+        break
+      }
+      e1--
+      e2--
+    }
+
+    // 有一方完全比对完成
+    if (i > e1) { // diff3: 新的多 需要新增
+      if (i <= e2) { // 表示新增的部份
+        let anchor = e2 + 1 < l2 ? c2[e2 + 1].el : null
+        while (i <= e2) {
+          patch(null, c2[i], el, anchor)
+          i++
+        }
+      }
+    } else if(i > e2) { // diff4: 旧的多 需要移除
+      while(i <= e1){
+        unmount(c1[i])
+        i++
+      }
+    } else { // diff5 乱序比较
+
+      let s1 = i // 旧的开头
+      let s2 = i // 新的开头
+
+      // 将新的key和索引做一个映射表
+      const keyToNewIndexMap = new Map()
+      for (let index = s2; index <= e2; index++) {
+        const newChild = c2[index]
+        keyToNewIndexMap.set(newChild.key, index)
+      }
+
+      // 去老的里找有没有可以复用的
+      for (let index = s1; index <= e1; index++) {
+        const oldChild = c1[index]
+        const newIndex = keyToNewIndexMap.get(oldChild.key)
+        if(newIndex === undefined){ // diff5.1: 如果新的里面没有 直接移除
+          unmount(oldChild)
+        } else {  // diff5.2: 都有 直接patch
+          patch(oldChild, c2[newIndex], el)
+        }
+        console.log(newIndex);
+      }
+
+      // console.log(keyToNewIndexMap);
+      // console.log(s1, s2, e1, e2);
+    }
+
+
+
+    // console.log(i, e1, e2);
+
   }
 
   /* ------------------- 组件相关 ----------------------- */
