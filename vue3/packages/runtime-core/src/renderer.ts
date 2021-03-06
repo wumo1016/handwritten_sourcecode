@@ -248,10 +248,6 @@ export function createRenderer(renderOptions) {
 
     }
 
-
-
-    // console.log(i, e1, e2);
-
   }
 
   /* ------------------- 组件相关 ----------------------- */
