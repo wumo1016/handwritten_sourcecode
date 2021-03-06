@@ -201,8 +201,8 @@ export function createRenderer(renderOptions) {
           i++
         }
       }
-    } else if(i > e2) { // diff4: 旧的多 需要移除
-      while(i <= e1){
+    } else if (i > e2) { // diff4: 旧的多 需要移除
+      while (i <= e1) {
         unmount(c1[i])
         i++
       }
@@ -225,7 +225,7 @@ export function createRenderer(renderOptions) {
       for (let index = s1; index <= e1; index++) {
         const oldChild = c1[index]
         const newIndex = keyToNewIndexMap.get(oldChild.key)
-        if(newIndex === undefined){ // diff5.1: 如果新的里面没有 直接移除
+        if (newIndex === undefined) { // diff5.1: 如果新的里面没有 直接移除
           unmount(oldChild)
         } else {  // diff5.2: 都有 直接patch 但是并没有改变位置
           // 将newIndexToOldIndexMap对应的index标记为已经patch过
@@ -234,20 +234,25 @@ export function createRenderer(renderOptions) {
         }
       }
 
+      const increaseingNewIndexSequence = getSequence(newIndexToOldIndexMap)
+      let j = increaseingNewIndexSequence.length - 1
+      
       // 倒序循环乱序数组 然后找到每一个乱序数组的最后一个
-      for (let index = toBePatched -1; index >=0 ; index--) {
+      for (let index = toBePatched - 1; index >= 0; index--) {
         const currentIndex = s2 + index // 当前循环的最后一项索引
         const child = c2[currentIndex] // 当前循环的最后一项
         const anchor = currentIndex + 1 < c2.length ? c2[currentIndex + 1].el : null // 当前循环的最后一项的下一项 可以作为插入的标记
-        if(newIndexToOldIndexMap[index] == 0){ // 说明没有被patch过 就是新增
+        if (newIndexToOldIndexMap[index] == 0) { // 说明没有被patch过 就是新增
           patch(null, child, el, anchor)
         } else { // 有patch过 就直接插入 做移动操作
-          hostInsert(child.el, el, anchor)
+          if(index != increaseingNewIndexSequence[j]){ // 对应的xinag
+            hostInsert(child.el, el, anchor)
+          } else {
+            j-- // 跳过不需要移动的元素
+          }
         }
       }
-
     }
-
   }
 
   /* ------------------- 组件相关 ----------------------- */
@@ -297,4 +302,56 @@ export function createRenderer(renderOptions) {
   return {
     createApp: apiCreateApp(render)
   }
+}
+
+
+function getSequence(list) {
+  let len = list.length
+  const result = [0] // 先保存第一个
+  const p = list.slice(0) // 用来存放索引
+  let start
+  let end
+  let middle
+
+  for (let i = 0; i < list.length; i++) {
+    const arrI = list[i];
+    if (arrI !== 0) {
+      const resultLastIndex = result[result.length - 1]
+      if (list[resultLastIndex] < arrI) {
+        p[i] = resultLastIndex // 如果是新增 当前项的的前一个就是新数组中的最后一个
+        result.push(i)
+        continue
+      }
+
+      // 二分查找 找到第一个比当前值大的那一个
+      start = 0
+      end = result.length - 1
+      while (start < end) {
+        middle = ((start + end) / 2) | 0 // 找到中间位置 如果是小数 取前面一个
+        if (list[result[middle]] < arrI) {
+          start = middle + 1
+        } else {
+          end = middle
+        }
+      }
+      if (list[result[start]] > arrI) { // 只有比当前项大才替换
+        if (start > 0) { // 只有不是第一个 才需要标记前面一个是谁
+          p[i] = result[start - 1]
+        }
+        result[start] = i // 替换掉
+      }
+    }
+  }
+
+  // 从后面开始找 因为最后一个肯定是最大得
+  // 找到每个值的前一个值 替换掉
+  len = result.length
+  let last = result[len - 1]
+  while (len-- > 0) {
+    result[len] = last
+    last = p[last]
+  }
+
+  return result
+
 }
