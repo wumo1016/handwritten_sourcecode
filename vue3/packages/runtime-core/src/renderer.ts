@@ -218,20 +218,34 @@ export function createRenderer(renderOptions) {
         keyToNewIndexMap.set(newChild.key, index)
       }
 
+      const toBePatched = e2 - s2 + 1 // 新孩子乱序的个数
+      const newIndexToOldIndexMap = new Array(toBePatched).fill(0) // 记录乱序数值中谁patch过了
+
       // 去老的里找有没有可以复用的
       for (let index = s1; index <= e1; index++) {
         const oldChild = c1[index]
         const newIndex = keyToNewIndexMap.get(oldChild.key)
         if(newIndex === undefined){ // diff5.1: 如果新的里面没有 直接移除
           unmount(oldChild)
-        } else {  // diff5.2: 都有 直接patch
+        } else {  // diff5.2: 都有 直接patch 但是并没有改变位置
+          // 将newIndexToOldIndexMap对应的index标记为已经patch过
+          newIndexToOldIndexMap[newIndex - s2] = i + 1 // 为防止与默认值相同 加+
           patch(oldChild, c2[newIndex], el)
         }
-        console.log(newIndex);
       }
 
-      // console.log(keyToNewIndexMap);
-      // console.log(s1, s2, e1, e2);
+      // 倒序循环乱序数组 然后找到每一个乱序数组的最后一个
+      for (let index = toBePatched -1; index >=0 ; index--) {
+        const currentIndex = s2 + index // 当前循环的最后一项索引
+        const child = c2[currentIndex] // 当前循环的最后一项
+        const anchor = currentIndex + 1 < c2.length ? c2[currentIndex + 1].el : null // 当前循环的最后一项的下一项 可以作为插入的标记
+        if(newIndexToOldIndexMap[index] == 0){ // 说明没有被patch过 就是新增
+          patch(null, child, el, anchor)
+        } else { // 有patch过 就直接插入 做移动操作
+          hostInsert(child.el, el, anchor)
+        }
+      }
+
     }
 
 
