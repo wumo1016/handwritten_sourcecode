@@ -1,4 +1,5 @@
 import { apiCreateApp } from './apiCreateApp'
+import { invokeArrayFns } from './apiLifecycle'
 import { effect } from "@vue/reactivity/src";
 import { hasOwn, ShapeFlags } from "@vue/shared/src"
 import { createComponentInstance, setupComponent } from "./component";
@@ -236,7 +237,7 @@ export function createRenderer(renderOptions) {
 
       const increaseingNewIndexSequence = getSequence(newIndexToOldIndexMap)
       let j = increaseingNewIndexSequence.length - 1
-      
+
       // 倒序循环乱序数组 然后找到每一个乱序数组的最后一个
       for (let index = toBePatched - 1; index >= 0; index--) {
         const currentIndex = s2 + index // 当前循环的最后一项索引
@@ -245,7 +246,7 @@ export function createRenderer(renderOptions) {
         if (newIndexToOldIndexMap[index] == 0) { // 说明没有被patch过 就是新增
           patch(null, child, el, anchor)
         } else { // 有patch过 就直接插入 做移动操作
-          if(index != increaseingNewIndexSequence[j]){ // 对应的xinag
+          if (index != increaseingNewIndexSequence[j]) { // 对应的xinag
             hostInsert(child.el, el, anchor)
           } else {
             j-- // 跳过不需要移动的元素
@@ -276,9 +277,16 @@ export function createRenderer(renderOptions) {
   function setupRenderEffect(instance, container) {
     instance.update = effect(function componentEffect() { // 每个组件都有一个effect 当组件依赖的响应式变量更新时 会重新执行
       if (!instance.isMounted) { // 初次渲染
+        const { bm, m } = instance
+        if (bm) {
+          invokeArrayFns(bm)
+        }
         const subTree = instance.subTree = instance.render.call(instance.proxy, instance.proxy)
-        instance.isMounted = true
         patch(null, subTree, container)
+        instance.isMounted = true
+        if (m) {
+          invokeArrayFns(m)
+        }
       } else {
         const prevTree = instance.subTree
         const newTree = instance.render.call(instance.proxy, instance.proxy)

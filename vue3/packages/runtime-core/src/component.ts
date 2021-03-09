@@ -30,13 +30,23 @@ export function setupComponent(instance) {
   }
 }
 
+export let currentInstance = null
+export const setCurrentInstance = (instance) => {
+  currentInstance = instance
+}
+export const getCurrentInstance = (instance) => {
+  return currentInstance
+}
+
 function setupStatefulComponent(instance) {
   // 1.代理
   instance.proxy = new Proxy(instance.ctx, PublicInstanceProxyHandlers as any)
   // 2.获取组件的setup
   const { setup } = instance.type
   if (setup) {
+    currentInstance = instance
     const setupResult = setup(instance.props, createSetupContext(instance)) // 对象或者函数
+    currentInstance = null
     handleSetupResult(instance, setupResult)
   }
 
