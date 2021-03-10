@@ -291,8 +291,17 @@ export function createRenderer(renderOptions) {
         const prevTree = instance.subTree
         const newTree = instance.render.call(instance.proxy, instance.proxy)
 
+        const { bu, u } = instance
+        if (bu) {
+          invokeArrayFns(bu)
+        }
+
         patch(prevTree, newTree, container)
         instance.subTree = newTree
+
+        if (u) {
+          invokeArrayFns(u)
+        }
 
       }
     }, { // 自定义更新流程
