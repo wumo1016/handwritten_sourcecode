@@ -1,5 +1,5 @@
 
-// 1.js
+// 1.js 同步改变状态
 // new MyPromise((r, j) => {
 //   j(123)
 // }).then((value) => {
@@ -8,13 +8,19 @@
 //   console.log('失败', e);
 // })
 
-// 2.js
-new MyPromise((r, j) => {
+// 2.js 异步改变状态
+const promise = new MyPromise((r, j) => {
   setTimeout(() => {
     r(123)
   }, 1500)
-}).then((value) => {
-  console.log('成功', value);
+})
+promise.then((value) => {
+  console.log('成功1', value);
+}, (e) => {
+  console.log('失败', e);
+})
+promise.then((value) => {
+  console.log('成功2', value);
 }, (e) => {
   console.log('失败', e);
 })
