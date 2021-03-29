@@ -36,23 +36,40 @@ class MyPromise {
     }
   }
   // 由于需要拿到回调函数的返回结果 所以直接将判断写入返回的promise内
+  // todo onFulfilled/onRejected 未定义的情况
   then(onFulfilled, onRejected) {
     return new MyPromise((resolve, reject) => {
       if (this.status === PENDING) { // resolve或reject是异步调用的
         this.onResolvedCallbacks.push(() => {
-          let resolveResult = onFulfilled(this.value)
-          resolve(resolveResult)
+          try {
+            let x = onFulfilled(this.value)
+            resolve(x)
+          } catch (e) {
+            reject(e)
+          }
         })
         this.onRejectedCallbacks.push(() => {
-          let rejectResult = onRejected(this.reason)
-          reject(rejectResult)
+          try {
+            let x = onRejected(this.reason)
+            resolve(x)
+          } catch (e) {
+            reject(e)
+          }
         })
       } else if (this.status === FULFILLED) {
-        let resolveResult = onFulfilled(this.value)
-        resolve(resolveResult)
+        try {
+          let x = onFulfilled(this.value)
+          resolve(x)
+        } catch (e) {
+          reject(e)
+        }
       } else if (this.status === REJECTED) {
-        let rejectResult = onRejected(this.reason)
-        reject(rejectResult)
+        try {
+          let x = onRejected(this.reason)
+          resolve(x)
+        } catch (e) {
+          reject(e)
+        }
       }
     })
   }

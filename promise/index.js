@@ -25,7 +25,7 @@
 //   console.log('失败', e);
 // })
 
-/* -------------------------- 3.promise的链式调用 ---------------------- */
+/* -------------------------- 3.js romise的链式调用 ---------------------- */
 // 情况1：then中返回的是一个普通值，而且这个返回值还会作为下一次then的成功结果(非promise)
 
 // const promise = new MyPromise((r, j) => {
@@ -64,26 +64,26 @@
 // 情况2：then中抛出异常 则会走下一个then的错误回调
 // 但如果then没有定义错误回调 则会走到下一个then的错误回调
 
-const promise = new MyPromise((r, j) => {
-  fetch('https://api.apiopen.top/getJoke?page=1&count=1&type=text').then(() => {
-    r(123)
-  })
-}).then((value) =>{
-  console.log('then1', value); // then1 123
-  throw new Error(456)
-  return 456
-}, (e) => {
-  console.log('catch1', e);
-  return 789
-}).then(value => {
-  console.log('then2', value);
-}, (e) => {
-  console.log('catch2', e); // catch2 Error: 456
-})
-
-// const promise = new Promise((r, j) => {
+// const promise = new MyPromise((r, j) => {
 //   fetch('https://api.apiopen.top/getJoke?page=1&count=1&type=text').then(() => {
 //     r(123)
+//   })
+// }).then((value) =>{
+//   console.log('then1', value); // then1 123
+//   throw new Error(456)
+//   return 456
+// }, (e) => {
+//   console.log('catch1', e);
+//   return 789
+// }).then(value => {
+//   console.log('then2', value);
+// }, (e) => {
+//   console.log('catch2', e); // catch2 Error: 456
+// })
+
+// const promise = new MyPromise((r, j) => {
+//   fetch('https://api.apiopen.top/getJoke?page=1&count=1&type=text').then(() => {
+//     j(123)
 //   })
 // }).then((value) =>{
 //   console.log('then1', value);
@@ -96,17 +96,17 @@ const promise = new MyPromise((r, j) => {
 // })
 
 // 情况3：then中返回一个新的promise 会根据这个promise的状态执行
-// const promise = new Promise((r, j) => {
-//   fetch('https://api.apiopen.top/getJoke?page=1&count=1&type=text').then(() => {
-//     r(123)
-//   })
-// }).then((value) =>{
-//   return new Promise((r, j) => r(123))
-// }).then(value => {
-//   console.log('then1', value); // then1 123
-// }, (e) => {
-//   console.log('catch1', e);
-// })
+const promise = new MyPromise((r, j) => {
+  fetch('https://api.apiopen.top/getJoke?page=1&count=1&type=text').then(() => {
+    r(123)
+  })
+}).then((value) =>{
+  return new Promise((r, j) => r(123))
+}).then(value => {
+  console.log('then1', value); // then1 123
+}, (e) => {
+  console.log('catch1', e);
+})
 
 // const promise = new Promise((r, j) => {
 //   fetch('https://api.apiopen.top/getJoke?page=1&count=1&type=text').then(() => {
@@ -152,7 +152,7 @@ Promises/A+(https://promisesaplus.com/)
 11.为了避免promise回调嵌套，可以实现链式调用,所以就需要then方法返回一个新的promise(因为原来的promise状态已经改变)
 12.如果上一个then的返回值(无论成功回调返回的还是失败回调返回的)是一个普通值(不是promise)，会作为下一个then的回调的参数
 13.如果then中方法出错(例如抛出异常)，就需要对所有的回调进行try catch包装 将错误信息作为下一个失败回调的参数
-14.如果then返回的是一个promise对象，那就会根据promise的结果来处理走成功还是失败
+14.如果then返回的是一个promise对象，那就需要根据promise的结果来处理走成功还是失败
 
 
 */
