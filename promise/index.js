@@ -154,3 +154,32 @@
 // 为了避免 我们需要对 做一个标记 记录这个用户的promise状态是否改变 如果已经改变 就不再改变
 // 比如：别人的promise在then中没有判断 this.status 这样就是既执行成功回调又执行错误回调等等
 
+/* -------------- 4.嵌套promise的情况 ----------------- */
+
+// let promise2 = new MyPromise((resolve) => {
+//   resolve(1);
+// }).then(data => {
+//   return new MyPromise((resolve, reject) => {
+//     reject(new MyPromise((resolve, reject) => {
+//       resolve('200');
+//     }))
+//   })
+// })
+
+// promise2.then(data => {
+//   console.log(data)
+// }, err => {
+//   console.log('error', err)
+// });
+
+/* ------------------ 5.then中的参数可选 值的穿透 ------------------------- */
+
+new MyPromise((resolve, reject) => {
+  reject(200)
+}).then().then(null, (e) => {
+  console.log(e, 'reject1')
+}).then((data) => {
+  console.log(data, 'resolve')
+}, err => {
+  console.log(err, 'reject')
+})

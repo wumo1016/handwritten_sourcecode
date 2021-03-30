@@ -42,5 +42,8 @@ Promises/A+(https://promisesaplus.com/)
     })
       -then是一个函数，调用它
         -如果别人的promise promise可能可以更改多次
+        -而且如果在这个返回的promise中调用resolve或reject的时候 可能再次传入一个promise，此时我们希望将这个promise的状态作为下一次then的结果，而不是直接返回这个promise
+        直接递归处理resolve的参数值即可
       -then不是函数，直接resolve(x)，当作普通值处理
    -最后就是普通值了
+17.考虑then中onFulfilled, onRejected未定义的情况 then的穿透

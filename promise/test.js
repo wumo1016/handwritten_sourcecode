@@ -118,3 +118,18 @@ class MyPromise {
     return promise
   }
 }
+
+module.exports = MyPromise
+
+// https://github.com/promises-aplus/promises-tests
+// 安装测试包 npm i promises-aplus-tests -g
+// 测试，直接在终端你跑 promises-aplus-tests test.js
+
+MyPromise.deferred = function () {
+  let dfd = {}
+  dfd.promise = new MyPromise((resolve, reject) => {
+    dfd.resolve = resolve
+    dfd.reject = reject
+  })
+  return dfd
+}
