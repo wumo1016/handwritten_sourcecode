@@ -174,12 +174,63 @@
 
 /* ------------------ 5.then中的参数可选 值的穿透 ------------------------- */
 
-new MyPromise((resolve, reject) => {
-  reject(200)
-}).then().then(null, (e) => {
-  console.log(e, 'reject1')
-}).then((data) => {
-  console.log(data, 'resolve')
-}, err => {
-  console.log(err, 'reject')
-})
+// new MyPromise((resolve, reject) => {
+//   reject(200)
+// }).then().then(null, (e) => {
+//   console.log(e, 'reject1')
+// }).then((data) => {
+//   console.log(data, 'resolve')
+// }, err => {
+//   console.log(err, 'reject')
+// })
+
+
+/* ------------------ 6.一个promise直接resolve一个promise ------------------ */
+// new Promise((resolve, reject) => {
+//   reject(new Promise((resolve, reject) => {
+//     resolve(123)
+//   }))
+// }).then((value) => {
+//   console.log('resolve', value);
+// }, (e) => {
+//   console.log('reject', e)
+// })
+
+/* ------------------ 7.resolve reject catch all finally -------------- */
+// MyPromise.resolve 等价于  new Promise((resolve, reject) => resolve)
+
+// MyPromise.resolve(100).then((value) => {
+//   console.log('resolve', value); // resolve 100
+// })
+
+// MyPromise.reject(100).then((value) => {
+//   console.log('resolve', value);
+// }, (e) => {
+//   console.log('reject', e); // reject 100
+// })
+
+// new MyPromise((r, j) => j(123)).then(() => {}).catch(e => {
+//   console.log(e); // 123
+// })
+
+// MyPromise.all([
+//   new MyPromise((r, j) => {
+//     setTimeout(() => {
+//       r(2)
+//     }, 500);
+//   }),
+//   new MyPromise((r, j) => {
+//     setTimeout(() => {
+//       r(1)
+//     }, 1000);
+//   }),
+// ]).then(value => {
+//   console.log('resolve', value);
+// }).catch(e => {
+//   console.log('reject', e);
+// })
+
+
+
+
+

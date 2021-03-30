@@ -45,6 +45,11 @@ class MyPromise {
 
     // 改为成功状态
     const resolve = (value) => {
+
+      if (value instanceof MyPromise) {
+        return value.then(resolve, reject)
+      }
+
       if (this.status === PENDING) {
         this.value = value
         this.status = FULFILLED
@@ -117,4 +122,42 @@ class MyPromise {
     })
     return promise
   }
+
+  catch(errorCb) {
+    return this.then(null, errorCb)
+  }
+
+  static resolve(value) {
+    return new MyPromise(resolve => resolve(value))
+  }
+
+  static reject(reason) {
+    return new MyPromise((resolve, reject) => reject(reason))
+  }
+
+  static all(promises) {
+    return new Promise((resolve, reject) => {
+      let result = []
+
+      let times = 0
+      const processuccess = (index, val) => {
+        result[index] = val
+        if (++times === promises.length) {
+          resolve(result)
+        }
+      }
+
+      for (let i = 0; i < promises.length; i++) {
+        let p = promises[i]
+        if (p && p.then && typeof p.then === 'function') {
+          p.then(value => {
+            processuccess(i, value)
+          }).catch(reject)
+        } else {
+          processuccess(i, p)
+        }
+      }
+    })
+  }
+
 }

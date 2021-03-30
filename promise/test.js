@@ -125,6 +125,7 @@ module.exports = MyPromise
 // 安装测试包 npm i promises-aplus-tests -g
 // 测试，直接在终端你跑 promises-aplus-tests test.js
 
+// 延迟对象
 MyPromise.deferred = function () {
   let dfd = {}
   dfd.promise = new MyPromise((resolve, reject) => {
