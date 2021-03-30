@@ -2,6 +2,37 @@ const PENDING = 'pending'
 const FULFILLED = 'fulfilled'
 const REJECTED = 'rejected'
 
+function resolvePromise(promise, x, resolve, reject) {
+  if (promise === x) {
+    return reject(new TypeError('错误'))
+  }
+  if (typeof x === 'object' && x !== null || typeof x === 'function') {
+    let called = false
+    try {
+      let then = x.then
+      if (typeof then === 'function') { // 当作promise处理
+        then.call(x, y => {
+          if (called) return
+          called = true
+          resolve(y)
+        }, r => {
+          if (called) return
+          called = true
+          reject(r)
+        })
+      } else { // 当作普通值处理
+        resolve(x)
+      }
+    } catch (e) {
+      if (called) return
+      called = true
+      reject(e)
+    }
+  } else { // 普通值 直接resolve即可
+    resolve(x)
+  }
+}
+
 class MyPromise {
   constructor(executor) {
     this.status = PENDING // 默认状态
@@ -38,39 +69,49 @@ class MyPromise {
   // 由于需要拿到回调函数的返回结果 所以直接将判断写入返回的promise内
   // todo onFulfilled/onRejected 未定义的情况
   then(onFulfilled, onRejected) {
-    return new MyPromise((resolve, reject) => {
+    // console.log(this.status);
+    const promise = new MyPromise((resolve, reject) => {
       if (this.status === PENDING) { // resolve或reject是异步调用的
         this.onResolvedCallbacks.push(() => {
-          try {
-            let x = onFulfilled(this.value)
-            resolve(x)
-          } catch (e) {
-            reject(e)
-          }
+          setTimeout(() => {
+            try {
+              let x = onFulfilled(this.value)
+              resolvePromise(promise, x, resolve, reject)
+            } catch (e) {
+              reject(e)
+            }
+          })
         })
         this.onRejectedCallbacks.push(() => {
+          setTimeout(() => {
+            try {
+              let x = onRejected(this.reason)
+              resolvePromise(promise, x, resolve, reject)
+            } catch (e) {
+              reject(e)
+            }
+          })
+        })
+      } else if (this.status === FULFILLED) {
+        setTimeout(() => {
           try {
-            let x = onRejected(this.reason)
-            resolve(x)
+            let x = onFulfilled(this.value)
+            resolvePromise(promise, x, resolve, reject)
           } catch (e) {
             reject(e)
           }
         })
-      } else if (this.status === FULFILLED) {
-        try {
-          let x = onFulfilled(this.value)
-          resolve(x)
-        } catch (e) {
-          reject(e)
-        }
       } else if (this.status === REJECTED) {
-        try {
-          let x = onRejected(this.reason)
-          resolve(x)
-        } catch (e) {
-          reject(e)
-        }
+        setTimeout(() => {
+          try {
+            let x = onRejected(this.reason)
+            resolvePromise(promise, x, resolve, reject)
+          } catch (e) {
+            reject(e)
+          }
+        })
       }
     })
+    return promise
   }
 }
