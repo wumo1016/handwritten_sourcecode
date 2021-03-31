@@ -1,136 +1,314 @@
-const PENDING = 'pending'
-const FULFILLED = 'fulfilled'
-const REJECTED = 'rejected'
+/* ----------------- case: 同步改变状态 ---------------------- */
 
-function resolvePromise(promise, x, resolve, reject) {
-  if (promise === x) {
-    return reject(new TypeError('错误'))
-  }
-  if (typeof x === 'object' && x !== null || typeof x === 'function') {
-    let called = false
-    try {
-      let then = x.then
-      if (typeof then === 'function') { // 当作promise处理
-        then.call(x, y => {
-          if (called) return
-          called = true
-          resolvePromise(promise, y, resolve, reject)
-        }, r => {
-          if (called) return
-          called = true
-          reject(r)
-        })
-      } else { // 当作普通值处理
-        resolve(x)
-      }
-    } catch (e) {
-      if (called) return
-      called = true
-      reject(e)
-    }
-  } else { // 普通值 直接resolve即可
-    resolve(x)
-  }
-}
+// new MyPromise((r, j) => {
+//   r(123)
+// }).then(value => {
+//   console.log('resolve', value); // resolve 123
+// }, e => {
+//   console.log('reject', e);
+// })
 
-class MyPromise {
-  constructor(executor) {
-    this.status = PENDING // 默认状态
+// new MyPromise((r, j) => {
+//   j(123)
+// }).then(value => {
+//   console.log('resolve', value);
+// }, e => {
+//   console.log('reject', e); // reject 123
+// })
 
-    this.value = undefined // 成功的原因
-    this.reason = undefined // 失败的原因
+/* ----------------- case: executor执行出错 ---------------------- */
 
-    this.onResolvedCallbacks = [] // 存放成功的回调
-    this.onRejectedCallbacks = [] // 存放失败的回调
+// new MyPromise((r, j) => {
+//   throw new Error(123);
+// }).then(value => {
+//   console.log('resolve', value);
+// }, e => {
+//   console.log('reject', e); // reject Error: 123
+// })
 
-    // 改为成功状态
-    const resolve = (value) => {
-      if (this.status === PENDING) {
-        this.value = value
-        this.status = FULFILLED
-        this.onResolvedCallbacks.forEach(fn => fn())
-      }
-    }
-    // 改为失败状态
-    const reject = (reason) => {
-      if (this.status === PENDING) {
-        this.reason = reason
-        this.status = REJECTED
-        this.onRejectedCallbacks.forEach(fn => fn())
-      }
-    }
+/* ------------------ case: 异步改变状态 ------------------------ */
 
-    try {
-      executor(resolve, reject)
-    } catch (e) {
-      reject(e)
-    }
-  }
-  // 由于需要拿到回调函数的返回结果 所以直接将判断写入返回的promise内
-  // todo onFulfilled/onRejected 未定义的情况
-  then(onFulfilled, onRejected) {
-    onFulfilled = typeof onFulfilled === 'function' ? onFulfilled : v => v
-    onRejected = typeof onRejected === 'function' ? onRejected : e => {
-      throw e
-    }
-    const promise = new MyPromise((resolve, reject) => {
-      if (this.status === PENDING) { // resolve或reject是异步调用的
-        this.onResolvedCallbacks.push(() => {
-          setTimeout(() => {
-            try {
-              let x = onFulfilled(this.value)
-              resolvePromise(promise, x, resolve, reject)
-            } catch (e) {
-              reject(e)
-            }
-          })
-        })
-        this.onRejectedCallbacks.push(() => {
-          setTimeout(() => {
-            try {
-              let x = onRejected(this.reason)
-              resolvePromise(promise, x, resolve, reject)
-            } catch (e) {
-              reject(e)
-            }
-          })
-        })
-      } else if (this.status === FULFILLED) {
-        setTimeout(() => {
-          try {
-            let x = onFulfilled(this.value)
-            resolvePromise(promise, x, resolve, reject)
-          } catch (e) {
-            reject(e)
-          }
-        })
-      } else if (this.status === REJECTED) {
-        setTimeout(() => {
-          try {
-            let x = onRejected(this.reason)
-            resolvePromise(promise, x, resolve, reject)
-          } catch (e) {
-            reject(e)
-          }
-        })
-      }
-    })
-    return promise
-  }
-}
+// new MyPromise((r, j) => {
+//   setTimeout(() => {
+//     r(123)
+//   }, 1000)
+// }).then(value => {
+//   console.log('resolve', value); // resolve 123
+// }, e => {
+//   console.log('reject', e);
+// })
 
-module.exports = MyPromise
+// new MyPromise((r, j) => {
+//   setTimeout(() => {
+//     j(123)
+//   }, 1000)
+// }).then(value => {
+//   console.log('resolve', value);
+// }, e => {
+//   console.log('reject', e); // reject 123
+// })
 
-// https://github.com/promises-aplus/promises-tests
-// 安装测试包 npm i promises-aplus-tests -g
-// 测试，直接在终端你跑 promises-aplus-tests test.js
+/* ------------------ case: then中返回当前promise ------------------ */
 
-// 延迟对象
-MyPromise.deferred = function () {
-  let dfd = {}
-  dfd.promise = new MyPromise((resolve, reject) => {
-    dfd.resolve = resolve
-    dfd.reject = reject
-  })
-  return dfd
-}
+// const p1 = new MyPromise((r, j) => {
+//   r(123)
+// }).then(value => {
+//   console.log('resolve1', value); // resolve1 123
+//   return p1
+// }, e => {
+//   console.log('reject1', e);
+// })
+// p1.then(value => {
+//   console.log('resolve2', value); // Uncaught TypeError: Chaining cycle detected for promise #<Promise>
+// })
+
+// 当执行第一个resolvePromise的时候 第一个then方法已经执行完毕 
+// 此时 promise 就是then中返回的那个新的promise
+// 此时又将新的promise返回作为返回值 故而 x === promise
+
+/* ------------------- case: then中返回普通值 ----------------------- */
+
+// new MyPromise((r, j) => {
+//   r(123)
+// }).then(value => {
+//   console.log('resolve1', value); // resolve1 123
+//   return 456
+// }, e => {
+//   console.log('reject1', e);
+// }).then(value => {
+//   console.log('resolve2', value); // resolve2 456
+// })
+
+// new MyPromise((r, j) => {
+//   j(123)
+// }).then(value => {
+//   console.log('resolve1', value);
+// }, e => {
+//   console.log('reject1', e); // reject1 123
+//   return 456
+// }).then(value => {
+//   console.log('resolve2', value); // resolve2 456
+// })
+
+/* ------------------- case: then中抛出错误 ------------------ */
+
+// const promise = new MyPromise((r, j) => {
+//   r(123)
+// }).then((value) => {
+//   console.log('then1', value); // then1 123
+//   throw new Error(456)
+//   return 456
+// }, (e) => {
+//   console.log('reject1', e);
+//   return 789
+// }).then(value => {
+//   console.log('then2', value);
+// }, (e) => {
+//   console.log('reject2', e); // reject2 Error: 456
+// })
+
+/* -------------------- case: then中返回一个新的promise -----------  */
+
+// new MyPromise((r, j) => {
+//   r(123)
+// }).then((value) => {
+//   return new MyPromise((r, j) => r(123))
+// }).then(value => {
+//   console.log('then1', value); // then1 123
+// }, (e) => {
+//   console.log('reject1', e);
+// })
+
+// new MyPromise((r, j) => {
+//   r(123)
+// }).then((value) => {
+//   return new MyPromise((r, j) => j(123))
+// }).then(value => {
+//   console.log('then1', value);
+// }, (e) => {
+//   console.log('reject1', e); // reject1 123
+// })
+
+/* ------------------ case: 嵌套promise的情况 ----------------------- */
+
+// let promise2 = new MyPromise((resolve) => {
+//   resolve(1);
+// }).then(data => {
+//   return new MyPromise((resolve, reject) => {
+//     resolve(new MyPromise((resolve, reject) => {
+//       resolve('200');
+//     }))
+//   })
+// })
+
+// promise2.then(value => {
+//   console.log('then1', value); // then1 200
+// }, err => {
+//   console.log('reject', err)
+// });
+
+/* ----------------- case: then中参数可选 值的穿透 ------------------ */
+
+// new MyPromise((resolve, reject) => {
+//   resolve(200)
+// }).then().then().then(value => {
+//   console.log('resolve', value) // resolve 200
+// }, e => {
+//   console.log('reject', e)
+// })
+
+// new MyPromise((resolve, reject) => {
+//   reject(200)
+// }).then().then(null, e => {
+//   console.log('reject1', 1) // 200 "reject1"
+// }).then(value => {
+//   console.log('resolve', value) // resolve undefined
+// }, e => {
+//   console.log('reject2', e)
+// })
+
+/* ------------ case: 一个promise直接resolve一个promise ------------- */
+
+// new MyPromise((resolve, reject) => {
+//   resolve(new MyPromise((resolve, reject) => {
+//     resolve(123)
+//   }))
+// }).then((value) => {
+//   console.log('resolve', value);
+// }, (e) => {
+//   console.log('reject', e)
+// })
+
+// new MyPromise((resolve, reject) => {
+//   reject(new MyPromise((resolve, reject) => {
+//     resolve(123)
+//   }))
+// }).then((value) => {
+//   console.log('resolve', value);
+// }, (e) => {
+//   console.log('reject', e)
+// })
+
+
+/* ------------------ case: 一些静态和原型方法 -------------- */
+
+/* resolve */
+
+// MyPromise.resolve(100).then((value) => {
+//   console.log('resolve', value); // resolve 100
+// })
+
+/* reject */
+
+// MyPromise.reject(100).then(value => {
+//   console.log('resolve', value);
+// }, e => {
+//   console.log('reject', e); // reject 100
+// })
+
+/* cacth */
+
+// new MyPromise((r, j) => j(123)).then(() => {}).catch(e => {
+//   console.log('catch', e); // catch 123
+// })
+
+/* all */
+// 所有都成功才会走then
+
+// MyPromise.all([
+//   new MyPromise((r, j) => {
+//     setTimeout(() => {
+//       r(2)
+//     }, 500);
+//   }),
+//   new MyPromise((r, j) => {
+//     setTimeout(() => {
+//       r(1)
+//     }, 1000);
+//   }),
+//   3
+// ]).then(value => {
+//   console.log('resolve', value);
+// }).catch(e => {
+//   console.log('reject', e);
+// })
+
+/* finally */
+// 无论成功失败，最终都会执行
+
+// new MyPromise((r, j) => {
+//   setTimeout(() => {
+//     r(123)
+//   }, 1000)
+// }).then(value => {
+//   console.log('then1', value); // then1 123
+//   return 456
+// }).catch(e => {
+//   console.log('catch', e);
+// }).finally(value => {
+//   console.log('finally1', value); // finally undefined
+// }).finally(value => {
+//   console.log('finally2', value); // finally undefined
+// }).then(value => {
+//   console.log('then2', value); // then2 456
+// })
+
+
+/* race */
+// 返回第一个改变状态的promise
+
+// MyPromise.race([
+//   new MyPromise((r, j) => {
+//     setTimeout(() => {
+//       r(2)
+//     }, 500);
+//   }),
+//   new MyPromise((r, j) => {
+//     setTimeout(() => {
+//       j(1)
+//     }, 200);
+//   }),
+// ]).then(value => {
+//   console.log('resolve', value);
+// }).catch(e => {
+//   console.log('reject', e); // reject 1
+// })
+
+/* any */
+// 只要有一个成功就返回成功的 否则走catch
+
+// MyPromise.any([
+//   new MyPromise((r, j) => {
+//     setTimeout(() => {
+//       j(2)
+//     }, 500);
+//   }),
+//   new MyPromise((r, j) => {
+//     setTimeout(() => {
+//       j(1)
+//     }, 200);
+//   }),
+// ]).then(value => {
+//   console.log('resolve', value); // resolve 2
+// }).catch(e => {
+//   console.log('reject', e);
+// })
+
+/* allSettled */
+// 包含所有promise的状态和值
+
+// MyPromise.allSettled([
+//   new MyPromise((r, j) => {
+//     setTimeout(() => {
+//       r(2)
+//     }, 500);
+//   }),
+//   new MyPromise((r, j) => {
+//     setTimeout(() => {
+//       j(1)
+//     }, 200);
+//   }),
+//   123
+// ]).then(value => {
+//   console.log('resolve', value);
+// })

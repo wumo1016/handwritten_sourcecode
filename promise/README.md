@@ -1,49 +1,32 @@
-promise主要解决了什么问题
-1.可以链式调用(解决了嵌套回调的问题)
-2.同步并发
+## promise主要解决了什么问题
+- 1.可以链式调用(解决了嵌套回调的问题)
+- 2.同步并发
 
-Promises/A+(https://promisesaplus.com/)
-1.promise必须是一个对象或者函数，它必须有一个then方法
-2.调用resolve和reject可以传入一个js值，或者一个promise
-3.可以使用throw将promise状态改为失败状态
-4.失败函数应该包含一个失败理由参数
-5.一个promise应该包含三种状态 pending fulfilled rejected
-6.状态一旦改变，不能再次更改
-7.then方法可以访问成功和失败
-
-实现步骤：
-1.它是一个类
-2.传入一个执行器函数 并且执行器立即执行 而且可能会出错
-3.它有三种状态 pending fulfilled rejected
-4.执行器函数接受两个函数resolve reject，用于改变状态(只有等待态的时候才能改变状态)
-5.需要保存成功的value 和 失败的reason
-6.如果执行器函数执行的时候抛出错误，也会将状态改为失败状态 调用reject
-7.实例有一个then方法 课、可接受两个参数 onFulfilled onRejected
-8.当调用then方法的时候 判断状态 成功就调用onFulfilled(传入成功value) 失败就调用onRejected(传入失败reason)
-
-9.异步调用问题 需要在改变状态的时候 再调用相应的回调(发布订阅模式)
-10.可以将相应的回调先保存起来 而且then可以调用多次 这就意味需要用一个数组保存成功回调和失败回调
-
-11.为了避免promise回调嵌套，可以实现链式调用,所以就需要then方法返回一个新的promise(因为原来的promise状态已经改变)
-12.如果上一个then的返回值(无论成功回调返回的还是失败回调返回的)是一个普通值(不是promise)，会作为下一个then的回调的参数
-13.如果then中方法出错(例如抛出异常)，就需要对所有的回调进行try catch包装 将错误信息作为下一个失败回调的参数
-14.如果then返回的是一个promise对象，那就需要根据promise的结果来处理走成功还是失败
-15.处理返回值是promise的情况,鉴于有很多重复的情况，所以可以将其抽离成公共方法resolvePromise
-   而且无法在前执行栈中取得返回promise的值，因为赋值是执行右侧的语句再赋值
-   这里就可以使用微任务(MutationObserver和process.nextTick)和宏任务(setTimeout和setImmediate(仅IE))来包裹
-   包裹的时候注意需要将try catch包裹在内 因为 try catch 只能捕获同步错误
-16.处理resolvePromise
-   -首先考虑promise返回值与promise相等的情况
-   -然后还有可能是对象或函数,且包含then方法，否则捕获错误走错误处理
-    Object.defineProperty(obj, 'then', {
-      get(){
-        throw new Error()
-      }
-    })
-      -then是一个函数，调用它
-        -如果别人的promise promise可能可以更改多次
-        -而且如果在这个返回的promise中调用resolve或reject的时候 可能再次传入一个promise，此时我们希望将这个promise的状态作为下一次then的结果，而不是直接返回这个promise
-        直接递归处理resolve的参数值即可
-      -then不是函数，直接resolve(x)，当作普通值处理
-   -最后就是普通值了
-17.考虑then中onFulfilled, onRejected未定义的情况 then的穿透
+## 实现步骤
+- 1.Promise是一个具有then方法的对象或者函数(规范)(可以用类实现)
+- 2.一个Promise必须具有三种状态(pending,fulfilled,rejected)(规范)
+  - 默认状态为pending
+  - pending状态时，可以转换为fulfilled或rejected状态
+  - fulfilled状态时，必须有一个value，且不能过渡到其他状态
+  - rejected状态时，必须有一个reason，且不能过渡到其他状态
+- 3.Promise传入一个执行器函数
+  - 执行器函数立即执行，并接受两个函数resolve,reject；用于改变状态，且只有pending状态才能被改变
+  - resolve接受一个value参数，并且需要保存
+  - reject接受一个reason参数，并且需要保存
+- 4.一个Promise必须有一个then方法，接受两个参数(onFulfilled,onRejected)(规范)
+  - onFulfilled和onRejected都必须异步执行(规范)，这里就可以使用微任务(MutationObserver和process.nextTick)和宏任务(setTimeout和setImmediate(仅IE))来包裹
+  - 这两个参数可选，如果不是函数，需要将其包装成函数
+  - 如果onFulfilled是一个函数，必须在状态变为fulfilled之后执行，且将value作为第一个参数
+  - 如果onRejected是一个函数，必须在状态变为rejected之后执行，且将reason作为第一个参数
+  - 如果状态时异步改变的，就需要将onFulfilled,onRejected保存起来，因为then可以调用多次，所以需要使用数组保存，然后等到状态改变的时候，循环相应的数组遍历执行(发布订阅模式)
+  - then必须返回一个新的Promise promise2，以便链式调用，而且需要将
+  - onFulfilled和onRejected都返回一个值x，需要使用一个处理函数resolvePromise来处理
+- 5.处理函数resolvePromise
+  - 接受4个参数，当前promise、onFulfilled或onRejected返回的值x，resolve，reject
+  - 如果promise和x引用相同的对象，则reject一个TypeError
+  - 如果x是对象或函数
+    - 定义 then = x.then 如果出错则 reject(e)
+      - 如果then是函数，调用then，并将then中的this修改为x，然后第一个函数调用resolve并传入参数y，第二个调用reject并传入参数r
+      - then不是函数，直接resolve(x)
+      - 别人的then可能没有做状态判断，这样就可能改变多次状态，所以为了避免，需要做一个标记，状态一经改变就不能再变
+  - 如果x是普通值，直接reslove(x)
