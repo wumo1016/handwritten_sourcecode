@@ -158,13 +158,11 @@ class MyPromise {
 
   finally(fn) {
     return this.then(value => {
-      fn()
-      return value
+      return MyPromise.resolve(fn()).then(() => value)
     }, e => {
-      fn()
-      return MyPromise.reject(e)
+      return MyPromise.resolve(fn()).then(() => { throw e })
     })
-  }
+  } 
 
   static race(promises) {
     return new MyPromise((resolve, reject) => {

@@ -234,18 +234,24 @@
 // })
 
 /* finally */
+
 // 无论成功失败，最终都会执行
 // 如果返回的普通值或成功的promise，后面都会采用前面的结果
 // 只有返回失败的promise，才会把结果传到后面
 
 // new MyPromise((r, j) => {
-//   r(123)
+//   setTimeout(() => {
+//     r(123)
+//   }, 1000);
+// }).then(value => {
+//   console.log('then1', value); // then1 123
+//   return 456
 // }).finally(value => {
 //   console.log('finally1', value); // finally undefined
 // }).finally(value => {
 //   console.log('finally2', value); // finally undefined
 // }).then(value => {
-//   console.log('then1', value); // then1 123
+//   console.log('then2', value); // then2 123
 // }).catch(e => {
 //   console.log('catch', e);
 // })
@@ -262,20 +268,20 @@
 //   console.log('catch', e); // catch 123
 // })
 
-new Promise((r, j) => {
-  r(123)
-}).finally(value => {
-  console.log('finally1', value); // finally undefined
-}).finally(value => {
-  console.log('finally2', value); // finally undefined
-  return new Promise((r, j) => {
-    r(456)
-  })
-}).then(value => {
-  console.log('then2', value); // then2 123
-}).catch(e => {
-  console.log('catch', e);
-})
+// new MyPromise((r, j) => {
+//   r(123)
+// }).finally(value => {
+//   console.log('finally1', value); // finally undefined
+// }).finally(value => {
+//   console.log('finally2', value); // finally undefined
+//   return new Promise((r, j) => {
+//     r(456)
+//   })
+// }).then(value => {
+//   console.log('then2', value); // then2 123
+// }).catch(e => {
+//   console.log('catch', e);
+// })
 
 // new Promise((r, j) => {
 //   r(123)
