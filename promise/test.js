@@ -235,22 +235,61 @@
 
 /* finally */
 // 无论成功失败，最终都会执行
+// 如果返回的普通值或成功的promise，后面都会采用前面的结果
+// 只有返回失败的promise，才会把结果传到后面
 
 // new MyPromise((r, j) => {
-//   setTimeout(() => {
-//     r(123)
-//   }, 1000)
-// }).then(value => {
-//   console.log('then1', value); // then1 123
-//   return 456
-// }).catch(e => {
-//   console.log('catch', e);
+//   r(123)
 // }).finally(value => {
 //   console.log('finally1', value); // finally undefined
 // }).finally(value => {
 //   console.log('finally2', value); // finally undefined
 // }).then(value => {
-//   console.log('then2', value); // then2 456
+//   console.log('then1', value); // then1 123
+// }).catch(e => {
+//   console.log('catch', e);
+// })
+
+// new MyPromise((r, j) => {
+//   j(123)
+// }).finally(value => {
+//   console.log('finally1', value); // finally undefined
+// }).finally(value => {
+//   console.log('finally2', value); // finally undefined
+// }).then(value => {
+//   console.log('then1', value);
+// }).catch(e => {
+//   console.log('catch', e); // catch 123
+// })
+
+new Promise((r, j) => {
+  r(123)
+}).finally(value => {
+  console.log('finally1', value); // finally undefined
+}).finally(value => {
+  console.log('finally2', value); // finally undefined
+  return new Promise((r, j) => {
+    r(456)
+  })
+}).then(value => {
+  console.log('then2', value); // then2 123
+}).catch(e => {
+  console.log('catch', e);
+})
+
+// new Promise((r, j) => {
+//   r(123)
+// }).finally(value => {
+//   console.log('finally1', value); // finally undefined
+// }).finally(value => {
+//   console.log('finally2', value); // finally undefined
+//   return new Promise((r, j) => {
+//     j(123)
+//   })
+// }).then(value => {
+//   console.log('then2', value);
+// }).catch(e => {
+//   console.log('catch', e); // catch 123
 // })
 
 
@@ -312,3 +351,33 @@
 // ]).then(value => {
 //   console.log('resolve', value);
 // })
+
+/* ---------------- case: 超时处理 ------------------- */
+
+// let p1 = new Promise((resolve, reject) => {
+//   setTimeout(() => {
+//     resolve('resolve')
+//   }, 3000)
+// })
+
+// function wrap(p1){
+//   let abort;
+//   let p = new Promise((resolve, reject) => {
+//     abort = reject
+//   })
+//   let p2 = Promise.race([p, p1])
+//   p2.abort = abort
+//   return p2
+// }
+
+// let p2 = wrap(p1)
+
+// p2.then(value => {
+//   console.log('resolve', value);
+// }, e => {
+//   console.log('reject', e);
+// })
+
+// setTimeout(() => {
+//   p2.abort('超过了1s')
+// }, 1000)

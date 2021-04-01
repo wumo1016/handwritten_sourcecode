@@ -157,9 +157,13 @@ class MyPromise {
   }
 
   finally(fn) {
-    this.onFulfilledCbs.push(fn)
-    this.onRejectedCbs.push(fn)
-    return this
+    return this.then(value => {
+      fn()
+      return value
+    }, e => {
+      fn()
+      return MyPromise.reject(e)
+    })
   }
 
   static race(promises) {
@@ -167,9 +171,7 @@ class MyPromise {
       for (let index = 0; index < promises.length; index++) {
         const p = promises[index]
         if (p.then && typeof p.then === 'function') {
-          p.then(value => {
-            resolve(value)
-          }).catch(e => reject(e))
+          p.then(resolve, reject)
         } else {
           resolve(p)
         }
