@@ -387,3 +387,30 @@
 // setTimeout(() => {
 //   p2.abort('超过了1s')
 // }, 1000)
+
+
+
+/* -------------------------------------------------- */
+Promise.resolve().then(() => { // then1
+    console.log('then1');
+    Promise.resolve().then(() => {
+      console.log('then1-1');
+      return Promise.resolve(); // 如果then中的方法返回了一个promise 会发生什么？  x.then().then()
+    }).then(() => {
+      console.log('then1-2')
+    })
+  })
+  .then(() => {
+    console.log('then2');
+  })
+  .then(() => {
+    console.log('then3');
+  })
+  .then(() => {
+    console.log('then4');
+  })
+  .then(() => {
+    console.log('then5');
+  })
+
+// 浏览器规定 如果return了promise 会额外开辟一个异步方法(相当于又多了一次then)
