@@ -1,5 +1,6 @@
 const Emitter = require('events')
 const http = require('http')
+const Stream = require('stream')
 
 const context = require('./context')
 const request = require('./request')
@@ -22,7 +23,32 @@ class Application extends Emitter {
     ctx.request = request
     ctx.req = ctx.request.req = req
 
+    ctx.response = response
+    ctx.res = ctx.response.res = res
+
+    res.statusCode = 404 // 设置默认状态为404
+
     this.fn(ctx)
+
+    let _body = ctx.body
+    if (_body) {
+      // 针对不同的类型做处理 因为res.end只能传递字符串或buffer
+      if (typeof _body === 'string' || Buffer.isBuffer(_body)) {
+        return res.end(_body)
+      } else if (typeof _body === 'number') {
+        return res.end(_body + '')
+      } else if (_body instanceof Stream) {
+        // 下载头
+        res.setHeader('Content-Type', 'application/octet-stream')
+        // 设置不识别的header 也会变成下载文件
+        res.setHeader('Content-Disposition', 'attachment;filname=download')
+        return _body.pipe(res)
+      } else if (_body && typeof _body === 'object') {
+        return res.end(JSON.stringify(_body))
+      }
+    } else {
+      res.end('Not Found')
+    }
   }
 
   handleRequest = (req, res) => {
