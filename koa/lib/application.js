@@ -14,15 +14,19 @@ class Application extends Emitter {
     this.response = Object.create(response)
   }
 
-  createContext() {
+  createContext(req, res) {
     let ctx = Object.create(this.context) // 请求隔离
     let request = Object.create(this.request)
     let response = Object.create(this.response)
+
+    ctx.request = request
+    ctx.req = ctx.request.req = req
+
+    this.fn(ctx)
   }
 
   handleRequest = (req, res) => {
     let ctx = this.createContext(req, res)
-    this.fn(ctx)
   }
 
   listen() {
