@@ -13,6 +13,19 @@ class Application extends Emitter {
     this.context = Object.create(context) // 应用隔离
     this.request = Object.create(request)
     this.response = Object.create(response)
+
+    this.middlewares = []
+  }
+
+  compose(ctx) {
+    let index = -1
+    const dispach = (i) => {
+      if (index >= i) return Promise.reject(new Error('next() call mutiple times'))
+      index = i
+      if (this.middlewares.length === i) return Promise.resolve()
+      return Promise.resolve(this.middlewares[i](ctx, () => dispach(i + 1)))
+    }
+    return dispach(0)
   }
 
   createContext(req, res) {
@@ -28,27 +41,29 @@ class Application extends Emitter {
 
     res.statusCode = 404 // 设置默认状态为404
 
-    this.fn(ctx)
-
-    let _body = ctx.body
-    if (_body) {
-      // 针对不同的类型做处理 因为res.end只能传递字符串或buffer
-      if (typeof _body === 'string' || Buffer.isBuffer(_body)) {
-        return res.end(_body)
-      } else if (typeof _body === 'number') {
-        return res.end(_body + '')
-      } else if (_body instanceof Stream) {
-        // 下载头
-        res.setHeader('Content-Type', 'application/octet-stream')
-        // 设置不识别的header 也会变成下载文件
-        res.setHeader('Content-Disposition', 'attachment;filname=download')
-        return _body.pipe(res)
-      } else if (_body && typeof _body === 'object') {
-        return res.end(JSON.stringify(_body))
+    this.compose(ctx).then(() => {
+      let _body = ctx.body
+      if (_body) {
+        // 针对不同的类型做处理 因为res.end只能传递字符串或buffer
+        if (typeof _body === 'string' || Buffer.isBuffer(_body)) {
+          return res.end(_body)
+        } else if (typeof _body === 'number') {
+          return res.end(_body + '')
+        } else if (_body instanceof Stream) {
+          // 下载头
+          res.setHeader('Content-Type', 'application/octet-stream')
+          // 设置不识别的header 也会变成下载文件
+          res.setHeader('Content-Disposition', 'attachment;filname=download')
+          return _body.pipe(res)
+        } else if (_body && typeof _body === 'object') {
+          return res.end(JSON.stringify(_body))
+        }
+      } else {
+        res.end('Not Found')
       }
-    } else {
-      res.end('Not Found')
-    }
+    }).catch(err => {
+      this.emit('error', err)
+    })
   }
 
   handleRequest = (req, res) => {
@@ -60,8 +75,8 @@ class Application extends Emitter {
     server.listen(...arguments)
   }
 
-  use(fn) {
-    this.fn = fn
+  use(middleware) {
+    this.middlewares.push(middleware)
   }
 }
 
