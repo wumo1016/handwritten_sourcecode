@@ -1,0 +1,20 @@
+{
+  "name": "zhu-cli-test",
+  "version": "1.0.0",
+  "description": "> TODO: description",
+  "author": "zhangrenyang <zhang_renyang@126.com>",
+  "homepage": "",
+  "license": "ISC",
+  "main": "lib/zhu-cli-test.js",
+  "directories": {
+    "lib": "lib",
+    "test": "__tests__"
+  },
+  "files": [
+    "lib"
+  ],
+  "scripts": {
+    "test": "echo \"Error: run tests from root\" && exit 1"
+  },
+  "gitHead": "359d338997d8ebcb0e3fd1df903a06f90211537d"
+}

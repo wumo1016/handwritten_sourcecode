@@ -11,3 +11,12 @@
   ```
   - wm为全局命令 后面为需要执行的文件
   - 添加完成后 使用npm link将命令添加到全局中(在目标package.json目录中)
+
+## wu-cli-utils
+  - 添加依赖 `yarn workspace wu-cli-utils add chalk execa` 找到目标工作空间 添加依赖
+
+## wu-cli
+  - 添加依赖 `yarn workspace wu-cli add commander inquirer execa chalk ejs globby lodash.clonedeep fs-extra ora isbinaryfile`
+
+## 一些常用库
+  - commander：一款强大的命令行框架 提供了用户命令行输入和参数解析功能

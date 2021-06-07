@@ -1,13 +1,13 @@
 {
-  "name": "wu-cli",
-  "version": "0.0.0",
+  "name": "zhu-cli",
+  "version": "1.0.0",
   "description": "> TODO: description",
-  "author": "wumo1016 <760478279@qq.com>",
-  "homepage": "https://github.com/wumo1016/handwritten_sourcecode#readme",
+  "author": "zhangrenyang <zhang_renyang@126.com>",
+  "homepage": "",
   "license": "ISC",
-  "main": "lib/wu-cli.js",
+  "main": "lib/zhu-cli.js",
   "bin": {
-    "wm": "bin/vue.js"
+    "zhu-cli": "bin/vue.js"
   },
   "dependencies": {
     "chalk": "^4.1.1",
@@ -20,6 +20,7 @@
     "isbinaryfile": "^4.0.8",
     "lodash.clonedeep": "^4.5.0",
     "ora": "^5.4.0",
-    "wu-cli-utils": "^0.0.0"
-  }
+    "zhu-cli-shared-utils": "^1.0.0"
+  },
+  "gitHead": "359d338997d8ebcb0e3fd1df903a06f90211537d"
 }
