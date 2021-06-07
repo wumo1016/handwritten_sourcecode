@@ -25,3 +25,4 @@
   - execa：可以调用shell和本地外部程序
   - chalk：控制修改控制台字符串的样式 包括字体样式、颜色、背景等
   - isbinaryfile：检测一个文件是否是二进制文件
+  - ora：实现nodejs命令行环境的loading效果和显示各种状态的图标
