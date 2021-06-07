@@ -4,6 +4,9 @@
   "workspaces": [
     "packages/*"
   ],
+  "scripts": {
+    "create": "node packages/wu-cli/bin/vue.js create hello1"
+  },
   "devDependencies": {
     "lerna": "^4.0.0"
   }
