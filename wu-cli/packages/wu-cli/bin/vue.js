@@ -10,7 +10,7 @@ program
   .command('create <app-name>')
   .description('create a new project powered by wu-cli-vervice')
   .action(appName => {
-    console.log(appName);
+    require('../lib/create')(appName)
   })
 
 program.parse(process.argv)
