@@ -117,12 +117,11 @@ module.exports = class Creator {
     this.injectedPrompt = [] // 后续需要插入的选项
     this.promptCompleteCbs = [] // 选择完成后的回调数组
 
-    // 添加choices
+    // 添加choices prompt 回调等
     featureList.map(fn => fn(this))
-    // console.log(featurePrompt);
 
   }
-
+  
   injectChoice(choice) {
     this.featurePrompt.choices.push(choice)
   }
