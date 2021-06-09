@@ -50,7 +50,7 @@ function formatPluginName(preset) {
   }).join(', ')
 }
 // 自定义功能模块选择
-const featurePrompts = [
+const featureList = [
   'vueVersion',
   // 'babel',
   // 'typescript',
@@ -99,29 +99,72 @@ function resolveDefaultPrompts() {
     choices: [],
     pageSize: 10
   }
-  // 添加choices
 
-  return [
+  return {
     presetPrompt,
     featurePrompt
-  ]
+  }
 }
 
 module.exports = class Creator {
   constructor(name, targetDir) {
     const {
+      presetPrompt,
       featurePrompt
     } = resolveDefaultPrompts()
-    this.featurePrompt = featurePrompt
+    this.presetPrompt = presetPrompt // vue create选项
+    this.featurePrompt = featurePrompt // 选择自定义后的选项
+    this.injectedPrompt = [] // 后续需要插入的选项
+    this.promptCompleteCbs = [] // 选择完成后的回调数组
 
-    
+    // 添加choices
+    featureList.map(fn => fn(this))
+    // console.log(featurePrompt);
+
+  }
+
+  injectChoice(choice) {
+    this.featurePrompt.choices.push(choice)
+  }
+
+  injectPrompt(prompt) {
+    this.injectedPrompt.push(prompt)
+  }
+
+  injectCompletePromptCbs(cb) {
+    this.promptCompleteCbs.push(cb)
+  }
+
+  async resolveFinalPrompts() {
+    // 应该先处理一下插入的选项 如果选择的不是自定义 就没有features
+    // 只有选择自定义了 再走自己的when
+    this.injectedPrompt.forEach(prompt => {
+      const originWhen = prompt.when || (() => true)
+      prompt.when = aswers => {
+        return isManualMode(aswers) && originWhen(aswers)
+      }
+    })
+
+    return [
+      this.presetPrompt,
+      this.featurePrompt,
+      ...this.injectedPrompt
+    ]
   }
 
   async create(options) {
     // 弹出选项
-    // let result = await inquirer.prompt(await resolveDefaultPrompts())
+    let anwers = await inquirer.prompt(await this.resolveFinalPrompts())
     // 选择默认的结果   { preset: 'default' }
     // 选择自定义的结果 { preset: '__manual__', features: [] }
-    // console.log(result);
+    let preset
+    if (anwers.preset === '__manual__') { // 如果选的是自定义
+      preset = { plugins: {} }
+      this.promptCompleteCbs.map(cb => cb(anwers, preset))
+    } else {
+      preset = defaultPresets[anwers.preset]
+    }
+    console.log(preset);
+
   }
 }

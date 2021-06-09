@@ -25,7 +25,7 @@
     - `npm root -g`可查看npm的全局依赖安装目录
     - 如果自定义的全局已经存在 可以到npm目录下删除相关文件 `wm wm.cmd wm.ps1`
   - 使用 `yarn install` 将packages目录下的目录链接到node_modules中
-  - `npm link` 创建软链 将命令链接至全局
+  - `npm link` 创建软链 将命令链接至全局 如果已经存在 可以加 `--froce` 强制覆盖
   - 测试命令 `wm` 就会执行 bin/wm.js 文件
 
 ## 实现create命令
