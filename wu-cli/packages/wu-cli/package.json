@@ -7,7 +7,7 @@
   "license": "ISC",
   "main": "lib/wu-cli.js",
   "bin": {
-    "wm": "bin/vue.js"
+    "wu": "bin/vue.js"
   },
   "dependencies": {
     "chalk": "^4.1.1",
