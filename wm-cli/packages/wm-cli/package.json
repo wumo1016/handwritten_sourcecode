@@ -3,14 +3,10 @@
   "version": "0.0.0",
   "description": "> TODO: description",
   "author": "wumo1016 <760478279@qq.com>",
-  "homepage": "https://github.com/wumo1016/handwritten_sourcecode#readme",
   "license": "ISC",
   "main": "lib/wm-cli.js",
   "bin": {
     "wm": "bin/wm.js"
-  },
-  "scripts": {
-    "test": "echo \"Error: run tests from root\" && exit 1"
   },
   "dependencies": {
     "commander": "^7.2.0",
