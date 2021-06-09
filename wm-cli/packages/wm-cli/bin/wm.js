@@ -10,8 +10,9 @@ program.version('wu-cli 0.0.1', '-v, --version') // 对应命令`wm -v`
 program
   .command('create <name>')
   .description('create a new project')
-  .action(name => {
-    require('../lib/create')(name)
+  .option('-f, --force', 'Overwrite target directory if it exists') // 覆盖以及存在的目录
+  .action((name, options) => {
+    require('../lib/create')(name, options)
   })
 
 program.parse(process.argv)
