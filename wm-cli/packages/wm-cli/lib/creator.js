@@ -50,7 +50,7 @@ function formatPluginName(preset) {
   }).join(', ')
 }
 // 自定义功能模块选择
-const featurePrompt = [
+const featurePrompts = [
   'vueVersion',
   // 'babel',
   // 'typescript',
@@ -61,9 +61,9 @@ const featurePrompt = [
   // 'linter',
   // 'unit',
   // 'e2e'
-]
-
-async function resolveFinalPrompts() {
+].map(file => require(`./promptModules/${file}`))
+// 获取vue create和选择自定义之后的选项
+function resolveDefaultPrompts() {
   // 配置 vue create 的选项
   const presetChoices = Object.entries(defaultPresets).map(([name, preset]) => {
     let displayName = name
@@ -99,6 +99,7 @@ async function resolveFinalPrompts() {
     choices: [],
     pageSize: 10
   }
+  // 添加choices
 
   return [
     presetPrompt,
@@ -107,13 +108,20 @@ async function resolveFinalPrompts() {
 }
 
 module.exports = class Creator {
-  constructor(name, targetDir) {}
+  constructor(name, targetDir) {
+    const {
+      featurePrompt
+    } = resolveDefaultPrompts()
+    this.featurePrompt = featurePrompt
+
+    
+  }
 
   async create(options) {
     // 弹出选项
-    let result = await inquirer.prompt(await resolveFinalPrompts())
+    // let result = await inquirer.prompt(await resolveDefaultPrompts())
     // 选择默认的结果   { preset: 'default' }
     // 选择自定义的结果 { preset: '__manual__', features: [] }
-    console.log(result);
+    // console.log(result);
   }
 }
