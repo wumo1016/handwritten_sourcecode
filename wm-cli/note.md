@@ -36,5 +36,13 @@
       Default (Vue 3 Preview) ([Vue 3] babel, eslint)
       Manually select features
     ```
-    - 安装commander `yarn workspace wm-cli add commander`
-      - 文档 `https://segmentfault.com/a/1190000019350684`
+    - 安装 commander `yarn workspace wm-cli add commander`
+      - 介绍：命令行框架 提供了用户命令行输入和参数解析功能
+      - 文档1 `https://github.com/tj/commander.js/blob/HEAD/Readme_zh-CN.md`
+      - 文档2 `https://segmentfault.com/a/1190000019350684`
+    - 安装 inquirer `yarn workspace wm-cli add inquirer`
+      - 介绍：命令行交互工具
+      - 文档1 `https://www.npmjs.com/package/inquirer`
+      - 文档2 `https://blog.csdn.net/qq_26733915/article/details/80461257`
+    - 安装 chalk `yarn add chalk -W`
+      - 介绍：控制修改控制台字符串的样式 包括字体样式、颜色、背景等

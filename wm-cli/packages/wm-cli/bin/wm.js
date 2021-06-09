@@ -11,7 +11,7 @@ program
   .command('create <name>')
   .description('create a new project')
   .action(name => {
-    console.log(name);
+    require('../lib/create')(name)
   })
 
 program.parse(process.argv)
