@@ -30,12 +30,6 @@
 
 ## 实现create命令
   ### 实现一级选择
-    ```
-      vue3_template ([Vue 3] dart-sass, typescript, router, vuex, eslint) 
-      Default ([Vue 2] babel, eslint)
-      Default (Vue 3 Preview) ([Vue 3] babel, eslint)
-      Manually select features
-    ```
     - 安装 commander `yarn workspace wm-cli add commander`
       - 介绍：命令行框架 提供了用户命令行输入和参数解析功能
       - 文档1 `https://github.com/tj/commander.js/blob/HEAD/Readme_zh-CN.md`
