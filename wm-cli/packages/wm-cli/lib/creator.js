@@ -108,6 +108,7 @@ function resolveDefaultPrompts() {
 
 module.exports = class Creator {
   constructor(name, targetDir) {
+    this.name = name
     const {
       presetPrompt,
       featurePrompt
@@ -119,9 +120,8 @@ module.exports = class Creator {
 
     // 添加choices prompt 回调等
     featureList.map(fn => fn(this))
-
   }
-  
+
   injectChoice(choice) {
     this.featurePrompt.choices.push(choice)
   }
@@ -151,19 +151,31 @@ module.exports = class Creator {
     ]
   }
 
-  async create(options) {
+  async promptAndResolvePreset() {
     // 弹出选项
     let anwers = await inquirer.prompt(await this.resolveFinalPrompts())
     // 选择默认的结果   { preset: 'default' }
     // 选择自定义的结果 { preset: '__manual__', features: [] }
     let preset
     if (anwers.preset === '__manual__') { // 如果选的是自定义
-      preset = { plugins: {} }
+      preset = {
+        plugins: {}
+      }
       this.promptCompleteCbs.map(cb => cb(anwers, preset))
     } else {
       preset = defaultPresets[anwers.preset]
     }
-    console.log(preset);
+    return preset
+  }
 
+  async create(options) {
+    let preset = await this.promptAndResolvePreset()
+    // 添加一个核心插件
+    preset.plugins['@vue/cli-service'] = Object.assign({
+        projectName: this.name
+      },
+      preset
+    )
+    console.log(preset);
   }
 }
