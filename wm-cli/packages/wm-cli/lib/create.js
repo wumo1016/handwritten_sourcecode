@@ -22,6 +22,10 @@ async function create(name, options) {
             value: 'overwrite'
           },
           {
+            name: 'Merge',
+            value: 'merge'
+          },
+          {
             name: 'Cancel',
             value: false
           }

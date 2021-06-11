@@ -4,8 +4,10 @@ const fs = require('fs-extra')
 const path = require('path')
 const execa = require('execa')
 const {
-  toShortPluginId
+  toShortPluginId,
+  loadModule
 } = require('wm-cli-utils')
+const Generator = require('./generator')
 const isManualMode = answers => answers.preset === '__manual__'
 
 // 内置预设基础配置
@@ -188,6 +190,23 @@ module.exports = class Creator {
     return preset
   }
 
+  // rawPlugins 一个插件对象 { '@vue/cli-service': {} }
+  async resolvePlugins(rawPlugins) {
+    const plugins = []
+    for (const id of Object.keys(rawPlugins)) {
+      // 获取指定模块下的generator/index.js文件导出的函数
+      const apply = loadModule(`${id}/generator`, this.targetDir)
+      // 插件的选项
+      const options = rawPlugins[id]
+      plugins.push({
+        id,
+        apply,
+        options
+      })
+    }
+    return plugins
+  }
+
   async create(options) {
     const {
       name,
@@ -223,5 +242,10 @@ module.exports = class Creator {
     // 安装依赖 
     console.log(`⚙\u{fe0f}  Installing CLI plugins. This might take a while...`)
     await this.run('npm install')
+    // 调用生成器
+    console.log(`🚀  Invoking generators...`)
+    const plugins = await this.resolvePlugins(preset.plugins)
+    const generator = new Generator(targetDir, { pkg, plugins })
+    await generator.generate()
   }
 }
