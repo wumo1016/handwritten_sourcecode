@@ -8,6 +8,7 @@
     "lerna": "^4.0.0"
   },
   "dependencies": {
-    "chalk": "^4.1.1"
+    "chalk": "^4.1.1",
+    "execa": "^5.1.1"
   }
 }

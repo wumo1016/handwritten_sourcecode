@@ -2,6 +2,7 @@ const chalk = require('chalk')
 const inquirer = require('inquirer')
 const fs = require('fs-extra')
 const path = require('path')
+const execa = require('execa')
 const {
   toShortPluginId
 } = require('wm-cli-utils')
@@ -108,7 +109,7 @@ function resolveDefaultPrompts() {
   }
 }
 // 写入本地文件
-async function writeFile(targetDir, files){
+async function writeFile(targetDir, files) {
   Object.keys(files).forEach(name => {
     let filePath = path.join(targetDir, name)
     // 先查看文件所在目录是否存在 如果不存在就创建 
@@ -133,6 +134,12 @@ module.exports = class Creator {
 
     // 添加choices prompt 回调等
     featureList.map(fn => fn(this))
+  }
+
+  run(command, args) {
+    return execa(command, args, {
+      cwd: this.targetDir // 在指定目录下执行命令
+    })
   }
 
   injectChoice(choice) {
@@ -182,7 +189,10 @@ module.exports = class Creator {
   }
 
   async create(options) {
-    const {name, targetDir} = this
+    const {
+      name,
+      targetDir
+    } = this
     let preset = await this.promptAndResolvePreset()
     // 添加一个核心包
     preset.plugins['@vue/cli-service'] = Object.assign({
@@ -206,6 +216,12 @@ module.exports = class Creator {
     await writeFile(targetDir, {
       'package.json': JSON.stringify(pkg, null, 2)
     })
-    // console.log(preset);
+
+    // 初始化git仓库
+    console.log(`🗃  Initializing git repository...`)
+    await this.run('git init')
+    // 安装依赖 
+    console.log(`⚙\u{fe0f}  Installing CLI plugins. This might take a while...`)
+    await this.run('npm install')
   }
 }
