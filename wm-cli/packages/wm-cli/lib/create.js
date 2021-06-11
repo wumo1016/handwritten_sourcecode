@@ -1,4 +1,6 @@
 const path = require('path')
+const inquirer = require('inquirer')
+const chalk = require('chalk')
 const fs = require('fs-extra')
 const Creator = require('./creator')
 

@@ -1,5 +1,7 @@
 const chalk = require('chalk')
 const inquirer = require('inquirer')
+const fs = require('fs-extra')
+const path = require('path')
 const {
   toShortPluginId
 } = require('wm-cli-utils')
@@ -105,10 +107,21 @@ function resolveDefaultPrompts() {
     featurePrompt
   }
 }
+// 写入本地文件
+async function writeFile(targetDir, files){
+  Object.keys(files).forEach(name => {
+    let filePath = path.join(targetDir, name)
+    // 先查看文件所在目录是否存在 如果不存在就创建 
+    fs.ensureDirSync(path.dirname(filePath))
+    // 写入文件
+    fs.writeFileSync(filePath, files[name])
+  })
+}
 
 module.exports = class Creator {
   constructor(name, targetDir) {
     this.name = name
+    this.targetDir = targetDir
     const {
       presetPrompt,
       featurePrompt
@@ -169,13 +182,30 @@ module.exports = class Creator {
   }
 
   async create(options) {
+    const {name, targetDir} = this
     let preset = await this.promptAndResolvePreset()
-    // 添加一个核心插件
+    // 添加一个核心包
     preset.plugins['@vue/cli-service'] = Object.assign({
-        projectName: this.name
+        projectName: name
       },
       preset
     )
-    console.log(preset);
+    console.log(`✨  Creating project in ${chalk.yellow(targetDir)}`)
+
+    // 将要生成的 package.json 文件的内容
+    const pkg = {
+      name,
+      version: '0.0.1',
+      private: true,
+      devDependencies: {},
+    }
+    // 写入开发依赖
+    const deps = Object.keys(preset.plugins).forEach(key => {
+      pkg.devDependencies[key] = 'latest'
+    })
+    await writeFile(targetDir, {
+      'package.json': JSON.stringify(pkg, null, 2)
+    })
+    // console.log(preset);
   }
 }
