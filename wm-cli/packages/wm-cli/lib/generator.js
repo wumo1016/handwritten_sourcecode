@@ -34,6 +34,10 @@ class Generator {
     console.log('开始生成文件和配置');
     await this.initPlugins() // 目的是修改pkg和fileMiddlewares
     // todo 提取pkg中的一些配置到单独的文件中去(babel eslint)
+    // 解析文件路径 \ => /
+    // 更新package.json文件
+    // 重新npm install
+    // 写入文件files
   }
 }
 
