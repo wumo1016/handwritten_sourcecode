@@ -1,5 +1,5 @@
 const { isPlugin } = require('wm-cli-utils')
-const Generator = require('./generatorApi')
+const GeneratorAPI = require('./generatorApi')
 
 /* 
  * targetDir：生成项目的目录地址
@@ -15,8 +15,8 @@ class Generator {
     this.targetDir = targetDir
     this.pkg = pkg
     this.plugins = plugins
+    this.fileMiddlewares = [] // 插件中插入的函数
     this.files = [] // 先将需要生成的文件都放在里面
-    this.fileMiddlewares = []
     this.cliService = plugins.find(p => p.id === '@vue/cli-service')
   }
 
@@ -24,10 +24,9 @@ class Generator {
     let rootOptions = this.cliService.options
     for (const plugin of this.plugins) {
       const { id, apply, options } = plugin
-      let api = new Generator(ip, this, options, rootOptions)
+      let api = new GeneratorAPI(id, this, options, rootOptions)
       await apply(api, options)
     }
-    console.log(rootOptions);
   }
 
   async generate(){

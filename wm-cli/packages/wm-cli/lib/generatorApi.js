@@ -1,5 +1,9 @@
 const path = require('path')
-const { isString } = require('wm-cli-utils')
+const globby = require('globby')
+const {
+  isString,
+  toShortPluginId
+} = require('wm-cli-utils')
 // 提取调用此函数的目录
 function extractCallDir() {
   // extract api.render() callsite file location using error stack
@@ -34,6 +38,8 @@ class GeneratorAPI {
     this.generator = generator
     this.options = options
     this.rootOptions = rootOptions
+    this.pluginData = generator.plugins.filter(v => v !== '@vue/cli-service')
+      .map(v => ({ name: toShortPluginId(id) })) // 
   }
 
   /**
@@ -48,11 +54,29 @@ class GeneratorAPI {
   render(source, addtionalData) {
     const baseDir = extractCallDir()
     if (isString(source)) {
+      // G:\wumo\handwritten_sourcecode\test\node_modules\_@vue_cli-service@4.5.13@@vue\cli-service\generator\template
       source = path.resolve(baseDir, source)
+      this._injectFileMiddleware(async (files) => {
+        const data = Object.assign({
+          options: this.options, // 插件自己的配置对象
+          rootOptions: this.rootOptions, // 预设配置
+          plugins: this.pluginData
+        }, addtionalData)
+        const _files = await globby(['**/*'], { cwd: source }) // 找到目标文件夹下的所有文件
+        // console.log(_files, 123456);
+        // 将_gitignore文件处理成.gitignore文件
+        for (const rawPath of _files) {
+          
+        }
+      })
     }
   }
 
   extendPackage() {
+
+  }
+
+  hasPlugin() {
 
   }
 }
