@@ -11,4 +11,13 @@ exports.isPlugin = id => pluginRE.test(id)
 
 exports.isString = value => typeof value === 'string'
 
+exports.isObject = value => Object.prototype.toString.call(value) === "[object Object]"
 
+exports.slash = path => {
+  const isExtendedLengthPath = /^\\\\\?\\/.test(path);
+  const hasNonAscii = /[^\u0000-\u0080]+/.test(path); // eslint-disable-line no-control-regex
+  if (isExtendedLengthPath || hasNonAscii) {
+    return path;
+  }
+  return path.replace(/\\/g, '/');
+}

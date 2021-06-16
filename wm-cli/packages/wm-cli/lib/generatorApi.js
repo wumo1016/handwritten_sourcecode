@@ -1,9 +1,14 @@
 const path = require('path')
 const globby = require('globby')
+const fs = require('fs-extra')
+const { isBinaryFile } = require('isbinaryfile')
+const ejs = require('ejs')
 const {
   isString,
-  toShortPluginId
+  toShortPluginId,
+  isObject
 } = require('wm-cli-utils')
+
 // 提取调用此函数的目录
 function extractCallDir() {
   // extract api.render() callsite file location using error stack
@@ -66,14 +71,41 @@ class GeneratorAPI {
         // console.log(_files, 123456);
         // 将_gitignore文件处理成.gitignore文件
         for (const rawPath of _files) {
-          
+          const targetPath = rawPath.split('/').map(field => {
+            if (field.charAt(0) == '_') {
+              return `.${field.slice(1)}`
+            }
+            return field
+          }).join('/')
+          const sourcePath = path.resolve(source, rawPath)
+          const content = this.renderFile(sourcePath, data)
+          files[targetPath] = content
         }
       })
     }
   }
-
-  extendPackage() {
-
+  // 解析文件内容
+  renderFile(path, data) {
+    if (isBinaryFile(path)) { // 判断是否是二进制文件
+      return fs.readFileSync(path)
+    }
+    console.log(path, '普通文件');
+    let template = fs.readFileSync(path, 'utf8')
+    return ejs.render(template, data)
+  }
+  // 扩展package.json文件
+  extendPackage(fields) {
+    const pkg = this.generator.pkg
+    const toMerge = fields
+    for (const key in toMerge) {
+      const value = toMerge[key]
+      let existing = pkg[key]
+      if (isObject(existing) && ['devDependencies', 'dependencies'].includes(key)) {
+        pkg[key] = Object.assign(existing || {}, value)
+      } else { // TODO 其他有的也需要合并
+        pkg[key] = value
+      }
+    }
   }
 
   hasPlugin() {

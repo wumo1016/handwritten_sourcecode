@@ -1,5 +1,6 @@
-const { isPlugin } = require('wm-cli-utils')
+const { isPlugin, slash } = require('wm-cli-utils')
 const GeneratorAPI = require('./generatorApi')
+const { writeFileTree } = require('./util')
 
 /* 
  * targetDir：生成项目的目录地址
@@ -20,7 +21,7 @@ class Generator {
     this.cliService = plugins.find(p => p.id === '@vue/cli-service')
   }
 
-  async initPlugins(){
+  async initPlugins() {
     let rootOptions = this.cliService.options
     for (const plugin of this.plugins) {
       const { id, apply, options } = plugin
@@ -29,14 +30,34 @@ class Generator {
     }
   }
 
-  async generate(){
+  async resolveFiles() {
+    for (const middleware of this.fileMiddlewares) {
+      await middleware(this.files)
+    }
+  }
+
+  normalizeFilePath(files) {
+    Object.keys(files).forEach(path => {
+      const normalizePath = slash(path)
+      if (normalizePath !== path) {
+        files[normalizePath] = files[path]
+        delete files[path]
+      }
+    })
+    return files
+  }
+
+  async generate() {
     console.log('开始生成文件和配置');
     await this.initPlugins() // 目的是修改pkg和fileMiddlewares
     // todo 提取pkg中的一些配置到单独的文件中去(babel eslint)
-    // 解析文件路径 \ => /
+    await this.resolveFiles() // 执行fileMiddlewares中的函数
+    this.files = this.normalizeFilePath(this.files) // 格式化文件路径 \ => /
+    console.log(this.files);
     // 更新package.json文件
     // 重新npm install
     // 写入文件files
+    await writeFileTree(this.targetDir, this.files)
   }
 }
 

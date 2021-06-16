@@ -1,13 +1,12 @@
 const chalk = require('chalk')
 const inquirer = require('inquirer')
-const fs = require('fs-extra')
-const path = require('path')
 const execa = require('execa')
 const {
   toShortPluginId,
   loadModule
 } = require('wm-cli-utils')
 const Generator = require('./generator')
+const { writeFileTree } = require('./util')
 const isManualMode = answers => answers.preset === '__manual__'
 
 // 内置预设基础配置
@@ -109,16 +108,6 @@ function resolveDefaultPrompts() {
     presetPrompt,
     featurePrompt
   }
-}
-// 写入本地文件
-async function writeFile(targetDir, files) {
-  Object.keys(files).forEach(name => {
-    let filePath = path.join(targetDir, name)
-    // 先查看文件所在目录是否存在 如果不存在就创建 
-    fs.ensureDirSync(path.dirname(filePath))
-    // 写入文件
-    fs.writeFileSync(filePath, files[name])
-  })
 }
 
 module.exports = class Creator {
@@ -232,7 +221,7 @@ module.exports = class Creator {
     const deps = Object.keys(preset.plugins).forEach(key => {
       pkg.devDependencies[key] = 'latest'
     })
-    await writeFile(targetDir, {
+    await writeFileTree(targetDir, {
       'package.json': JSON.stringify(pkg, null, 2)
     })
 
