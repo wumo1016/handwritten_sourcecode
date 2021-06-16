@@ -3,6 +3,19 @@
   "version": "0.0.1",
   "private": true,
   "devDependencies": {
-    "@vue/cli-service": "latest"
-  }
+    "@vue/cli-service": "latest",
+    "vue-template-compiler": "^2.6.11"
+  },
+  "dependencies": {
+    "vue": "^2.6.11"
+  },
+  "scripts": {
+    "serve": "vue-cli-service serve",
+    "build": "vue-cli-service build"
+  },
+  "browserslist": [
+    "> 1%",
+    "last 2 versions",
+    "not dead"
+  ]
 }

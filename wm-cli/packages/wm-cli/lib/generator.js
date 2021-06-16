@@ -51,11 +51,13 @@ class Generator {
     console.log('开始生成文件和配置');
     await this.initPlugins() // 目的是修改pkg和fileMiddlewares
     // todo 提取pkg中的一些配置到单独的文件中去(babel eslint)
-    await this.resolveFiles() // 执行fileMiddlewares中的函数
-    this.files = this.normalizeFilePath(this.files) // 格式化文件路径 \ => /
-    console.log(this.files);
+    // 执行fileMiddlewares中的函数
+    await this.resolveFiles()
+    // 格式化文件路径 \ => /
+    this.files = this.normalizeFilePath(this.files)
     // 更新package.json文件
-    // 重新npm install
+    this.files['package.json'] = JSON.stringify(this.pkg, null, 2)
+    // TODO 重新npm install
     // 写入文件files
     await writeFileTree(this.targetDir, this.files)
   }
