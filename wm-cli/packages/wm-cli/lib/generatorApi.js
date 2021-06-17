@@ -108,8 +108,8 @@ class GeneratorAPI {
     }
   }
 
-  hasPlugin() {
-
+  hasPlugin(id, versionRange) {
+    return this.generator.hasPlugin(id, versionRange)
   }
 }
 
