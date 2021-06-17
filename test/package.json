@@ -4,10 +4,10 @@
   "private": true,
   "devDependencies": {
     "@vue/cli-service": "latest",
-    "vue-template-compiler": "^2.6.11"
+    "@vue/compiler-sfc": "^3.0.0"
   },
   "dependencies": {
-    "vue": "^2.6.11"
+    "vue": "^3.0.0"
   },
   "scripts": {
     "serve": "vue-cli-service serve",
