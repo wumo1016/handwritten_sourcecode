@@ -230,7 +230,7 @@ module.exports = class Creator {
     await this.run('git init')
     // 安装依赖 
     console.log(`⚙\u{fe0f}  Installing CLI plugins. This might take a while...`)
-    // await this.run('cnpm install')
+    // await this.run('npm install')
     // 调用生成器
     console.log(`🚀  Invoking generators...`)
     const plugins = await this.resolvePlugins(preset.plugins)
