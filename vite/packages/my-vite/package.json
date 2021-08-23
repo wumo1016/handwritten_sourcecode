@@ -1,0 +1,14 @@
+{
+  "name": "my-vite",
+  "version": "0.0.0",
+  "description": "> TODO: description",
+  "dependencies": {
+    "es-module-lexer": "^0.7.1",
+    "koa": "^2.13.1",
+    "koa-static": "^5.0.0",
+    "magic-string": "^0.25.7"
+  },
+  "bin": {
+    "my-vite": "./bin/vite.js"
+  }
+}
