@@ -3,10 +3,13 @@
   "version": "0.0.0",
   "description": "> TODO: description",
   "dependencies": {
+    "@vitejs/plugin-vue": "^1.4.0",
+    "@vue/compiler-sfc": "^3.2.4",
     "es-module-lexer": "^0.7.1",
     "koa": "^2.13.1",
     "koa-static": "^5.0.0",
-    "magic-string": "^0.25.7"
+    "magic-string": "^0.25.7",
+    "vue": "^3.2.4"
   },
   "bin": {
     "my-vite": "./bin/vite.js"

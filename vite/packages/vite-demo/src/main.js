@@ -1,1 +1,3 @@
-console.log(123);
+import { createApp } from 'vue'
+
+console.log(createApp)
