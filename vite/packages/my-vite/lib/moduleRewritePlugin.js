@@ -12,7 +12,6 @@ function moduleRewritePlugin({ app, root }) {
       const res = await rewriteImports(originContent)
       ctx.body = res
     }
-    console.log(ctx.body)
   })
 }
 
@@ -29,7 +28,7 @@ async function readBody(body) {
         })
     })
   }
-  return stream.toString()
+  return body.toString()
 }
 
 async function rewriteImports(source) {

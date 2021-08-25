@@ -5,6 +5,7 @@
     "packages/*"
   ],
   "devDependencies": {
+    "find-up": "^5.0.0",
     "lerna": "^4.0.0"
   }
 }

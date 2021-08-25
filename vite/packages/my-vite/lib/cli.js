@@ -1,6 +1,7 @@
 const Koa = require('koa')
 const serveStaticPlugin = require('./serveStaticPlugin')
 const moduleRewritePlugin = require('./moduleRewritePlugin')
+const resolveModulePlugin = require('./resolveModulePlugin')
 
 function createServer() {
   const app = new Koa()
@@ -11,7 +12,11 @@ function createServer() {
     Object.assign(ctx, context)
     return next()
   })
-  const resolvePlugins = [moduleRewritePlugin, serveStaticPlugin] // koa的中间件
+  const resolvePlugins = [
+    moduleRewritePlugin,
+    serveStaticPlugin,
+    resolveModulePlugin
+  ] // koa的中间件
   resolvePlugins.forEach(plugin => plugin(context))
   return app
 }
