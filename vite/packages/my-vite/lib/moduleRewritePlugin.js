@@ -1,8 +1,8 @@
 const koaStatic = require('koa-static')
 const path = require('path')
-const { Readable } = require('stream')
 const { parse } = require('es-module-lexer')
 const MagicString = require('magic-string')
+const { readBody } = require('./utils.js')
 
 function moduleRewritePlugin({ app, root }) {
   app.use(async (ctx, next) => {
@@ -13,22 +13,6 @@ function moduleRewritePlugin({ app, root }) {
       ctx.body = res
     }
   })
-}
-
-async function readBody(body) {
-  if (body instanceof Readable) {
-    return new Promise(r => {
-      let buffers = []
-      body
-        .on('data', chunk => {
-          buffers.push(chunk)
-        })
-        .on('end', () => {
-          r(Buffer.concat(buffers).toString())
-        })
-    })
-  }
-  return body.toString()
 }
 
 async function rewriteImports(source) {

@@ -2,6 +2,7 @@ const Koa = require('koa')
 const serveStaticPlugin = require('./serveStaticPlugin')
 const moduleRewritePlugin = require('./moduleRewritePlugin')
 const resolveModulePlugin = require('./resolveModulePlugin')
+const processPlugin = require('./processPlugin')
 
 function createServer() {
   const app = new Koa()
@@ -13,9 +14,10 @@ function createServer() {
     return next()
   })
   const resolvePlugins = [
+    processPlugin,
     moduleRewritePlugin,
     serveStaticPlugin,
-    resolveModulePlugin
+    resolveModulePlugin,
   ] // koa的中间件
   resolvePlugins.forEach(plugin => plugin(context))
   return app
