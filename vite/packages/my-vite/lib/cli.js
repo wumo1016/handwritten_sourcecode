@@ -3,6 +3,7 @@ const serveStaticPlugin = require('./serveStaticPlugin')
 const moduleRewritePlugin = require('./moduleRewritePlugin')
 const resolveModulePlugin = require('./resolveModulePlugin')
 const processPlugin = require('./processPlugin')
+const vuePlugin = require('./vuePlugin')
 
 function createServer() {
   const app = new Koa()
@@ -14,10 +15,11 @@ function createServer() {
     return next()
   })
   const resolvePlugins = [
-    processPlugin,
-    moduleRewritePlugin,
-    serveStaticPlugin,
-    resolveModulePlugin,
+    processPlugin, // 添加process变量
+    moduleRewritePlugin, // 重写import路径
+    resolveModulePlugin, // 解析模块路径 返回模块内容
+    vuePlugin,
+    serveStaticPlugin
   ] // koa的中间件
   resolvePlugins.forEach(plugin => plugin(context))
   return app
