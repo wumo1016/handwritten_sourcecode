@@ -13,3 +13,7 @@ export default {
 
 const { descriptor } = parse(source)
 console.log(descriptor)
+const res = compileTemplate({
+  source: descriptor.template.content
+})
+console.log(res.code)
