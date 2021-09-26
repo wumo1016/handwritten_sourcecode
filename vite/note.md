@@ -1,0 +1,3 @@
+- 安装 vite 到 vite-demo `yarn workspace vite-demo add vite`
+- 给 my-vite 添加依赖 `yarn workspace my-vite add es-module-lexer koa koa-static magic-string`
+- 创建全局命令 到指定项目下 执行 `npm link`

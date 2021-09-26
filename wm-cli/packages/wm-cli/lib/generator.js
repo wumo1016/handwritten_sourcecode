@@ -16,6 +16,7 @@ class Generator {
     this.targetDir = targetDir
     this.pkg = pkg
     this.plugins = plugins
+    this.allPlugins = Object.keys(this.pkg.dependencies || {}).concat(Object.keys(this.pkg.devDependencies || {}))
     this.fileMiddlewares = [] // 插件中插入的函数
     this.files = [] // 先将需要生成的文件都放在里面
     this.cliService = plugins.find(p => p.id === '@vue/cli-service')
@@ -60,6 +61,13 @@ class Generator {
     // TODO 重新npm install
     // 写入文件files
     await writeFileTree(this.targetDir, this.files)
+  }
+
+  hasPlugin(id, versionRange) {
+    return [
+      ...this.plugins.map(v => v.id),
+      ...this.allPlugins
+    ].some(v => v === id)
   }
 }
 

@@ -1,7 +1,7 @@
 const path = require('path')
 const globby = require('globby')
 const fs = require('fs-extra')
-const { isBinaryFile } = require('isbinaryfile')
+const { isBinaryFileSync } = require('isbinaryfile')
 const ejs = require('ejs')
 const {
   isString,
@@ -86,10 +86,9 @@ class GeneratorAPI {
   }
   // 解析文件内容
   renderFile(path, data) {
-    if (isBinaryFile(path)) { // 判断是否是二进制文件
+    if (isBinaryFileSync(path)) { // 判断是否是二进制文件
       return fs.readFileSync(path)
     }
-    console.log(path, '普通文件');
     let template = fs.readFileSync(path, 'utf8')
     return ejs.render(template, data)
   }
@@ -108,8 +107,8 @@ class GeneratorAPI {
     }
   }
 
-  hasPlugin() {
-
+  hasPlugin(id, versionRange) {
+    return this.generator.hasPlugin(id, versionRange)
   }
 }
 
