@@ -22,7 +22,7 @@ export default {
 
     return {
       count: computed(() => store.state.count),
-      // double: computed(() => store.getters.double),
+      double: computed(() => store.getters.double),
       add,
       asyncAdd
     }

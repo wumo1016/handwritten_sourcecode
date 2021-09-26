@@ -4,9 +4,24 @@ import { inject, reactive } from 'vue'
 const storeKey = 'store'
 class Store {
   constructor(options) {
-    // this.state = reactive(options.state)
-    // 为了解决重新赋值的问题 replaceState this._state = reactive(newState) => this._state.data = newState
-    this._state = reactive({ data: options.state })
+    const store = this
+    /** state
+     * 为什么不这样做 this.state = reactive(options.state)
+     * 为了解决重新赋值的问题 replaceState this._state = reactive(newState) => this._state.data = newState
+     */
+    store._state = reactive({ data: options.state })
+    /** getters
+     * 需要将函数转化为属性 直接使用
+     */
+    const _getters = options.getters || {}
+    store.getters = {}
+    forEachValue(_getters, function(key, value) {
+      Object.defineProperty(store.getters, key, {
+        get() {
+          return value(store.state)
+        }
+      })
+    })
   }
 
   get state() {
@@ -26,4 +41,9 @@ export function createStore(options) {
 
 export function useStore(injectKey = storeKey) {
   return inject(injectKey)
+}
+
+// 循环对象
+export function forEachValue(obj, fn) {
+  Reflect.ownKeys(obj).forEach(key => fn(key, obj[key]))
 }

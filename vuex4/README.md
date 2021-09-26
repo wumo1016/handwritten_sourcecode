@@ -7,8 +7,11 @@
   - 可以多次创建 所以应该有一个 Store 类 每次直接返回一个实例
   - 通过 provide/inject 的方式 向全局注入 store 的
   - 在组件实例上仍然添加了\$store 属性
-  - 通过 reactive 将传入的 state 作成响应式的
+  - state
+    - 通过 reactive 将传入的 state 作成响应式添加到 this 上
+  - getters
 - 导出一个 useStore 方法
+  - 返回注册时的 Store 实例即可
 
 ## 问题
 
