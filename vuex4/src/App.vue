@@ -1,11 +1,11 @@
 <template>
-  <div></div>
-  <!-- <div>count - {{ count }}</div>
+  <div>count - {{ count }}</div>
+  <button @click="$store.state.count++">直接+1</button>
   <div>dounble - {{ double }}</div>
   <div>
     <button @click="add">add</button>
     <button @click="asyncAdd">asyncAdd</button>
-  </div> -->
+  </div>
 </template>
 
 <script>
@@ -16,15 +16,15 @@ export default {
   name: 'App',
   setup() {
     const store = useStore('wyb')
-    console.log(store);
-    // const add = () => store.commit('add', 2)
-    // const asyncAdd = () => store.dispatch('asyncAdd', 2)
+    console.log(store)
+    const add = () => store.commit('add', 2)
+    const asyncAdd = () => store.dispatch('asyncAdd', 2)
 
     return {
-      // count: computed(() => store.state.count),
+      count: computed(() => store.state.count),
       // double: computed(() => store.getters.double),
-      // add,
-      // asyncAdd
+      add,
+      asyncAdd
     }
   }
 }
