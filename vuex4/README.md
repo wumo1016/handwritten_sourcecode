@@ -14,6 +14,27 @@
     - 执行 Store 实例上的 commit 方法
 - 导出一个 useStore 方法
   - 返回注册时的 Store 实例即可
+- 模块化
+  - 构建模块化配置 创建一个类 ModuleCollection 返回以下树形结构 再创建一个类 Module 用于创建模块
+    ```javascript
+    root = {
+      _raw: rootModule,
+      state: rootModule.state,
+      _children: {
+        aCount: {
+          _raw: aModule,
+          state: aModule.state,
+          _children: {}
+        },
+        bCount: {
+          _raw: aModule,
+          state: aModule.state,
+          _children: {}
+        }
+      }
+    }
+    ```
+  - 如果在模块配置中不添加 namespaced 就会默认将所有模块的 mutations 和 actions 合并到最外层上去
 
 ## 问题
 

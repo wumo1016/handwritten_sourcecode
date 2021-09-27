@@ -21,5 +21,29 @@ export default createStore({
         commit('add', data)
       }, 1000)
     }
+  },
+  modules: {
+    aCount: {
+      namespaced: true,
+      state: {
+        count: 0
+      },
+      mutations: {
+        add(state, data) {
+          state.count += data
+        }
+      }
+    },
+    bCount: {
+      namespaced: true,
+      state: {
+        count: 0
+      },
+      mutations: {
+        add(state, data) {
+          state.count += data
+        }
+      }
+    }
   }
 })

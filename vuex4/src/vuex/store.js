@@ -2,57 +2,51 @@ import { reactive } from 'vue'
 import { forEachValue } from './utils'
 import { storeKey } from './injectKey'
 
+class Module {
+  constructor(rawModule) {
+    this._raw = rawModule
+    this.state = rawModule.state
+    this._children = {}
+  }
+
+  addChild(key, module) {}
+}
+
+class ModuleCollection {
+  constructor(rootModule) {
+    this.root = null
+    this.register(rootModule, [])
+  }
+  /**
+   * @Descripttion: 递归注册模块 构建父子关系
+   * @param {*} rawModule 未格式化的元数据
+   * @param {*} path
+   */
+  register(rawModule, path) {
+    const newModule = new Module(rawModule)
+    // 说明是根模块
+    if (path.length === 0) {
+      this.root = newModule
+    } else {
+      const parent = this.root
+      parent.addChild(path[path.length - 1], newModule)
+    }
+    // 递归
+    if (rawModule.modules) {
+      forEachValue(rawModule.modules, (key, rawChildModule) => {
+        this.register(rawChildModule, path.concat(key))
+      })
+    }
+    console.log(this.root)
+  }
+}
+
 export default class Store {
   constructor(options) {
-    const store = this
-    /** state
-     * 为什么不这样做 this.state = reactive(options.state)
-     * 为了解决重新赋值的问题 replaceState this._state = reactive(newState) => this._state.data = newState
-     */
-    store._state = reactive({ data: options.state })
-    /** getters
-     * 需要将函数转化为属性 直接使用
-     */
-    store.getters = {}
-    forEachValue(options.getters || {}, function(key, value) {
-      Object.defineProperty(store.getters, key, {
-        get() {
-          return value(store.state)
-        }
-      })
-    })
-    /** mutations
-     */
-    store._mutations = Object.create(null)
-    forEachValue(options.mutations || {}, function(key, value) {
-      store._mutations[key] = data => {
-        value.call(store, store.state, data)
-      }
-    })
-    /** actions
-     */
-    store._actions = Object.create(null)
-    forEachValue(options.actions || {}, function(key, value) {
-      store._actions[key] = data => {
-        value.call(store, store, data)
-      }
-    })
-  }
-
-  get state() {
-    return this._state.data
-  }
-
-  commit = (key, data) => {
-    this._mutations[key] && this._mutations[key](data)
-  }
-
-  dispatch = (key, data) => {
-    this._actions[key] && this._actions[key](data)
+    this._modules = new ModuleCollection(options)
   }
 
   install(app, injectKey) {
-    // 全局暴露一个变量 暴露的是store的示例
     app.provide(injectKey || storeKey, this)
     app.config.globalProperties.$store = this
   }
