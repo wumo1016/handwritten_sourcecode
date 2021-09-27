@@ -10,6 +10,8 @@
   - state
     - 通过 reactive 将传入的 state 作成响应式添加到 this 上
   - getters
+  - mutations
+    - 执行 Store 实例上的 commit 方法
 - 导出一个 useStore 方法
   - 返回注册时的 Store 实例即可
 
