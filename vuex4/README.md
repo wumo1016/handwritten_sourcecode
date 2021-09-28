@@ -70,3 +70,22 @@
   state: Proxy
 }
 ```
+
+- 状态最终结果
+
+```javasctipt
+{
+  state: {
+    count: 0,
+    aCount: {
+      count: 0,
+      cCount: {
+        count: 0
+      }
+    },
+    bCount: {
+      count: 0
+    }
+  }
+}
+```

@@ -1,49 +1,32 @@
 import { reactive } from 'vue'
 import { forEachValue } from './utils'
 import { storeKey } from './injectKey'
+import ModuleCollection from './module/module-collection'
 
-class Module {
-  constructor(rawModule) {
-    this._raw = rawModule
-    this.state = rawModule.state
-    this._children = {}
+function installModule(store, rootState, path, module) {
+  let isRoot = path.length === 0
+
+  if (!isRoot) {
+    const parentState = path
+      .slice(0, -1)
+      .reduce((state, key) => state[key], rootState)
+    parentState[path[path.length - 1]] = module.state
   }
 
-  addChild(key, module) {}
-}
-
-class ModuleCollection {
-  constructor(rootModule) {
-    this.root = null
-    this.register(rootModule, [])
-  }
-  /**
-   * @Descripttion: 递归注册模块 构建父子关系
-   * @param {*} rawModule 未格式化的元数据
-   * @param {*} path
-   */
-  register(rawModule, path) {
-    const newModule = new Module(rawModule)
-    // 说明是根模块
-    if (path.length === 0) {
-      this.root = newModule
-    } else {
-      const parent = this.root
-      parent.addChild(path[path.length - 1], newModule)
-    }
-    // 递归
-    if (rawModule.modules) {
-      forEachValue(rawModule.modules, (key, rawChildModule) => {
-        this.register(rawChildModule, path.concat(key))
-      })
-    }
-    console.log(this.root)
-  }
+  module.forEachChild(function(key, childModule) {
+    installModule(store, rootState, path.concat(key), childModule)
+  })
 }
 
 export default class Store {
   constructor(options) {
     this._modules = new ModuleCollection(options)
+
+    // 定义状态
+    // 根状态
+    const root = this._modules.root
+    installModule(this, root.state, [], root)
+    console.log(this._modules)
   }
 
   install(app, injectKey) {

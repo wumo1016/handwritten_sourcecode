@@ -32,6 +32,19 @@ export default createStore({
         add(state, data) {
           state.count += data
         }
+      },
+      modules: {
+        cCount: {
+          namespaced: true,
+          state: {
+            count: 0
+          },
+          mutations: {
+            add(state, data) {
+              state.count += data
+            }
+          }
+        }
       }
     },
     bCount: {
