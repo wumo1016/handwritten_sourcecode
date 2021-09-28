@@ -24,7 +24,11 @@ export default {
     const store = useStore('wyb')
     // console.log(store)
     const add = () => store.commit('add', 2)
-    const asyncAdd = () => store.dispatch('asyncAdd', 2)
+    const asyncAdd = () => {
+      store.dispatch('asyncAdd', 2).then(res => {
+        console.log('ok')
+      })
+    }
 
     return {
       count: computed(() => store.state.count),

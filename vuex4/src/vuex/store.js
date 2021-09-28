@@ -95,6 +95,16 @@ export default class Store {
     return this._state.data
   }
 
+  commit = (key, payload) => {
+    const mutation = this._mutations[key] || []
+    mutation.forEach(fn => fn(payload))
+  }
+
+  dispatch = (key, payload) => {
+    const action = this._actions[key] || []
+    return Promise.all(action.map(fn => fn(payload)))
+  }
+
   install(app, injectKey) {
     app.provide(injectKey || storeKey, this)
     app.config.globalProperties.$store = this
