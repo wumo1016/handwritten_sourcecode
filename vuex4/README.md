@@ -60,6 +60,9 @@
     ```
 
   - 组装 mutations(commit)
+  - 组装 actions(commit)
+  - namespaced
+    - a 加 c 没加 c 会被合并到 a 上
 
 ## 问题
 

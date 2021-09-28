@@ -12,6 +12,9 @@ import { forEachValue, isPromise } from './utils'
 function installModule(store, rootState, path, module) {
   let isRoot = path.length === 0
 
+  const namespaced = store._modules.getNamespaced(path)
+  console.log(namespaced)
+
   // 组装state
   if (!isRoot) {
     const parentState = path
@@ -29,6 +32,7 @@ function installModule(store, rootState, path, module) {
   // 组装mutations commmit('add', payload)
   // 不考虑namespaced的情况下 相同key的mutation将会被合并成一个数组
   module.forEachMutation(function(key, mutation) {
+    console.log(path)
     const entry = store._mutations[key] || (store._mutations[key] = [])
     entry.push(payload => {
       mutation.call(store, getNextedState(store.state, path), payload)

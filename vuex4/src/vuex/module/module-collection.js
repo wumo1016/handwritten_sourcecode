@@ -26,4 +26,12 @@ export default class ModuleCollection {
       })
     }
   }
+
+  getNamespaced(path) {
+    let module = this.root
+    return path.reduce((namespacedStr, key) => {
+      module = module.getChild(key) // 子模块
+      return namespacedStr + (module.namespaced ? key + '/' : '')
+    }, '')
+  }
 }

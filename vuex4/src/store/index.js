@@ -38,7 +38,6 @@ export default createStore({
       },
       modules: {
         cCount: {
-          namespaced: true,
           state: {
             count: 0
           },
