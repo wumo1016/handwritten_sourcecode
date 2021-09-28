@@ -18,4 +18,19 @@ export default class Module {
   forEachChild(fn) {
     forEachValue(this._children, fn)
   }
+
+  forEachGetter(fn) {
+    const getters = this._raw.getters
+    getters && forEachValue(getters, fn)
+  }
+
+  forEachMutation(fn) {
+    const mutations = this._raw.mutations
+    mutations && forEachValue(mutations, fn)
+  }
+
+  forEachAction(fn) {
+    const actions = this._raw.actions
+    actions && forEachValue(actions, fn)
+  }
 }

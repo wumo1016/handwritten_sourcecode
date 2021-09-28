@@ -15,6 +15,7 @@
 - 导出一个 useStore 方法
   - 返回注册时的 Store 实例即可
 - 模块化
+
   - 构建模块化配置 创建一个类 ModuleCollection 返回以下树形结构 再创建一个类 Module 用于创建模块
     ```javascript
     root = {
@@ -24,17 +25,41 @@
         aCount: {
           _raw: aModule,
           state: aModule.state,
-          _children: {}
+          _children: {
+            cCount: {
+              _raw: cModule,
+              state: cModule.state,
+              _children: {}
+            }
+          }
         },
         bCount: {
-          _raw: aModule,
-          state: aModule.state,
+          _raw: bModule,
+          state: bModule.state,
           _children: {}
         }
       }
     }
     ```
   - 如果在模块配置中不添加 namespaced 就会默认将所有模块的 mutations 和 actions 合并到最外层上去
+  - 组装 state
+
+    ```javascript
+    state = {
+      count: 0,
+      aCount: {
+        count: 0,
+        cCount: {
+          count: 0
+        }
+      },
+      bCount: {
+        count: 0
+      }
+    }
+    ```
+
+  - 组装 mutations(commit)
 
 ## 问题
 
@@ -68,24 +93,5 @@
   _subscribers: []
   _wrappedGetters: {double: ƒ}
   state: Proxy
-}
-```
-
-- 状态最终结果
-
-```javasctipt
-{
-  state: {
-    count: 0,
-    aCount: {
-      count: 0,
-      cCount: {
-        count: 0
-      }
-    },
-    bCount: {
-      count: 0
-    }
-  }
 }
 ```
