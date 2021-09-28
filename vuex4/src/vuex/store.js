@@ -1,7 +1,7 @@
 import { reactive } from 'vue'
 import { storeKey } from './injectKey'
 import ModuleCollection from './module/module-collection'
-import { isPromise } from './utils'
+import { forEachValue, isPromise } from './utils'
 /**
  * @Descripttion: 处理数据 state getters mutations action
  * @param {*} store
@@ -62,6 +62,21 @@ function getNextedState(rootState, path) {
   return path.reduce((state, key) => state[key], rootState)
 }
 
+function resetStoreState(store, state) {
+  store._state = reactive({ data: state })
+
+  const _wrappedGetters = store._wrappedGetters
+  store.getters = {}
+  forEachValue(_wrappedGetters, function(key, getter) {
+    Reflect.defineProperty(store.getters, key, {
+      enumerable: true,
+      get() {
+        return getter()
+      }
+    })
+  })
+}
+
 export default class Store {
   constructor(options) {
     this._modules = new ModuleCollection(options)
@@ -72,9 +87,12 @@ export default class Store {
 
     const root = this._modules.root
     installModule(this, root.state, [], root)
+    // 将_state和getters设置到store上
+    resetStoreState(this, root.state)
+  }
 
-    console.log(this)
-    console.log(root.state);
+  get state() {
+    return this._state.data
   }
 
   install(app, injectKey) {
