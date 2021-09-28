@@ -1,6 +1,7 @@
 import { reactive } from 'vue'
 import { storeKey } from './injectKey'
 import ModuleCollection from './module/module-collection'
+import { isPromise } from './utils'
 /**
  * @Descripttion: 处理数据 state getters mutations action
  * @param {*} store
@@ -11,25 +12,43 @@ import ModuleCollection from './module/module-collection'
 function installModule(store, rootState, path, module) {
   let isRoot = path.length === 0
 
+  // 组装state
   if (!isRoot) {
-    // 组装state
     const parentState = path
       .slice(0, -1)
       .reduce((state, key) => state[key], rootState)
     parentState[path[path.length - 1]] = module.state
   }
-
+  // 组装getters
   module.forEachGetter(function(key, getter) {
     store._wrappedGetters[key] = () => {
       // 直接使用 module.state 不是响应式的
       return getter(getNextedState(store.state, path))
     }
   })
+  // 组装mutations commmit('add', payload)
+  // 不考虑namespaced的情况下 相同key的mutation将会被合并成一个数组
+  module.forEachMutation(function(key, mutation) {
+    const entry = store._mutations[key] || (store._mutations[key] = [])
+    entry.push(payload => {
+      mutation.call(store, getNextedState(store.state, path), payload)
+    })
+  })
+  // 组装actions dispatch('asyncAdd', payload) 区别是action返回的是一个Pormise
+  // 不考虑namespaced的情况下 相同key的action将会被合并成一个数组
+  module.forEachAction(function(key, action) {
+    const entry = store._actions[key] || (store._actions[key] = [])
+    entry.push(payload => {
+      const res = action.call(store, store, payload)
+      // 将结果包装成 Promise
+      if (!isPromise(res)) {
+        return Promise.resolve(res)
+      }
+      return res
+    })
+  })
 
-  module.forEachMutation(function(key, motation) {})
-
-  module.forEachAction(function(key, action) {})
-
+  // 递归执行
   module.forEachChild(function(key, childModule) {
     installModule(store, rootState, path.concat(key), childModule)
   })
@@ -54,7 +73,8 @@ export default class Store {
     const root = this._modules.root
     installModule(this, root.state, [], root)
 
-    console.log(this._modules)
+    console.log(this)
+    console.log(root.state);
   }
 
   install(app, injectKey) {
