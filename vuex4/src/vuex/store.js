@@ -13,7 +13,6 @@ function installModule(store, rootState, path, module) {
   let isRoot = path.length === 0
 
   const namespaced = store._modules.getNamespaced(path)
-  console.log(namespaced)
 
   // 组装state
   if (!isRoot) {
@@ -24,7 +23,7 @@ function installModule(store, rootState, path, module) {
   }
   // 组装getters
   module.forEachGetter(function(key, getter) {
-    store._wrappedGetters[key] = () => {
+    store._wrappedGetters[namespaced + key] = () => {
       // 直接使用 module.state 不是响应式的
       return getter(getNextedState(store.state, path))
     }
@@ -32,8 +31,9 @@ function installModule(store, rootState, path, module) {
   // 组装mutations commmit('add', payload)
   // 不考虑namespaced的情况下 相同key的mutation将会被合并成一个数组
   module.forEachMutation(function(key, mutation) {
-    console.log(path)
-    const entry = store._mutations[key] || (store._mutations[key] = [])
+    const entry =
+      store._mutations[namespaced + key] ||
+      (store._mutations[namespaced + key] = [])
     entry.push(payload => {
       mutation.call(store, getNextedState(store.state, path), payload)
     })
@@ -41,7 +41,9 @@ function installModule(store, rootState, path, module) {
   // 组装actions dispatch('asyncAdd', payload) 区别是action返回的是一个Pormise
   // 不考虑namespaced的情况下 相同key的action将会被合并成一个数组
   module.forEachAction(function(key, action) {
-    const entry = store._actions[key] || (store._actions[key] = [])
+    const entry =
+      store._actions[namespaced + key] ||
+      (store._actions[namespaced + key] = [])
     entry.push(payload => {
       const res = action.call(store, store, payload)
       // 将结果包装成 Promise

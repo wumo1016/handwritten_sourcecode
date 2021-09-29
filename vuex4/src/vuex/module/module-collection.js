@@ -26,7 +26,11 @@ export default class ModuleCollection {
       })
     }
   }
-
+  /**
+   * @Author: wyb
+   * @Descripttion: 根据路径获取模块命名前缀
+   * @param {*} path
+   */
   getNamespaced(path) {
     let module = this.root
     return path.reduce((namespacedStr, key) => {

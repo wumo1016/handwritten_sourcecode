@@ -12,6 +12,9 @@
   <h6>b模块</h6>
   <div>{{ $store.state.bCount.count }}</div>
   <button @click="$store.commit('bCount/add', 2)">add</button>
+  <h6>c模块</h6>
+  <div>{{ $store.state.aCount.cCount.count }}</div>
+  <button @click="$store.commit('aCount/cCount/add', 2)">add</button>
 </template>
 
 <script>
@@ -22,7 +25,7 @@ export default {
   name: 'App',
   setup() {
     const store = useStore('wyb')
-    // console.log(store)
+    console.log(store)
     const add = () => store.commit('add', 2)
     const asyncAdd = () => {
       store.dispatch('asyncAdd', 2).then(res => {
