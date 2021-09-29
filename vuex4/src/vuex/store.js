@@ -96,10 +96,15 @@ function enableStrictMode(store) {
   watch(
     () => store._state.data,
     () => {
-      console.assert(
-        store._commiting,
-        'do not mutate vuex store outside mutation handlers'
-      )
+      // console.assert(
+      //   store._commiting,
+      //   'do not mutate vuex store outside mutation handlers'
+      // )
+      if (!store._commiting) {
+        throw new Error(
+          '[vuex] do not mutate vuex store state outside mutation handlers.'
+        )
+      }
     },
     {
       deep: true,
