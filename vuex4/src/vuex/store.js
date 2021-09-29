@@ -1,4 +1,4 @@
-import { reactive } from 'vue'
+import { reactive, watch } from 'vue'
 import { storeKey } from './injectKey'
 import ModuleCollection from './module/module-collection'
 import { forEachValue, isPromise } from './utils'
@@ -81,6 +81,31 @@ function resetStoreState(store, state) {
       }
     })
   })
+
+  if (store.strict) {
+    enableStrictMode(store)
+  }
+}
+/**
+ * @Author: wyb
+ * @Descripttion: 非法修改报警告
+ * @param {*} store
+ */
+function enableStrictMode(store) {
+  // 监控数据变化
+  watch(
+    () => store._state.data,
+    () => {
+      console.assert(
+        store._commiting,
+        'do not mutate vuex store outside mutation handlers'
+      )
+    },
+    {
+      deep: true,
+      flush: 'async' // 同步监控 默认是异步
+    }
+  )
 }
 
 export default class Store {
@@ -90,6 +115,9 @@ export default class Store {
     this._wrappedGetters = Object.create(null)
     this._mutations = Object.create(null)
     this._actions = Object.create(null)
+
+    this.strict = options.strict || false
+    this._commiting = false // 是否mutation修改状态
 
     const root = this._modules.root
     installModule(this, root.state, [], root)
@@ -103,7 +131,9 @@ export default class Store {
 
   commit = (key, payload) => {
     const mutation = this._mutations[key] || []
-    mutation.forEach(fn => fn(payload))
+    this._withCommit(() => {
+      mutation.forEach(fn => fn(payload))
+    })
   }
 
   dispatch = (key, payload) => {
@@ -114,5 +144,12 @@ export default class Store {
   install(app, injectKey) {
     app.provide(injectKey || storeKey, this)
     app.config.globalProperties.$store = this
+  }
+  // 切片编程
+  _withCommit(fn) {
+    const commiting = this._commiting
+    this._commiting = true
+    fn()
+    this._commiting = commiting
   }
 }

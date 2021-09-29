@@ -63,6 +63,8 @@
   - 组装 actions(commit)
   - namespaced
     - a 加 c 没加 c 会被合并到 a 上
+  - 严格模式 strict
+    - 开启后 state 的更改必须通过 mutation 更改
 
 ## 问题
 
