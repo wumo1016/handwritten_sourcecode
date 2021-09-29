@@ -13,7 +13,7 @@ function customPlugin(store) {
   })
 }
 
-export default createStore({
+const store = createStore({
   plugins: [
     // 会按照注册的顺序依次执行插件 执行的时候会store传递
     customPlugin
@@ -52,20 +52,20 @@ export default createStore({
         add(state, data) {
           state.count += data
         }
-      },
-      modules: {
-        cCount: {
-          namespaced: true,
-          state: {
-            count: 0
-          },
-          mutations: {
-            add(state, data) {
-              state.count += data
-            }
-          }
-        }
       }
+      // modules: {
+      //   cCount: {
+      //     namespaced: true,
+      //     state: {
+      //       count: 0
+      //     },
+      //     mutations: {
+      //       add(state, data) {
+      //         state.count += data
+      //       }
+      //     }
+      //   }
+      // }
     },
     bCount: {
       namespaced: true,
@@ -80,3 +80,18 @@ export default createStore({
     }
   }
 })
+
+// 在aCount模块下 注册一个cCount模块
+store.registerModule(['aCount', 'cCount'], {
+  namespaced: true,
+  state: {
+    count: 0
+  },
+  mutations: {
+    add(state, data) {
+      state.count += data
+    }
+  }
+})
+
+export default store

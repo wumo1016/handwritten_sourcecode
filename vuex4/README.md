@@ -69,6 +69,7 @@
     - plugins
     - subscribe
     - replaceState
+  - 动态注册模块 registerModule
 
 ## 问题
 

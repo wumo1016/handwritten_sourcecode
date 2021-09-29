@@ -11,20 +11,24 @@ export default class ModuleCollection {
    * @param {*} rawModule 未格式化的元数据
    * @param {*} path
    */
-  register(rawModule, path, parent) {
+  register(rawModule, path) {
     const newModule = new Module(rawModule)
     // 说明是根模块
     if (path.length === 0) {
       this.root = newModule
     } else {
+      const parent = path
+        .slice(0, -1)
+        .reduce((module, curPath) => module.getChild(curPath), this.root)
       parent.addChild(path[path.length - 1], newModule)
     }
     // 递归
     if (rawModule.modules) {
       forEachValue(rawModule.modules, (key, rawChildModule) => {
-        this.register(rawChildModule, path.concat(key), newModule)
+        this.register(rawChildModule, path.concat(key))
       })
     }
+    return newModule
   }
   /**
    * @Author: wyb

@@ -19,7 +19,9 @@ function installModule(store, rootState, path, module) {
     const parentState = path
       .slice(0, -1)
       .reduce((state, key) => state[key], rootState)
-    parentState[path[path.length - 1]] = module.state
+    store._withCommit(() => {
+      parentState[path[path.length - 1]] = module.state
+    })
   }
   // 组装getters
   module.forEachGetter(function(key, getter) {
@@ -188,5 +190,21 @@ export default class Store {
     this._withCommit(() => {
       this._state.data = newState
     })
+  }
+  /**
+   * @Author: wyb
+   * @Descripttion: 注册模块
+   * @param {*} path
+   * @param {*} rawModule
+   */
+
+  registerModule(path, rawModule) {
+    if (typeof path === 'string') path = [path]
+    // 1.注册模块
+    const newModule = this._modules.register(rawModule, path)
+    // 2.安装模块
+    installModule(this, this.state, path, newModule)
+    // 3.重置容器
+    resetStoreState(this, this.state)
   }
 }
