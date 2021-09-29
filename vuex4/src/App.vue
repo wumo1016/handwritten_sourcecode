@@ -25,7 +25,7 @@ export default {
   name: 'App',
   setup() {
     const store = useStore('wyb')
-    console.log(store)
+    // console.log(store)
     const add = () => store.commit('add', 2)
     const asyncAdd = () => {
       store.dispatch('asyncAdd', 2).then(res => {

@@ -108,7 +108,7 @@ function enableStrictMode(store) {
     },
     {
       deep: true,
-      flush: 'async' // 同步监控 默认是异步
+      flush: 'sync' // 同步监控 默认是异步
     }
   )
 }
@@ -128,6 +128,10 @@ export default class Store {
     installModule(this, root.state, [], root)
     // 将_state和getters设置到store上
     resetStoreState(this, root.state)
+
+    // 执行插件
+    this._subscribers = []
+    options.plugins.forEach(plugin => plugin(this))
   }
 
   get state() {
@@ -139,6 +143,15 @@ export default class Store {
     this._withCommit(() => {
       mutation.forEach(fn => fn(payload))
     })
+    this._subscribers.forEach(subcribe =>
+      subcribe(
+        {
+          type: key,
+          payload
+        },
+        this.state
+      )
+    )
   }
 
   dispatch = (key, payload) => {
@@ -156,5 +169,24 @@ export default class Store {
     this._commiting = true
     fn()
     this._commiting = commiting
+  }
+  /**
+   * @Author: wyb
+   * @Descripttion: 订阅事件 等mutation的时候调用
+   * @param {*}
+   */
+  subscribe(fn) {
+    this._subscribers.push(fn)
+  }
+  /**
+   * @Author: wyb
+   * @Descripttion: 替换data
+   * @param {*} newState
+   */
+  replaceState(newState) {
+    // 严格模式不能直接修改状态
+    this._withCommit(() => {
+      this._state.data = newState
+    })
   }
 }
