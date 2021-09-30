@@ -8,6 +8,7 @@ function createStore(options) {
     install(app, key = DefaultKey) {
       const store = new Store(options)
       app.provide(key, store)
+      app.config.globalProperties.$store = store
     }
   }
 }
