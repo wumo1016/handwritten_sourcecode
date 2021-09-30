@@ -2,7 +2,9 @@ import { reactive } from 'vue'
 import ModuleCollection from './module/module-collection'
 import { forEachObj } from './utils'
 
-function installModule(rootState, path, module) {
+function installModule(store, rootState, path, module) {
+  const namespaced = store._modules.getNamespaced(path)
+
   if (path.length !== 0) {
     const parentState = path
       .slice(0, -1)
@@ -11,22 +13,44 @@ function installModule(rootState, path, module) {
   }
 
   // 递归构建state关系
-  const childModules = module._children
-  forEachObj(childModules, function(key, childModule) {
-    installModule(rootState, path.concat(key), childModule)
+  module.forEachChild(function(key, childModule) {
+    installModule(store, rootState, path.concat(key), childModule)
+  })
+
+  // 构建getters
+  module.forEachGetter(function(key, getter) {
+    store._wrappedGetters[namespaced + key] = () => {
+      return getter(getNextedState(store.state, path))
+    }
   })
 }
 
 function resetStoreState(store, state) {
   store._state = reactive({ data: state })
+
+  store.getters = {}
+  forEachObj(store._wrappedGetters, function(key, getter) {
+    Object.defineProperty(store.getters, key, {
+      enumerable: true,
+      get() {
+        return getter()
+      }
+    })
+  })
+}
+
+function getNextedState(rootState, path) {
+  return path.reduce((state, curPath) => state[curPath], rootState)
 }
 
 const store = class Store {
   constructor(options) {
     this._modules = new ModuleCollection(options)
 
+    this._wrappedGetters = Object.create(null)
+
     const root = this._modules.root
-    installModule(root._state, [], root)
+    installModule(this, root._state, [], root)
 
     resetStoreState(this, root._state)
   }

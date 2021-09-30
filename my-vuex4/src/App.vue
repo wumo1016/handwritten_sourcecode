@@ -2,7 +2,7 @@
   <div>
     <div>count - {{ $store.state.count }}</div>
     <button @click="$store.state.count++">直接+1</button>
-    <!-- <div>dounble - {{ $store.getters.double }}</div> -->
+    <div>dounble - {{ $store.getters.double }}</div>
     <div>
       <!-- <button @click="$store.commit('add', 1)">add</button>
       <button @click="$store.dispatch('asyncAdd', 1)">asyncAdd</button> -->
@@ -26,7 +26,7 @@ export default {
   name: 'App',
   setup() {
     const store = useStore()
-    // console.log(store)
+    console.log(store)
   }
 }
 </script>

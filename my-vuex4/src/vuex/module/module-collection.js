@@ -26,4 +26,12 @@ export default class ModuleCollection {
       })
     }
   }
+  // aCount/cCount/
+  getNamespaced(path) {
+    let module = this.root
+    return path.reduce((paths, curPath) => {
+      module = module.getChild(curPath)
+      return paths + (module.namespaced ? curPath + '/' : '')
+    }, '')
+  }
 }
