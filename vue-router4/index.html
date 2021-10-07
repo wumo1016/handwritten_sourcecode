@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+</head>
+
+<body>
+  <script>
+
+    // 路由系统基本的: 
+    // 1路径 2.当前路径下的状态 
+    // 3.两个切换路径的方法 push/replace
+    // 4.路径变化 需要通知用户
+    /**
+     * @Author: wyb
+     * @Descripttion: 获取当前路径
+     * @param {*}
+     */
+    function createCurrentLoaction() {
+      const { pathname, search, hash } = window.location
+      return pathname + search + hash
+    }
+    /**
+     * @Author: wyb
+     * @Descripttion: 创建自己的页面状态
+     * @param {*} back 后退路径
+     * @param {*} current 当前路径
+     * @param {*} forward 前进路径
+     * @param {*} replace 是否是替换路径
+     * @param {*} computedScroll 是否记录滚动条
+     */
+    function buildState(back, current, forward, replace = false, computedScroll = false) {
+      return {
+        back,
+        current,
+        forward,
+        replace,
+        scroll: computedScroll ? { left: window.pageXOffset, top: window.pageYOffset } : null,
+        position: window.history.length - 1
+      }
+    }
+    /**
+     * @Author: wyb
+     * @Descripttion: 
+     * @param {*}
+     */
+    function useHistoryStateNvigation() {
+      const currentLocation = {
+        value: createCurrentLoaction()
+      }
+      const historyState = {
+        value: window.history.state
+      }
+      // 第一次刷新页面的时候没有状态 维护一个自己的状态
+      if (!historyState.state) {
+        changeLocation(currentLocation.value, buildState(null, currentLocation.value, null, true), true)
+      }
+      // 同步状态进 history.state
+      function changeLocation(to, state, replace) {
+        window.history[replace ? 'replaceState' : 'pushState'](state, null, to)
+        historyState.value = state
+      }
+    }
+    /**
+     * @Author: wyb
+     * @Descripttion: 
+     * @param {*}
+     */
+    function createWebHistory() {
+      const historyNavigation = useHistoryStateNvigation()
+
+    }
+
+    const history = createWebHistory()
+
+  </script>
+</body>
+
+</html>
