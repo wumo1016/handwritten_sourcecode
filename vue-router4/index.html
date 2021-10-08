@@ -9,6 +9,10 @@
 </head>
 
 <body>
+  <button onclick="history.push('/')">首页</button>
+  <button onclick="history.push('/about')">关于我</button>
+  <button onclick="history.replace('/replace')">替换</button>
+
   <script>
 
     // 路由系统基本的: 
@@ -64,6 +68,34 @@
         window.history[replace ? 'replaceState' : 'pushState'](state, null, to)
         historyState.value = state
       }
+
+      function push(to, data) {
+        //  维护一个跳转前状态 当前+去哪
+        const currentState = Object.assign({}, historyState.value, {
+          forward: to,
+          scroll: { left: window.pageXOffset, top: window.pageYOffset }
+        })
+        // 本质没有跳转 只是更新了状态 后续在vue中可以监控状态的变化
+        changeLocation(currentState.current, currentState, true)
+        const state = Object.assign({}, buildState(currentLocation.value, to, null), {
+          position: currentState.position + 1
+        }, data)
+        changeLocation(to, state, false)
+        currentLocation.value = to
+      }
+
+      function replace(to, data) {
+        const state = Object.assign({}, buildState(historyState.value.back, to, historyState.value.forward, true), data)
+        changeLocation(to, state, true)
+        currentLocation.value = to
+      }
+
+      return {
+        location: currentLocation,
+        state: historyState,
+        push,
+        replace
+      }
     }
     /**
      * @Author: wyb
@@ -72,7 +104,9 @@
      */
     function createWebHistory() {
       const historyNavigation = useHistoryStateNvigation()
-
+      return {
+        ...historyNavigation
+      }
     }
 
     const history = createWebHistory()
