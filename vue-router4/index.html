@@ -97,6 +97,32 @@
         replace
       }
     }
+    // 前进后退的时候要更新 currentLocation historyState
+    function useHistoryListeners(historyState, currentLocation) {
+      let listeners = []
+      const popStateHandler = ({ state }) => {
+        const from = currentLocation.value // 从哪来
+        const to = createCurrentLoaction() // 去哪
+        const fromState = historyState.value
+
+        currentLocation.value = to
+        historyState.value = state
+
+        const isBack = state.position < fromState.position
+
+        listeners.forEach(cb => cb(to, from, { isBack }))
+      }
+      // 只能监听浏览器的前进后退
+      window.addEventListener('popstate', popStateHandler)
+
+      function listen(cb) {
+        listeners.push(cb)
+      }
+
+      return {
+        listen
+      }
+    }
     /**
      * @Author: wyb
      * @Descripttion: 
@@ -104,12 +130,33 @@
      */
     function createWebHistory() {
       const historyNavigation = useHistoryStateNvigation()
-      return {
-        ...historyNavigation
-      }
+
+      const historyListeners = useHistoryListeners(historyNavigation.state, historyNavigation.location)
+
+      const routerHistory = Object.assign({}, historyNavigation, historyListeners)
+
+      Object.defineProperty(routerHistory, 'location', {
+        get() {
+          return historyNavigation.location.value
+        }
+      })
+
+      Object.defineProperty(routerHistory, 'state', {
+        get() {
+          return historyNavigation.state.value
+        }
+      })
+
+      return routerHistory
     }
 
-    const history = createWebHistory()
+    const routerHistory = createWebHistory()
+    console.log(routerHistory.location);
+    console.log(routerHistory.state);
+
+    routerHistory.listen((to, from) => {
+      console.log(to, from);
+    })
 
   </script>
 </body>
