@@ -24,7 +24,7 @@ function installModule(store, rootState, path, module) {
     })
   }
   // 组装getters
-  module.forEachGetter(function(key, getter) {
+  module.forEachGetter(function (key, getter) {
     store._wrappedGetters[namespaced + key] = () => {
       // 直接使用 module.state 不是响应式的
       return getter(getNextedState(store.state, path))
@@ -32,7 +32,7 @@ function installModule(store, rootState, path, module) {
   })
   // 组装mutations commmit('add', payload)
   // 不考虑namespaced的情况下 相同key的mutation将会被合并成一个数组
-  module.forEachMutation(function(key, mutation) {
+  module.forEachMutation(function (key, mutation) {
     const entry =
       store._mutations[namespaced + key] ||
       (store._mutations[namespaced + key] = [])
@@ -42,7 +42,7 @@ function installModule(store, rootState, path, module) {
   })
   // 组装actions dispatch('asyncAdd', payload) 区别是action返回的是一个Pormise
   // 不考虑namespaced的情况下 相同key的action将会被合并成一个数组
-  module.forEachAction(function(key, action) {
+  module.forEachAction(function (key, action) {
     const entry =
       store._actions[namespaced + key] ||
       (store._actions[namespaced + key] = [])
@@ -57,7 +57,7 @@ function installModule(store, rootState, path, module) {
   })
 
   // 递归执行
-  module.forEachChild(function(key, childModule) {
+  module.forEachChild(function (key, childModule) {
     installModule(store, rootState, path.concat(key), childModule)
   })
 }
@@ -75,7 +75,7 @@ function resetStoreState(store, state) {
 
   const _wrappedGetters = store._wrappedGetters
   store.getters = {}
-  forEachValue(_wrappedGetters, function(key, getter) {
+  forEachValue(_wrappedGetters, function (key, getter) {
     Reflect.defineProperty(store.getters, key, {
       enumerable: true,
       get() {
@@ -197,7 +197,6 @@ export default class Store {
    * @param {*} path
    * @param {*} rawModule
    */
-
   registerModule(path, rawModule) {
     if (typeof path === 'string') path = [path]
     // 1.注册模块
