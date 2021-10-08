@@ -26,18 +26,24 @@ function installModule(store, rootState, path, module) {
 
   // 构建mutations
   module.forEachMutation(function(key, mutation) {
-    store._mutations[namespaced + key] = payload => {
+    const entry =
+      store._mutations[namespaced + key] ||
+      (store._mutations[namespaced + key] = [])
+    entry.push(payload => {
       store._withCommit(() =>
-        mutation(getNextedState(store.state, path), payload)
+        mutation.call(store, getNextedState(store.state, path), payload)
       )
-    }
+    })
   })
 
   // 构建actions
   module.forEachAction(function(key, action) {
-    store._actions[namespaced + key] = plyload => {
-      action(store, plyload)
-    }
+    const entry =
+      store._actions[namespaced + key] ||
+      (store._actions[namespaced + key] = [])
+    entry.push(plyload => {
+      action.call(store, store, plyload)
+    })
   })
 }
 
@@ -109,6 +115,9 @@ const store = class Store {
     installModule(this, root._state, [], root)
 
     resetStoreState(this, root._state)
+
+    this._subscribers = []
+    ;(options.plugins || []).forEach(plugin => plugin(this))
   }
 
   get state() {
@@ -116,13 +125,23 @@ const store = class Store {
   }
 
   commit = (key, payload) => {
-    const mutation = this._mutations[key]
-    mutation && mutation(payload)
+    const mutations = this._mutations[key] || []
+    mutations.forEach(fn => fn(payload))
+
+    this._subscribers.forEach(fn =>
+      fn(
+        {
+          type: key,
+          payload
+        },
+        this.state
+      )
+    )
   }
 
   dispatch = (key, payload) => {
-    const action = this._actions[key]
-    action && action(payload)
+    const actions = this._actions[key] || []
+    actions.forEach(fn => fn(payload))
   }
 
   _withCommit(fn) {
@@ -130,6 +149,10 @@ const store = class Store {
     this._commiting = true
     fn()
     this._commiting = commiting
+  }
+
+  subscribe(fn) {
+    this._subscribers.push(fn)
   }
 }
 
