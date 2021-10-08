@@ -1,4 +1,4 @@
-import { reactive } from 'vue'
+import { reactive, watch } from 'vue'
 import ModuleCollection from './module/module-collection'
 import { forEachObj } from './utils'
 
@@ -27,7 +27,9 @@ function installModule(store, rootState, path, module) {
   // 构建mutations
   module.forEachMutation(function(key, mutation) {
     store._mutations[namespaced + key] = payload => {
-      mutation(getNextedState(store.state, path), payload)
+      store._withCommit(() =>
+        mutation(getNextedState(store.state, path), payload)
+      )
     }
   })
 
@@ -39,8 +41,38 @@ function installModule(store, rootState, path, module) {
   })
 }
 
+/**
+ * @Author: wyb
+ * @Descripttion: 开启严格模式
+ * @param {*}
+ */
+function enableStrictMode(store) {
+  watch(
+    () => store.state,
+    () => {
+      if (!store._commiting) {
+        throw new Error(
+          'vuex: do not mutate vuex store state outside mutation handlers.'
+        )
+      }
+    },
+    {
+      deep: true,
+      flush: 'sync'
+    }
+  )
+}
+
 function resetStoreState(store, state) {
   store._state = reactive({ data: state })
+  /**
+   * @Author: wyb
+   * @Descripttion: 构建getters
+   * @param {*}
+   */
+  if (store.strict) {
+    enableStrictMode(store)
+  }
 
   store.getters = {}
   forEachObj(store._wrappedGetters, function(key, getter) {
@@ -70,6 +102,9 @@ const store = class Store {
     this._mutations = Object.create(null)
     this._actions = Object.create(null)
 
+    this._commiting = false
+    this.strict = options.strict || false
+
     const root = this._modules.root
     installModule(this, root._state, [], root)
 
@@ -88,6 +123,13 @@ const store = class Store {
   dispatch = (key, payload) => {
     const action = this._actions[key]
     action && action(payload)
+  }
+
+  _withCommit(fn) {
+    const commiting = this._commiting
+    this._commiting = true
+    fn()
+    this._commiting = commiting
   }
 }
 
