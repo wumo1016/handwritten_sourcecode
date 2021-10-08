@@ -9,9 +9,9 @@
 </head>
 
 <body>
-  <button onclick="history.push('/')">首页</button>
-  <button onclick="history.push('/about')">关于我</button>
-  <button onclick="history.replace('/replace')">替换</button>
+  <button onclick="routerHistory.push('/')">首页</button>
+  <button onclick="routerHistory.push('/about')">关于我</button>
+  <button onclick="routerHistory.replace('/replace')">替换</button>
 
   <script>
 
@@ -24,8 +24,12 @@
      * @Descripttion: 获取当前路径
      * @param {*}
      */
-    function createCurrentLoaction() {
+    function createCurrentLocation(base) {
       const { pathname, search, hash } = window.location
+      const isHash = base.startsWith('#')
+      if (isHash) {
+        return base.slice(1) || '/'
+      }
       return pathname + search + hash
     }
     /**
@@ -52,20 +56,22 @@
      * @Descripttion: 
      * @param {*}
      */
-    function useHistoryStateNvigation() {
+    function useHistoryStateNavigation(base) {
       const currentLocation = {
-        value: createCurrentLoaction()
+        value: createCurrentLocation(base)
       }
       const historyState = {
         value: window.history.state
       }
       // 第一次刷新页面的时候没有状态 维护一个自己的状态
-      if (!historyState.state) {
+      if (!historyState.value) {
         changeLocation(currentLocation.value, buildState(null, currentLocation.value, null, true), true)
       }
       // 同步状态进 history.state
       function changeLocation(to, state, replace) {
-        window.history[replace ? 'replaceState' : 'pushState'](state, null, to)
+        const isHash = base.startsWith('#')
+        const url = isHash ? base + to : to
+        window.history[replace ? 'replaceState' : 'pushState'](state, null, url)
         historyState.value = state
       }
 
@@ -98,11 +104,11 @@
       }
     }
     // 前进后退的时候要更新 currentLocation historyState
-    function useHistoryListeners(historyState, currentLocation) {
+    function useHistoryListeners(base, historyState, currentLocation) {
       let listeners = []
       const popStateHandler = ({ state }) => {
         const from = currentLocation.value // 从哪来
-        const to = createCurrentLoaction() // 去哪
+        const to = createCurrentLocation(base) // 去哪
         const fromState = historyState.value
 
         currentLocation.value = to
@@ -128,10 +134,10 @@
      * @Descripttion: 
      * @param {*}
      */
-    function createWebHistory() {
-      const historyNavigation = useHistoryStateNvigation()
+    function createWebHistory(base = '') {
+      const historyNavigation = useHistoryStateNavigation(base)
 
-      const historyListeners = useHistoryListeners(historyNavigation.state, historyNavigation.location)
+      const historyListeners = useHistoryListeners(base, historyNavigation.state, historyNavigation.location)
 
       const routerHistory = Object.assign({}, historyNavigation, historyListeners)
 
@@ -150,9 +156,12 @@
       return routerHistory
     }
 
-    const routerHistory = createWebHistory()
-    console.log(routerHistory.location);
-    console.log(routerHistory.state);
+    function createWebHashHistory() {
+      return createWebHistory('#')
+    }
+
+    // const routerHistory = createWebHistory()
+    const routerHistory = createWebHashHistory()
 
     routerHistory.listen((to, from) => {
       console.log(to, from);
