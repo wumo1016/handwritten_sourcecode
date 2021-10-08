@@ -49,11 +49,11 @@
   }
   ```
 - 设置 resetStoreState 设置响应式 state
-- 设置 commit 方法 先将 mutations 保存到 store.\_mutations 上 然后调用 commit 的是时候直接从.\_mutations 上取
-- 设置 dispatch 方法 先将 actions 保存到 store.\_actions 上 然后调用 dispatch 的时候从\_actions 上取
+- 设置 commit 方法 先将 mutations 保存到 `store._mutations` 上 然后调用 commit 的是时候直接从`_mutations`上取
+- 设置 dispatch 方法 先将 actions 保存到 `store._actions` 上 然后调用 dispatch 的时候从`_actions`上取
 - 严格模式 strict
   - 严格模式下 通过非 commit 修改 state 会直接抛错
 - 插件系统 是一个函数数组
   - plugins
-  - subscribe => _subscribers 再 commit 之后执行
-- replaceState
+  - `subscribe => _subscribers` 再 commit 之后执行
+- replaceState 替换当前状态 比如持久化

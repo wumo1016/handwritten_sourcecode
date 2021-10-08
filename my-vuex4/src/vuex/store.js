@@ -154,6 +154,12 @@ const store = class Store {
   subscribe(fn) {
     this._subscribers.push(fn)
   }
+
+  replaceState(state) {
+    this._withCommit(() => {
+      this._state.data = state
+    })
+  }
 }
 
 export default store
