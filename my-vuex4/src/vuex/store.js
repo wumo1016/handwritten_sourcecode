@@ -23,6 +23,20 @@ function installModule(store, rootState, path, module) {
       return getter(getNextedState(store.state, path))
     }
   })
+
+  // 构建mutations
+  module.forEachMutation(function(key, mutation) {
+    store._mutations[namespaced + key] = payload => {
+      mutation(getNextedState(store.state, path), payload)
+    }
+  })
+
+  // 构建actions
+  module.forEachAction(function(key, action) {
+    store._actions[namespaced + key] = plyload => {
+      action(store, plyload)
+    }
+  })
 }
 
 function resetStoreState(store, state) {
@@ -38,7 +52,12 @@ function resetStoreState(store, state) {
     })
   })
 }
-
+/**
+ * @Author: wyb
+ * @Descripttion: 获取最新的状态
+ * @param {*} rootState
+ * @param {*} path
+ */
 function getNextedState(rootState, path) {
   return path.reduce((state, curPath) => state[curPath], rootState)
 }
@@ -48,6 +67,8 @@ const store = class Store {
     this._modules = new ModuleCollection(options)
 
     this._wrappedGetters = Object.create(null)
+    this._mutations = Object.create(null)
+    this._actions = Object.create(null)
 
     const root = this._modules.root
     installModule(this, root._state, [], root)
@@ -57,6 +78,16 @@ const store = class Store {
 
   get state() {
     return this._state.data
+  }
+
+  commit = (key, payload) => {
+    const mutation = this._mutations[key]
+    mutation && mutation(payload)
+  }
+
+  dispatch = (key, payload) => {
+    const action = this._actions[key]
+    action && action(payload)
   }
 }
 

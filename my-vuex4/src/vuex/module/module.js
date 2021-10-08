@@ -23,4 +23,12 @@ export default class Module {
   forEachGetter(fn) {
     forEachObj(this._raw.getters || {}, fn)
   }
+
+  forEachMutation(fn) {
+    forEachObj(this._raw.mutations || {}, fn)
+  }
+
+  forEachAction(fn) {
+    forEachObj(this._raw.actions || {}, fn)
+  }
 }

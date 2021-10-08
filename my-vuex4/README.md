@@ -31,7 +31,7 @@
     }
   }
   ```
-- 组装 satte installModule
+- 组装 state installModule
   ```javascript
   root = {
     _state: {
@@ -49,3 +49,5 @@
   }
   ```
 - 设置 resetStoreState 设置响应式 state
+- 设置 commit 方法 先将 mutations 保存到 store.\_mutations 上 然后调用 commit 的是时候直接从.\_mutations 上取
+- 设置 dispatch 方法 先将 actions 保存到 store.\_actions 上 然后调用 dispatch 的时候从\_actions 上取
