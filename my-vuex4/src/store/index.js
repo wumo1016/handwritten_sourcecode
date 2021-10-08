@@ -4,16 +4,15 @@ import { createStore } from '@/vuex'
 function customPlugin(store) {
   let local = localStorage.getItem('VUEX:STATE')
   if (local) {
-    store.replaceState(JSON.parse(local)) // 替换状态
+    store.replaceState(JSON.parse(local))
   }
-  // 状态变化的时候(mutation修改状态) 会执行此回调
   store.subscribe((mutation, state) => {
     console.log(mutation, state)
     localStorage.setItem('VUEX:STATE', JSON.stringify(state))
   })
 }
 
-export default createStore({
+const store = createStore({
   plugins: [customPlugin],
   strict: true,
   state: {
@@ -45,29 +44,24 @@ export default createStore({
       state: {
         count: 0
       },
-      getters: {
-        double(state) {
-          return state.count * 2
-        }
-      },
       mutations: {
         add(state, data) {
           state.count += data
         }
-      },
-      modules: {
-        cCount: {
-          namespaced: true,
-          state: {
-            count: 0
-          },
-          mutations: {
-            add(state, data) {
-              state.count += data
-            }
-          }
-        }
       }
+      // modules: {
+      //   cCount: {
+      //     namespaced: true,
+      //     state: {
+      //       count: 0
+      //     },
+      //     mutations: {
+      //       add(state, data) {
+      //         state.count += data
+      //       }
+      //     }
+      //   }
+      // }
     },
     bCount: {
       namespaced: true,
@@ -82,3 +76,18 @@ export default createStore({
     }
   }
 })
+
+// 在aCount模块下 注册一个cCount模块
+// store.registerModule(['aCount', 'cCount'], {
+//   namespaced: true,
+//   state: {
+//     count: 0
+//   },
+//   mutations: {
+//     add(state, data) {
+//       state.count += data
+//     }
+//   }
+// })
+
+export default store

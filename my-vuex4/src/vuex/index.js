@@ -1,16 +1,9 @@
 import { inject } from 'vue'
 import Store from './store'
-
-const DefaultKey = 'DefaultStoreKey'
+import { DefaultKey } from './utils'
 
 function createStore(options) {
-  return {
-    install(app, key = DefaultKey) {
-      const store = new Store(options)
-      app.provide(key, store)
-      app.config.globalProperties.$store = store
-    }
-  }
+  return new Store(options)
 }
 
 function useStore(key = DefaultKey) {

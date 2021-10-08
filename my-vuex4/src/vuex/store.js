@@ -1,6 +1,6 @@
 import { reactive, watch } from 'vue'
 import ModuleCollection from './module/module-collection'
-import { forEachObj } from './utils'
+import { DefaultKey, forEachObj } from './utils'
 
 function installModule(store, rootState, path, module) {
   const namespaced = store._modules.getNamespaced(path)
@@ -120,18 +120,26 @@ const store = class Store {
     ;(options.plugins || []).forEach(plugin => plugin(this))
   }
 
+  install(app, key = DefaultKey) {
+    app.provide(key, this)
+    app.config.globalProperties.$store = this
+  }
+
   get state() {
     return this._state.data
   }
 
-  commit = (key, payload) => {
-    const mutations = this._mutations[key] || []
+  commit = (type, payload) => {
+    const mutations = this._mutations[type]
+    if (!mutations) {
+      throw new Error(`[vuex] unknown mutation type: ${type}`)
+    }
     mutations.forEach(fn => fn(payload))
 
     this._subscribers.forEach(fn =>
       fn(
         {
-          type: key,
+          type,
           payload
         },
         this.state
@@ -139,8 +147,8 @@ const store = class Store {
     )
   }
 
-  dispatch = (key, payload) => {
-    const actions = this._actions[key] || []
+  dispatch = (type, payload) => {
+    const actions = this._actions[type] || []
     actions.forEach(fn => fn(payload))
   }
 
@@ -159,6 +167,17 @@ const store = class Store {
     this._withCommit(() => {
       this._state.data = state
     })
+  }
+
+  registerModule(path, rawModule) {
+    if (typeof path === 'string') path = [path]
+
+    const newModule = this._modules.register(rawModule, path)
+
+    const root = this._modules.root
+    installModule(this, root._state, path, newModule)
+
+    resetStoreState(this, root._state)
   }
 }
 

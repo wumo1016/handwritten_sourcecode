@@ -25,6 +25,7 @@ export default class ModuleCollection {
         this.register(module, path.concat(key))
       })
     }
+    return newModule
   }
   // aCount/cCount/
   getNamespaced(path) {

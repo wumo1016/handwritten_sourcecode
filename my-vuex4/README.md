@@ -57,3 +57,4 @@
   - plugins
   - `subscribe => _subscribers` 再 commit 之后执行
 - replaceState 替换当前状态 比如持久化
+- 动态注册模块 registerModule
