@@ -160,8 +160,8 @@ export function createWebHistory(base = '') {
   return routerHistory
 }
 
-const routerHistory = createWebHistory()
+// const routerHistory = createWebHistory()
 
-routerHistory.listen((to, from) => {
-  console.log(to, from)
-})
+// routerHistory.listen((to, from) => {
+//   console.log(to, from)
+// })
