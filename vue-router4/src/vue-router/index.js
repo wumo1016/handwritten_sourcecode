@@ -94,22 +94,37 @@ function createRouter(options) {
     return matcher.resolve(to)
   }
 
-  function finalizeNavigation(to, from) {
-    if (from === START_LOACTION_NORMALIZE) {
+  let ready // 用来标记是否是第一次渲染
+  function markAsReady() {
+    if (ready) return
+    ready = true
+
+    routerHistory.listen((to, from) => {
+      pushWithRedirect(to, true)
+    })
+  }
+
+  function finalizeNavigation(to, from, replaceed) {
+    if (from === START_LOACTION_NORMALIZE || replaceed) {
       routerHistory.replace(to.path)
     } else {
       routerHistory.push(to.path)
     }
     currentRoute.value = to // 更新最新的路径
+
+    // console.log(currentRoute.value);
+
+    // 如果是初始化 还需要注册一个listen区更新currentRoute
+    markAsReady()
   }
 
-  function pushWithRedirect(to) {
+  function pushWithRedirect(to, replaceed) {
     // 根据路径匹配到对于的记录 更新currentRoute
     const targetLocation = resolve(to)
     const from = currentRoute.value
     // 在跳转前做路由的拦截
     // 如果是第一次就直接replace 后面的就是push
-    finalizeNavigation(targetLocation, from)
+    finalizeNavigation(targetLocation, from, replaceed)
   }
 
   function push(to) {
@@ -132,7 +147,7 @@ function createRouter(options) {
         reactiveRoute[key] = computed(() => currentRoute.value[key])
       }
 
-      app.provide('router', reactiveRoute)
+      app.provide('router', router)
       app.provide('routeLocation', reactive(reactiveRoute))
 
       app.component('router-link', RouterLink)
@@ -147,7 +162,7 @@ function createRouter(options) {
         push(routerHistory.location)
       }
     },
-    push() {},
+    push,
     replace() {}
   }
 

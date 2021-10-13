@@ -1,10 +1,13 @@
-import { h } from 'vue'
+import { h, inject } from 'vue'
 
-function useLink() {
+function useLink(props) {
+  const router = inject('router')
   function navigate(e) {
-    console.log('跳转')
+    router.push(props.to)
   }
-  return navigate
+  return {
+    navigate
+  }
 }
 
 export const RouterLink = {
@@ -16,7 +19,7 @@ export const RouterLink = {
     }
   },
   setup(props, { slots }) {
-    const link = useLink()
+    const link = useLink(props)
     return () => {
       return h(
         'a',
