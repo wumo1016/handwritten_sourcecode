@@ -14,6 +14,19 @@ const START_LOACTION_NORMALIZE = {
   matched: [] // 当前路径匹配到的记录
 }
 
+function useCallback() {
+  const handlers = []
+
+  function add(handler) {
+    handlers.push(handler)
+  }
+
+  return {
+    add,
+    list: () => handlers
+  }
+}
+
 function createRouter(options) {
   // 使用的路由模式
   const routerHistory = options.history
@@ -21,6 +34,11 @@ function createRouter(options) {
   const matcher = createRouterMatcher(options.routes)
 
   const currentRoute = shallowRef(START_LOACTION_NORMALIZE)
+
+  // 路由导航相关
+  const beforeEachGuards = useCallback()
+  const beforeResolveGuards = useCallback()
+  const afterEachGuards = useCallback()
 
   function resolve(to) {
     if (typeof to === 'string') {
@@ -53,13 +71,86 @@ function createRouter(options) {
     markAsReady()
   }
 
+  function extractChangeRecords(to, from) {
+    const leaveingRecords = []
+    const updateingRecords = []
+    const enteringRecords = []
+
+    const len = Math.max(to.matched.length, from.matched.length)
+    for (let i = 0; i < len; i++) {
+      const recordFrom = from.matched[i]
+      if (recordFrom) {
+        // 如果去的和来的都有 就是更新
+        if (to.matched.find(v => v.path === recordFrom.path)) {
+          updateingRecords.push(recordFrom)
+        } else {
+          // 来的有 去的没有就是离开
+          leaveingRecords.push(recordFrom)
+        }
+      }
+      const recordTo = to.matched[i]
+      if (recordTo) {
+        // 去的有 来的没有 就是进入
+        if (!from.matched.find(v => v.path === recordTo.path)) {
+          enteringRecords.push(recordTo)
+        }
+      }
+    }
+    return [leaveingRecords, updateingRecords, enteringRecords]
+  }
+
+  function guardToPromise(guard, to, from, record) {
+    return () =>
+      new Promise((r, j) => {
+        const guardReturn = guard.call(record, to, from, r)
+        // 这里如果不调用next 将会自动调用next
+        return Promise.resolve(guardReturn).then(() => r())
+      })
+  }
+
+  function extractComponentGuards(macthed, guardType, to, from) {
+    const guards = []
+    for (const record of macthed) {
+      const rawComponent = record.components.default
+      const guard = rawComponent[guardType]
+      guard && guards.push(guardToPromise(guard, to, from, record))
+    }
+    return guards
+  }
+
+  async function navigate(to, from) {
+    // 需要知道哪个组件是离开的 哪个组件是进入的 哪个组件是更新的
+    const [
+      leaveingRecords,
+      updateingRecords,
+      enteringRecords
+    ] = extractChangeRecords(to, from)
+    // 需要倒序执行 因为是先卸载子组件
+    const guards = extractComponentGuards(
+      leaveingRecords.reverse(),
+      'beforeRouteLeave',
+      to,
+      from
+    )
+    // beforeRouteLeave守卫
+    guards.forEach(fn => fn())
+  }
+
   function pushWithRedirect(to, replaceed) {
     // 根据路径匹配到对于的记录 更新currentRoute
     const targetLocation = resolve(to)
     const from = currentRoute.value
     // 在跳转前做路由的拦截
-    // 如果是第一次就直接replace 后面的就是push
-    finalizeNavigation(targetLocation, from, replaceed)
+    navigate(targetLocation, from)
+      .then(() => {
+        return finalizeNavigation(targetLocation, from, replaceed)
+      })
+      .then(() => {
+        // 路由跳转完守卫
+        for (const guard of afterEachGuards.list()) {
+          guard(to, from)
+        }
+      })
   }
 
   function push(to) {
@@ -94,7 +185,10 @@ function createRouter(options) {
       }
     },
     push,
-    replace() {}
+    replace() {},
+    brforeEach: beforeEachGuards.add,
+    beforeResolve: beforeResolveGuards.add,
+    afterEach: afterEachGuards.add
   }
 
   return router

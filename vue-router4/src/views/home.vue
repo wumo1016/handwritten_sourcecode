@@ -9,6 +9,15 @@
 
 <script>
 export default {
+  beforeRouteEnter(to, from, next) {
+    console.log('beforeRouteEnter')
+  },
+  beforeRouteUpdate(to, from, next) {
+    console.log('beforeRouteUpdate')
+  },
+  beforeRouteLeave(to, from, next) {
+    console.log('beforeRouteLeave')
+  }
 }
 </script>
 

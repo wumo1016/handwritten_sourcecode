@@ -25,7 +25,10 @@ const routes = [
           render: () => <h1>b页面</h1>
         }
       }
-    ]
+    ],
+    beforeEnter(to, from, next) {
+      console.log('beforeEnter')
+    }
   },
   {
     path: '/about',
@@ -37,6 +40,16 @@ const routes = [
 const router = createRouter({
   history: createWebHistory(),
   routes
+})
+
+router.brforeEach((to, from, next) => {
+  console.log('brforeEach')
+})
+router.beforeResolve((to, from, next) => {
+  console.log('beforeResolve')
+})
+router.afterEach((to, from, next) => {
+  console.log('afterEach')
 })
 
 export default router
