@@ -117,6 +117,13 @@ function createRouter(options) {
     }
     return guards
   }
+  // promise组合函数
+  function runGuardsQueue(guards) {
+    return guards.reduce(
+      (promise, guard) => promise.then(() => guard()),
+      Promise.resolve()
+    )
+  }
 
   async function navigate(to, from) {
     // 需要知道哪个组件是离开的 哪个组件是进入的 哪个组件是更新的
@@ -126,14 +133,60 @@ function createRouter(options) {
       enteringRecords
     ] = extractChangeRecords(to, from)
     // 需要倒序执行 因为是先卸载子组件
-    const guards = extractComponentGuards(
+    // 执行组件 beforeRouteLeave 钩子
+    let guards = extractComponentGuards(
       leaveingRecords.reverse(),
       'beforeRouteLeave',
       to,
       from
     )
-    // beforeRouteLeave守卫
-    guards.forEach(fn => fn())
+    return runGuardsQueue(guards)
+      .then(() => {
+        // 执行 beforeEach
+        guards = []
+        for (const guard of beforeEachGuards.list()) {
+          guards.push(guardToPromise(guard, to, from, guard))
+        }
+        return runGuardsQueue(guards)
+      })
+      .then(() => {
+        // 执行 beforeRouteUpdate
+        guards = extractComponentGuards(
+          updateingRecords,
+          'beforeRouteUpdate',
+          to,
+          from
+        )
+        return runGuardsQueue(guards)
+      })
+      .then(() => {
+        // 执行 beforeEnter
+        guards = []
+        for (const record of to.matched) {
+          if (record.beforeEnter) {
+            guards.push(guardToPromise(record.beforeEnter, to, from, record))
+          }
+        }
+        return runGuardsQueue(guards)
+      })
+      .then(() => {
+        // 执行 beforeRouteEnter
+        guards = extractComponentGuards(
+          enteringRecords,
+          'beforeRouteEnter',
+          to,
+          from
+        )
+        return runGuardsQueue(guards)
+      })
+      .then(() => {
+        // 执行 beforeResolve
+        guards = []
+        for (const guard of beforeResolveGuards.list()) {
+          guards.push(guardToPromise(guard, to, from, guard))
+        }
+        return runGuardsQueue(guards)
+      })
   }
 
   function pushWithRedirect(to, replaceed) {
