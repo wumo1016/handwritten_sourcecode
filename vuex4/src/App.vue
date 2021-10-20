@@ -3,6 +3,7 @@
     <div>count - {{ count }}</div>
     <button @click="$store.state.count++">直接+1</button>
     <div>dounble - {{ double }}</div>
+    <div>dounble1 - {{ double1 }}</div>
     <div>
       <button @click="add">add</button>
       <button @click="asyncAdd">asyncAdd</button>
@@ -38,6 +39,7 @@ export default {
     return {
       count: computed(() => store.state.count),
       double: computed(() => store.getters.double),
+      double1: computed(() => store.getters.double),
       add,
       asyncAdd
     }
