@@ -1,3 +1,4 @@
+import { getAppChanges } from '../applications/app'
 import { started } from '../start'
 
 /**
@@ -9,6 +10,10 @@ export function reroute() {
   // 获取需要加载的应用
   // 获取需要被挂载的应用
   // 获取需要卸载的应用
+
+  const { appsToUnmount, appsToLoad, appsToMount } = getAppChanges()
+
+  console.log(appsToUnmount, appsToLoad, appsToMount)
 
   if (started) {
     // 调用start

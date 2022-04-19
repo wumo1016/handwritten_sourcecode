@@ -42,7 +42,7 @@ export function getAppChanges() {
   const appsToMount = [] // 需要挂载的app
 
   apps.forEach(app => {
-    const appShouldBeActive = shouldBeActive() // 是否需要挂载
+    const appShouldBeActive = shouldBeActive(app) // 是否需要挂载
     switch (app.status) {
       case NOT_LOADED:
       case LOADING_SOURCE_CODE:
@@ -51,12 +51,19 @@ export function getAppChanges() {
       case NOT_BOOTSTRAPPED:
       case BOOTSTRAPPING:
       case NOT_MOUNTED:
-        if (appShouldBeActive) appsToLoad.push(app)
+        if (appShouldBeActive) appsToMount.push(app)
         break
       case MOUNTED:
+        if (!appShouldBeActive) appsToUnmount.push(app)
         break
       default:
         break
     }
   })
+  
+  return {
+    appsToUnmount,
+    appsToLoad,
+    appsToMount
+  }
 }
