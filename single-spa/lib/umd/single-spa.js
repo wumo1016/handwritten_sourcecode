@@ -21,7 +21,7 @@
   }
 
   async function toBootstarpPromise(app) {
-    if (app.status !== NOT_BOOTSTRAPPED) return app
+    if (app.status !== NOT_BOOTSTRAPPED || !shouldBeActive(app)) return app
     app.status = BOOTSTRAPPING;
     await app.bootstrap(app.customProps);
     app.status = NOT_MOUNTED;
@@ -34,15 +34,20 @@
    * @param {*} app
    */
   async function toLoadPromise(app) {
-    app.status = LOADING_SOURCE_CODE;
-    const { bootstrap, mount, unmount } = await app.loadApp(app.customProps);
-    app.status = NOT_BOOTSTRAPPED; // 没有调用bootstrap方法
-    Object.assign(app, {
-      bootstrap: flatFnArray(bootstrap),
-      mount: flatFnArray(mount),
-      unmount: flatFnArray(unmount)
-    });
-    return app
+    // 做一个缓存
+    if (app.loadPromise) return app.loadPromise
+    return (app.loadPromise = Promise.resolve().then(async () => {
+      app.status = LOADING_SOURCE_CODE;
+      const { bootstrap, mount, unmount } = await app.loadApp(app.customProps);
+      app.status = NOT_BOOTSTRAPPED; // 没有调用bootstrap方法
+      Object.assign(app, {
+        bootstrap: flatFnArray(bootstrap),
+        mount: flatFnArray(mount),
+        unmount: flatFnArray(unmount)
+      });
+      delete app.loadPromise;
+      return app
+    }))
   }
   /**
    * @Author: wyb
@@ -56,7 +61,7 @@
   }
 
   async function toMountPromise(app) {
-    if (app.status !== NOT_MOUNTED) return app
+    if (app.status !== NOT_MOUNTED || !shouldBeActive(app)) return app
     app.status = MOUNTING;
     await app.mount(app.customProps);
     app.status = MOUNTED;
