@@ -26,10 +26,7 @@ export function registerApplication(appName, loadApp, activeWhen, customProps) {
     customProps,
     status: NOT_LOADED
   })
-
-  reroute() // 加载应用
-
-  // console.log(apps)
+  reroute() // 预加载应用
 }
 
 /**
@@ -60,7 +57,7 @@ export function getAppChanges() {
         break
     }
   })
-  
+
   return {
     appsToUnmount,
     appsToLoad,
