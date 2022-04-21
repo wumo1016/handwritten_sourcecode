@@ -8,6 +8,7 @@ import {
   NOT_MOUNTED,
   shouldBeActive
 } from './app-helpers'
+import '../navigations/navigator-events'
 
 const apps = []
 

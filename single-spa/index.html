@@ -9,6 +9,11 @@
 </head>
 
 <body>
+  <!-- <a href="#/app1">应用1</a>
+  <a href="#/app2">应用2</a> -->
+
+  <button onClick="a()">应用1</button>
+  <button onClick="b()">应用2</button>
   <script src="./lib/umd/single-spa.js"></script>
   <script>
 
@@ -31,7 +36,8 @@
         },
       }
     },
-      location => location.hash.startsWith('#/app1'), // http://localhost:3000/#/app1
+      // location => location.hash.startsWith('#/app1'), // http://localhost:3000/#/app1
+      location => location.pathname.startsWith('/app1'), // http://localhost:3000/app1
       {
         store: { name: 'wyb' }
       }
@@ -55,7 +61,8 @@
         },
       }
     },
-      location => location.hash.startsWith('#/app2'), // http://localhost:3000/#/app2
+      // location => location.hash.startsWith('#/app2'), // http://localhost:3000/#/app2
+      location => location.pathname.startsWith('/app2'), // http://localhost:3000/app2
       {
         store: { name: 'wyb' }
       }
@@ -63,8 +70,22 @@
 
     singleSpa.start() // 启动应用
 
+
     // registerApplication 默认会加载应用
     // start 会挂载应用
+
+    window.addEventListener('hashchange', (e) => {
+      console.log(123);
+    })
+  </script>
+
+  <script>
+    function a() {
+      window.history.pushState({}, "", '/app1')
+    }
+    function b() {
+      window.history.pushState({}, "", '/app2')
+    }
   </script>
 </body>
 
