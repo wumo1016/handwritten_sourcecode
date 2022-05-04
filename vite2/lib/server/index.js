@@ -2,7 +2,13 @@ const http = require('http')
 const connect = require('connect')
 const resolveConfig = require('../config')
 const serverStaticMiddleware = require('./middlewares/static')
+const { createOptimizerDepsRun } = require('../optimizer')
 
+/**
+ * @Author: wyb
+ * @Descripttion: 创建http服务
+ * @param {*}
+ */
 async function createServer() {
   const config = await resolveConfig('../config.js')
   const middlewares = connect()
@@ -15,6 +21,10 @@ async function createServer() {
     }
   }
   return server
+}
+
+async function runOptimize(config) {
+  await createOptimizerDepsRun(config)
 }
 
 exports.createServer = createServer

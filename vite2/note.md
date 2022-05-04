@@ -11,3 +11,7 @@
 ## 功能点
 
 - 静态文件服务
+- 依赖预构建
+  - 在项目启动前分析依赖 找到第三方包的依赖 进行预打包到 node_modules/.vite/ 对应的文件中去
+  - 将导入的地方 将路径改掉
+    `import { createApp } from 'vue'` => `import { createApp } from '/node_modules/.vite/deps/vue.js?v=071672c8'`
