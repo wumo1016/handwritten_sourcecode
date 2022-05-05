@@ -17,7 +17,6 @@ const JS_TYPES_RE = /\.js$/
     format: 'esm'
   })
 }
-
 ;(async () => {
   const config = { root: process.cwd() }
   const deps = {} // key=>原始的模块名 value=>此模块的入口路径
@@ -52,7 +51,7 @@ async function esbuildScanPlugin(config, depImports) {
           }
         }
       })
-      // 其他类型的文件
+      // 其他类型的文件的路径
       build.onResolve({ filter: /.*/ }, async ({ path, importer }) => {
         const resolved = await resolve(path, importer)
         if (resolved) {
@@ -72,7 +71,7 @@ async function esbuildScanPlugin(config, depImports) {
       })
       // 处理html读取内容
       build.onLoad(
-        { filter: htmlTypesRE, namespace: 'html' },
+        { filter: htmlTypesRE },
         async ({ path, importer }) => {
           const html = fs.readFileSync(path, 'utf8')
           let [, scriptSrc] = html.match(scriptModuleRE)
