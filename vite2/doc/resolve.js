@@ -39,6 +39,7 @@ function resolvePlugin(config) {
  * @param {*} importer
  * @param {*} config
  */
+// resolve.sync => require.resolve 查找模块路径
 function tryNodeResolve(id, importer, config) {
   const pkgPath = resolve.sync(`${id}/package.json`, { basedir: config.root }) // E:\wumo\handwritten_sourcecode\vite2\node_modules\vue\package.json
   const pkgDir = path.dirname(pkgPath) // E:\wumo\handwritten_sourcecode\vite2\node_modules\vue
