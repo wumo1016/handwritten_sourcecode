@@ -6,7 +6,13 @@ const scanImports = require('./scan')
  * @param {*}
  */
 async function createOptimizerDepsRun(config) {
-  const desp = scanImports(config)
+  const deps = await scanImports(config)
+  /* 
+  {
+    vue: 'E:/wumo/handwritten_sourcecode/vite2/test/node_modules/vue/dist/vue.runtime.esm-bundler.js'
+  }
+  */
+  console.log(deps)
 }
 
 exports.createOptimizerDepsRun = createOptimizerDepsRun

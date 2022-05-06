@@ -15,6 +15,7 @@ async function createServer() {
   middlewares.use(serverStaticMiddleware(config))
   const server = {
     async listen(port) {
+      await runOptimize(config)
       http.createServer(middlewares).listen(port, async () => {
         console.log(`server running at http://localhost:${port}`)
       })
