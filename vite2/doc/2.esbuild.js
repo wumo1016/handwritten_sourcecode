@@ -2,6 +2,8 @@ const { build } = require('esbuild')
 const { resolve } = require('path')
 const fs = require('fs-extra')
 const path = require('path')
+const { createPluginContainer } = require('./pluginContainer')
+const resolvePlugin = require('./resolve')
 
 const htmlTypesRE = /\.html$/
 const scriptModuleRE = /<script src\="(.+?)" type="module"><\/script>/
@@ -21,7 +23,7 @@ const JS_TYPES_RE = /\.js$/
   const config = { root: process.cwd() }
   const deps = {} // key=>原始的模块名 value=>此模块的入口路径
   const esbuildScan = await esbuildScanPlugin(config, deps)
-  build({
+  await build({
     absWorkingDir: process.cwd(),
     entryPoints: [resolve('index.html')],
     outfile: resolve('dist/main.js'),
@@ -30,13 +32,16 @@ const JS_TYPES_RE = /\.js$/
     format: 'esm',
     plugins: [esbuildScan]
   })
+  console.log(deps)
 })()
 
 // 解析hmtl插件
 async function esbuildScanPlugin(config, depImports) {
+  config.plugins = [resolvePlugin(config)]
+  const container = await createPluginContainer(config)
   const resolve = async (id, importer) => {
     // 是否是本地路径
-    return /^C|D|E/.test(id) ? id : path.join(config.root, id)
+    return await container.resolveId(id, importer)
   }
   return {
     name: 'vite:dep-scan',
@@ -70,18 +75,15 @@ async function esbuildScanPlugin(config, depImports) {
         }
       })
       // 处理html读取内容
-      build.onLoad(
-        { filter: htmlTypesRE },
-        async ({ path, importer }) => {
-          const html = fs.readFileSync(path, 'utf8')
-          let [, scriptSrc] = html.match(scriptModuleRE)
-          let js = `import ${JSON.stringify(scriptSrc)}` // import "./main.js"
-          return {
-            loader: 'js',
-            contents: js
-          }
+      build.onLoad({ filter: htmlTypesRE }, async ({ path, importer }) => {
+        const html = fs.readFileSync(path, 'utf8')
+        let [, scriptSrc] = html.match(scriptModuleRE)
+        let js = `import ${JSON.stringify(scriptSrc)}` // import "./main.js"
+        return {
+          loader: 'js',
+          contents: js
         }
-      )
+      })
       // 其他类型的文件
       build.onLoad({ filter: JS_TYPES_RE }, ({ path: id }) => {
         let ext = path.extname(id).slice(1)
