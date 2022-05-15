@@ -44,32 +44,32 @@
       }
     )
 
-    singleSpa.registerApplication('app2', async (props) => {
-      console.log('加载时执行2');
-      return {
-        bootstrap: [
-          async (props) => {
-            console.log('bootstrap2-1');
-          }, async (props) => {
-            console.log('bootstrap2-2');
-          }
-        ],
-        mount: async () => {
-          console.log('mount2');
-        },
-        unmount: async () => {
-          console.log('unmount2');
-        },
-      }
-    },
-      // location => location.hash.startsWith('#/app2'), // http://localhost:3000/#/app2
-      location => location.pathname.startsWith('/app2'), // http://localhost:3000/app2
-      {
-        store: { name: 'wyb' }
-      }
-    )
+    // singleSpa.registerApplication('app2', async (props) => {
+    //   console.log('加载时执行2');
+    //   return {
+    //     bootstrap: [
+    //       async (props) => {
+    //         console.log('bootstrap2-1');
+    //       }, async (props) => {
+    //         console.log('bootstrap2-2');
+    //       }
+    //     ],
+    //     mount: async () => {
+    //       console.log('mount2');
+    //     },
+    //     unmount: async () => {
+    //       console.log('unmount2');
+    //     },
+    //   }
+    // },
+    //   // location => location.hash.startsWith('#/app2'), // http://localhost:3000/#/app2
+    //   location => location.pathname.startsWith('/app2'), // http://localhost:3000/app2
+    //   {
+    //     store: { name: 'wyb' }
+    //   }
+    // )
 
-    singleSpa.start() // 启动应用
+    // singleSpa.start() // 启动应用
 
 
     // registerApplication 默认会加载应用

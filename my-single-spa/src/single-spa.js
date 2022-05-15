@@ -1,2 +1,2 @@
-export { registerApplication } from './applications/app'
+export { registerApplication } from './applications/apps'
 export { start } from './start'
