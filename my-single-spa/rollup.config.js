@@ -14,7 +14,7 @@ export default {
     serve({
       openPage: '/index.html',
       contentBase: '',
-      port: 3000,
+      port: 3001,
       historyApiFallback: '/index.html' // history路由
     })
   ]
