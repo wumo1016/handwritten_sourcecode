@@ -8,6 +8,7 @@ const captureEventListeners = {
   popstate: []
 }
 // 需要将处理应用加载的逻辑卸载最前面 因为用户可能会在应用中绑定自己的监听事件
+// 比如vue的路由监听 就需要在应用切换后再执行
 const originAddEventListener = window.addEventListener
 const originRemoveEventListener = window.removeEventListener
 
