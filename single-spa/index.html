@@ -19,30 +19,7 @@
   <script src="./single-spa.dev.js"></script>
   <script>
 
-    // singleSpa.registerApplication({
-    //   name: 'app1',
-    //   app: async (props) => {
-    //     console.log('加载时执行1');
-    //     return {
-    //       bootstrap: [
-    //         async (props) => {
-    //           console.log('bootstrap1-1');
-    //         }, async (props) => {
-    //           console.log('bootstrap1-2');
-    //         }
-    //       ],
-    //       mount: async () => {
-    //         console.log('mount1');
-    //       },
-    //       unmount: async () => {
-    //         console.log('unmount1');
-    //       },
-    //     }
-    //   },
-    //   activeWhen: [location => location.pathname.startsWith('/app1')],
-    //   customProps: null,
-    // })
-
+    // 参数: (1) 注册的应用名字  (2) 一个Promise方法 (3) 加载当前应用的时机 (4) 传递的数据
     singleSpa.registerApplication('app1', async (props) => {
       console.log('加载时执行1');
       return {
@@ -68,58 +45,32 @@
       }
     )
 
-    // 参数: (1) 注册的应用名字  (2) 一个Promise方法 (3) 加载当前应用的时机 (4) 传递的数据
-    // singleSpa.registerApplication('app1', async (props) => {
-    //   console.log('加载时执行1');
-    //   return {
-    //     bootstrap: [
-    //       async (props) => {
-    //         console.log('bootstrap1-1');
-    //       }, async (props) => {
-    //         console.log('bootstrap1-2');
-    //       }
-    //     ],
-    //     mount: async () => {
-    //       console.log('mount1');
-    //     },
-    //     unmount: async () => {
-    //       console.log('unmount1');
-    //     },
-    //   }
-    // },
-    //   // location => location.hash.startsWith('#/app1'), // http://localhost:3000/#/app1
-    //   location => location.pathname.startsWith('/app1'), // http://localhost:3000/app1
-    //   {
-    //     store: { name: 'wyb' }
-    //   }
-    // )
+    singleSpa.registerApplication('app2', async (props) => {
+      console.log('加载时执行2');
+      return {
+        bootstrap: [
+          async (props) => {
+            console.log('bootstrap2-1');
+          }, async (props) => {
+            console.log('bootstrap2-2');
+          }
+        ],
+        mount: async () => {
+          console.log('mount2');
+        },
+        unmount: async () => {
+          console.log('unmount2');
+        },
+      }
+    },
+      // location => location.hash.startsWith('#/app2'), // http://localhost:3000/#/app2
+      location => location.pathname.startsWith('/app2'), // http://localhost:3000/app2
+      {
+        store: { name: 'wyb' }
+      }
+    )
 
-    // singleSpa.registerApplication('app2', async (props) => {
-    //   console.log('加载时执行2');
-    //   return {
-    //     bootstrap: [
-    //       async (props) => {
-    //         console.log('bootstrap2-1');
-    //       }, async (props) => {
-    //         console.log('bootstrap2-2');
-    //       }
-    //     ],
-    //     mount: async () => {
-    //       console.log('mount2');
-    //     },
-    //     unmount: async () => {
-    //       console.log('unmount2');
-    //     },
-    //   }
-    // },
-    //   // location => location.hash.startsWith('#/app2'), // http://localhost:3000/#/app2
-    //   location => location.pathname.startsWith('/app2'), // http://localhost:3000/app2
-    //   {
-    //     store: { name: 'wyb' }
-    //   }
-    // )
-
-    // singleSpa.start() // 启动应用
+    singleSpa.start() // 启动应用
 
 
     // registerApplication 默认会加载应用
