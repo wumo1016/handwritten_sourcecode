@@ -1,3 +1,2 @@
-import { isObject } from '@vue/shared'
-
-console.log(isObject(123))
+export { reactive } from './reactive'
+export { effect } from './effect'
