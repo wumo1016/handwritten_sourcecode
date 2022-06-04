@@ -16,8 +16,9 @@ export class Reactiveeffect {
   public active = true // 当前active是否激活
   public parent = null
   public deps = [] // 被哪些属性用到了
-  constructor(public fn) {
+  constructor(public fn, public scheduler) {
     this.fn = fn
+    this.scheduler = scheduler
   }
   /**
    * @Author: wyb
@@ -51,8 +52,8 @@ export class Reactiveeffect {
  * @Descripttion:
  * @param {*} fn
  */
-export function effect(fn) {
-  const _effect = new Reactiveeffect(fn)
+export function effect(fn, options = {} as any) {
+  const _effect = new Reactiveeffect(fn, options.scheduler)
   const runner = _effect.run.bind(_effect)
   runner() // 默认执行一次
   runner.effect = _effect // 暴露effect的实例 用户可以手动调用runner
@@ -100,7 +101,11 @@ export function trigger(target, key, value) {
     deps = new Set(deps)
     deps.forEach(effect => {
       if (effect !== activeEffect) {
-        effect.run()
+        if (effect.scheduler) {
+          effect.scheduler()
+        } else {
+          effect.run()
+        }
       }
     })
   }

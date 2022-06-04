@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+</head>
+
+<body>
+  <!-- <script src="../../../node_modules/@vue/reactivity/dist/reactivity.global.js"></script> -->
+  <script src="../dist/reactivity.global.js"></script>
+
+  <div id="app"></div>
+  <script>
+    const { effect, reactive } = VueReactivity;
+
+    /*   const state = reactive({ flag: true, name: 'jw', age: 30 })
+      const runner = effect(() => { // 副作用函数 (effect执行渲染了页面)
+        console.log('runner')
+        document.body.innerHTML = state.age
+      })
+  
+      setTimeout(() => {
+        state.age++
+        state.age++
+        state.age++
+      }) */
+
+    let waiting = false
+    const state = reactive({ flag: true, name: 'jw', age: 30 })
+    const runner = effect(() => { // 副作用函数 (effect执行渲染了页面)
+      console.log('runner')
+      document.body.innerHTML = state.age
+    }, {
+      scheduler() {
+        if (!waiting) {
+          waiting = true
+          Promise.resolve().then(() => {
+            runner();
+            waiting = false;
+          })
+        }
+      }
+    })
+
+    setTimeout(() => {
+      state.age++
+      state.age++
+      state.age++
+    })
+
+  </script>
+
+</body>
+
+</html>

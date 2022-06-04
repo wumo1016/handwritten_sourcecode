@@ -58,6 +58,7 @@
   - 处理分支切换问题
     - cleanEffect 在每次执行 effect 之前 清空当前 effect 绑定的属性 并将其从使用到这个 effect 属性 Set 中移除
   - 处理在同时修改状态 导致多次执行 effect 的问题
+    - scheduler 每次数据变化的时候 如果传了 优先调用 scheduler 函数
 
 - track(target, key)
   - 做一个两层缓存结构 { object1: { name: [effect1], age: [effect2] } }
