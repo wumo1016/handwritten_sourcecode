@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+</head>
+
+<body>
+  <!-- <script src="../../../node_modules/@vue/reactivity/dist/reactivity.global.js"></script> -->
+  <script src="../dist/reactivity.global.js"></script>
+
+  <div id="app"></div>
+  <script>
+    const { effect, reactive, computed } = VueReactivity;
+
+    const state = reactive({ firstName: '姜', lastName: '文' });
+
+    /* 示例1 */
+    // const fullName = computed(() => {
+    //   console.log('fullName');
+    //   return state.firstName + state.lastName
+    // });
+
+    // console.log(fullName.value);
+    // console.log(fullName.value);
+
+    /* 示例2 */
+    // const fullName = computed(() => {
+    //   console.log('fullName');
+    //   return state.firstName + state.lastName
+    // });
+
+    // effect(() => {
+    //   app.innerHTML = fullName.value
+    // })
+
+    // setTimeout(() => {
+    //   state.firstName = '666'
+    // }, 1000);
+
+    /* 示例3 */
+    const fullName = computed({
+      get() {
+        console.log('fullName');
+        return state.firstName + state.lastName
+      },
+      set(value) {
+        state.lastName = value
+      }
+    })
+
+    effect(() => {
+      app.innerHTML = fullName.value
+    })
+
+    setTimeout(() => {
+      fullName.value = 666;
+    }, 1000);
+
+  </script>
+
+</body>
+
+</html>

@@ -56,7 +56,7 @@
   - 处理再 effect 更改自己依赖的属性 导致死循环的问题
     - 在循环执行 effect 的时候 判断如果自己 effect 触发的 就不再执行了
   - 处理分支切换问题
-    - cleanEffect 在每次执行 effect 之前 清空当前 effect 绑定的属性 并将其从使用到这个 effect 属性 Set 中移除
+    - cleanEffect 在每次执行 effect 之前 清空当前 effect 绑定的属性 并将其从使用到这个 effect 属性 Set 中移除 (注意循环引用问题)
   - 处理在同时修改状态 导致多次执行 effect 的问题
     - scheduler 每次数据变化的时候 如果传了 优先调用 scheduler 函数
 
@@ -65,4 +65,13 @@
   - 先针对对象做一个 WeakMap => Map
   - 再针对属性做一个 Map => Set
 - trigger(target, key)
+
   - 拿到对应的 deps 遍历执行
+
+- computed
+  - 默认传入一个 get 函数 默认不会执行 (也可以写成 对象的方式 get set)
+  - 将真实的返回值包装到 value 属性上
+  - 有缓存
+  - 也是一个 effect
+  - dirty
+  - 依赖收集

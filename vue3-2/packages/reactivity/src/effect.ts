@@ -12,11 +12,11 @@ function cleanEffect(effect) {
  * @Author: wyb
  * @Descripttion: 响应式的 effect
  */
-export class Reactiveeffect {
+export class ReactiveEffect {
   public active = true // 当前active是否激活
   public parent = null
   public deps = [] // 被哪些属性用到了
-  constructor(public fn, public scheduler) {
+  constructor(public fn, public scheduler?) {
     this.fn = fn
     this.scheduler = scheduler
   }
@@ -53,7 +53,7 @@ export class Reactiveeffect {
  * @param {*} fn
  */
 export function effect(fn, options = {} as any) {
-  const _effect = new Reactiveeffect(fn, options.scheduler)
+  const _effect = new ReactiveEffect(fn, options.scheduler)
   const runner = _effect.run.bind(_effect)
   runner() // 默认执行一次
   runner.effect = _effect // 暴露effect的实例 用户可以手动调用runner
@@ -77,6 +77,15 @@ export function track(target, key) {
   let deps = depsMap.get(key)
   if (!deps) depsMap.set(key, (deps = new Set()))
   // 收集effect
+  trackEffects(deps)
+}
+
+/**
+ * @Author: wyb
+ * @Descripttion: 收集effect
+ * @param {*} deps
+ */
+export function trackEffects(deps) {
   if (!deps.has(activeEffect)) {
     deps.add(activeEffect)
     activeEffect.deps.push(deps)
@@ -96,10 +105,20 @@ export function trigger(target, key, value) {
   if (!depsMap) return
   // 然后获取属性的值
   let deps = depsMap.get(key)
-  if (deps) {
+  // 执行收集的effect
+  triggerEffects(deps)
+}
+
+/**
+ * @Author: wyb
+ * @Descripttion: 执行收集的effect
+ * @param {*} effects
+ */
+export function triggerEffects(effects) {
+  if (effects) {
     // 防止在 cleanEffect 的时候造成的死循环
-    deps = new Set(deps)
-    deps.forEach(effect => {
+    effects = new Set(effects)
+    effects.forEach(effect => {
       if (effect !== activeEffect) {
         if (effect.scheduler) {
           effect.scheduler()
