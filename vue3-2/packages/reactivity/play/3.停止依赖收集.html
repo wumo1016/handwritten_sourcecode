@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+</head>
+
+<body>
+  <!-- <script src="../../../node_modules/@vue/reactivity/dist/reactivity.global.js"></script> -->
+  <script src="../dist/reactivity.global.js"></script>
+
+  <div id="app"></div>
+  <script>
+    const { effect, reactive } = VueReactivity;
+
+    const state = reactive({ flag: true, name: 'jw', age: 30 })
+    // effect返回runner的目的是让用户可以自己控制渲染逻辑
+    const runner = effect(() => {
+      document.body.innerHTML = state.flag ? state.name : state.age
+    });
+
+    runner.effect.stop();
+
+    setTimeout(() => {
+      state.flag = false;
+      setTimeout(() => {
+        runner()
+      }, 1000)
+    }, 1000)
+
+
+  </script>
+</body>
+
+</html>

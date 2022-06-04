@@ -1,5 +1,13 @@
 export let activeEffect = undefined
 
+function cleanEffect(effect) {
+  const deps = effect.deps
+  for (const dep of deps) {
+    dep.delete(effect)
+  }
+  effect.deps.length = 0
+}
+
 /**
  * @Author: wyb
  * @Descripttion: 响应式的 effect
@@ -20,10 +28,21 @@ export class Reactiveeffect {
     try {
       this.parent = activeEffect
       activeEffect = this
+      cleanEffect(this)
       return this.fn()
     } finally {
       activeEffect = this.parent
       this.parent = null
+    }
+  }
+  /**
+   * @Author: wyb
+   * @Descripttion:
+   */
+  stop() {
+    if (this.active) {
+      this.active = false
+      cleanEffect(this)
     }
   }
 }
@@ -34,8 +53,10 @@ export class Reactiveeffect {
  */
 export function effect(fn) {
   const _effect = new Reactiveeffect(fn)
-  _effect.run() // 默认执行一次
-  return _effect
+  const runner = _effect.run.bind(_effect)
+  runner() // 默认执行一次
+  runner.effect = _effect // 暴露effect的实例 用户可以手动调用runner
+  return runner
 }
 
 const targetMap = new WeakMap()
@@ -73,11 +94,14 @@ export function trigger(target, key, value) {
   let depsMap = targetMap.get(target)
   if (!depsMap) return
   // 然后获取属性的值
-  let effects = depsMap.get(key)
-  effects &&
-    effects.forEach(effect => {
+  let deps = depsMap.get(key)
+  if (deps) {
+    // 防止在 cleanEffect 的时候造成的死循环
+    deps = new Set(deps)
+    deps.forEach(effect => {
       if (effect !== activeEffect) {
         effect.run()
       }
     })
+  }
 }

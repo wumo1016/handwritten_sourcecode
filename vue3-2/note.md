@@ -55,9 +55,13 @@
   - 每个 effect 应该需要关联那些属性 以便如果当前 effect 被清理 也可以将这个 effect 将对应的属性 Set 集合中清理
   - 处理再 effect 更改自己依赖的属性 导致死循环的问题
     - 在循环执行 effect 的时候 判断如果自己 effect 触发的 就不再执行了
+  - 处理分支切换问题
+    - cleanEffect 在每次执行 effect 之前 清空当前 effect 绑定的属性 并将其从使用到这个 effect 属性 Set 中移除
+  - 处理在同时修改状态 导致多次执行 effect 的问题
 
 - track(target, key)
   - 做一个两层缓存结构 { object1: { name: [effect1], age: [effect2] } }
   - 先针对对象做一个 WeakMap => Map
   - 再针对属性做一个 Map => Set
-- trigger
+- trigger(target, key)
+  - 拿到对应的 deps 遍历执行
