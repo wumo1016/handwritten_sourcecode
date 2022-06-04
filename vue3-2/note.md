@@ -32,9 +32,32 @@
   - 只能对对象进行代理 否则直接返回
   - 使用 Proxy 进行代理 配合 Reflect 进行使用
   - 处理重复代理问题
-    - 重复代理原对象 (使用 WeakMap 做缓存)
+    - 重复代理原对象 直接返回原来的 Proxy ---- 使用 WeakMap 做缓存
     - 代理代理后的 proxy (添加一个标记)
+  - baseHandler
+    - get
+      - track
+    - set
+      - trigger
 
 - effect
+
   - 默认会执行一次 后续数据变化了会重新执行 effect 函数
   - 创建一个响应式的 ReactiveEffect
+    - run
+      - 先将当前的 activeEffect 缓存起来
+      - 将 activeEffect 设置为当前的 effect
+      - 当传入的 fn 执行完毕后 再将 activeEffect 设置为之前的 activeEffect
+    - stop
+    - 解决嵌套 effect 问题
+      - 栈
+      - 每个 effect 记住自己的父亲
+  - 每个 effect 应该需要关联那些属性 以便如果当前 effect 被清理 也可以将这个 effect 将对应的属性 Set 集合中清理
+  - 处理再 effect 更改自己依赖的属性 导致死循环的问题
+    - 在循环执行 effect 的时候 判断如果自己 effect 触发的 就不再执行了
+
+- track(target, key)
+  - 做一个两层缓存结构 { object1: { name: [effect1], age: [effect2] } }
+  - 先针对对象做一个 WeakMap => Map
+  - 再针对属性做一个 Map => Set
+- trigger

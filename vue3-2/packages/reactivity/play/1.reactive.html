@@ -22,17 +22,16 @@
     // console.log(state);
     // console.log(state === reactive(obj));
     // console.log(state === reactive(state));
-
-    console.log(state.address);
+    // console.log(state.address);
 
     effect(() => {
       app.innerHTML = state.name + '今年' + state.age + '岁了门牌号是 ' + state.address.num
     })
 
-    // setTimeout(() => {
-    //   state.age++
-    //   state.address.num++
-    // }, 1000)
+    setTimeout(() => {
+      state.age++
+      state.address.num++
+    }, 1000)
 
   </script>
 </body>
