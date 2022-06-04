@@ -1,3 +1,5 @@
+import { isObject } from '@vue/shared'
+import { reactive } from './reactive'
 import { track, trigger } from './effect'
 
 export const enum ReactiveFlags {
@@ -13,7 +15,10 @@ export const baseHandler = {
     if (key === ReactiveFlags.IS_REACTIVE) return true // 代理过
     // 依赖收集
     track(target, key)
-    return Reflect.get(target, key, receiver)
+    const res = Reflect.get(target, key, receiver)
+    // 懒代理
+    if (isObject(res)) return reactive(res)
+    return res
   },
   set(target, key, value, receiver) {
     const oldValue = target[key]
