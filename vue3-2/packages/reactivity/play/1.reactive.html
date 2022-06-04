@@ -16,17 +16,18 @@
   <script>
     const { effect, reactive } = VueReactivity;
 
-    const obj = { name: 'zf', age: 13, address: { num: 30 }, flag: true }
+    const obj = { name: 'zf', age: 18, address: { num: 18 }, flag: true }
     const state = reactive(obj); // 只能传入对象， 因为proxy 只支持对象格式
 
-    console.log(state);
-    console.log(state === reactive(obj));
-    console.log(state === reactive(state));
-    // console.log(state.address.num);
+    // console.log(state);
+    // console.log(state === reactive(obj));
+    // console.log(state === reactive(state));
 
-    // effect(() => {
-    //   app.innerHTML = state.name + '今年' + state.age + '岁了门牌号是 ' + state.address.num
-    // })
+    console.log(state.address);
+
+    effect(() => {
+      app.innerHTML = state.name + '今年' + state.age + '岁了门牌号是 ' + state.address.num
+    })
 
     // setTimeout(() => {
     //   state.age++

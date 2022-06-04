@@ -37,3 +37,4 @@
 
 - effect
   - 默认会执行一次 后续数据变化了会重新执行 effect 函数
+  - 创建一个响应式的 ReactiveEffect
