@@ -42,7 +42,7 @@ class RefImpl {
 
 /**
  * @Author: wyb
- * @Descripttion: 将响应式对象转化为 ref
+ * @Descripttion: 将响应式对象某个属性转化为 ref
  * @param {*} object
  * @param {*} key
  */
@@ -63,4 +63,17 @@ class ObjectRefImpl {
   set value(newValue) {
     this.object[this.key] = newValue
   }
+}
+
+/**
+ * @Author: wyb
+ * @Descripttion: 将响应式对象所有属性转化为 ref
+ * @param {*} object
+ */
+export function toRefs(object) {
+  const res = {}
+  Object.keys(object).map(key => {
+    res[key] = toRef(object, key)
+  })
+  return res
 }
