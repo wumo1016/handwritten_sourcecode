@@ -78,6 +78,16 @@
   - 依赖收集
 
 - ref
+  - 创建一个 RefImpl 实例
+  - 设置一个 `_value` 原值放在 `rawValue` 上
+  - get value 依赖收集
+  - set value 触发更新
+  - 其他
+    - toRef(object, key)
+      - 创建一个 ObjectRefImpl
+      - get value => object[key]
+      - set value => object[key] = value
+    - toRefs
 
 ## runtime-dom
 

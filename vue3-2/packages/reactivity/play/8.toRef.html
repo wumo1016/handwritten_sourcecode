@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+</head>
+
+<body>
+  <!-- <script src="../../../node_modules/@vue/reactivity/dist/reactivity.global.js"></script> -->
+  <script src="../dist/reactivity.global.js"></script>
+
+  <div id="app"></div>
+  <script>
+
+    const { effect, reactive, computed, ref, toRefs, toRef, proxyRefs } = VueReactivity;
+
+    /* 示例1 */
+    const state = reactive({ name: 'zf', age: 13 })
+
+    let name = toRef(state, 'name')
+    let age = toRef(state, 'age')
+
+    effect(() => {
+      app.innerHTML = name.value + age.value;
+    });
+
+    setTimeout(() => {
+      name.value = 'wyb'
+    }, 1000)
+
+    /* 示例2 */
+    // const state = reactive({ name: 'zf', age: 13 })
+
+    // let { name, age } = toRefs(state);
+
+    // effect(() => {
+    //   app.innerHTML = state.name + state.age;
+    // });
+
+    // setTimeout(() => {
+    //   state.name = 'wyb'
+    // }, 1000)
+
+
+  </script>
+</body>
+
+</html>
