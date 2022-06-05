@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+</head>
+
+<body>
+  <!-- <script src="../../../node_modules/vue/dist/vue.global.js"></script> -->
+  <script src="../dist/reactivity.global.js"></script>
+
+  <div id="app"></div>
+  <script>
+
+    // const { effect, reactive, watch } = Vue;
+    const { effect, reactive, watch } = VueReactivity;
+
+
+    /* 示例1 */
+    // const obj = { name: 'zf', age: 18, address: { num: 18 }, flag: true }
+    // const state = reactive(obj);
+
+    // watch(state, (newValue, oldValue) => {
+    //   console.log(newValue, oldValue, newValue === oldValue)
+    // });
+
+    // setTimeout(() => {
+    //   state.age++
+    // }, 1000)
+
+    /* 示例2-1 */
+    // const state = reactive({ flag: true, name: 'jw', age: 30 })
+    // let i = 2000;
+    // function getData(timer) {
+    //   return new Promise((resolve, reject) => {
+    //     setTimeout(() => {
+    //       resolve(timer)
+    //     }, timer);
+    //   })
+    // }
+
+    // watch(() => state.age, async (newValue, oldValue) => {
+    //   i -= 1000
+    //   console.log(i);
+    //   let r = await getData(i);
+    //   document.body.innerHTML = r
+    // }, { flush: 'sync' });
+    // // 最后应该显示 0 但由于第一次的接口比较慢 所有后面的接口被覆盖
+    // state.age = 31; // 1s后应该渲染1000
+    // state.age = 32; // 0s后显示0 
+
+    /* 示例2-2 */
+    const state = reactive({ flag: true, name: 'jw', age: 30 })
+    let i = 2000;
+    function getData(timer) {
+      return new Promise((resolve, reject) => {
+        setTimeout(() => {
+          resolve(timer)
+        }, timer);
+      })
+    }
+    // 调用下一次的watch会执行上一次的onCleanup
+    watch(() => state.age, async (newValue, oldValue, onCleanup) => {
+      let f = false;
+      onCleanup(() => { // 当我们把age= 32的时候会执行第一次的onCleanup中的回掉
+        f = true;
+      })
+      i -= 1000;
+      let r = await getData(i); // 2000
+      !f && (document.body.innerHTML = r);
+    }, { flush: 'sync' });
+    state.age = 31; // f = true   1s后应该渲染1000
+    state.age = 32; //  f = false 0s后显示0 
+
+  </script>
+</body>
+
+</html>

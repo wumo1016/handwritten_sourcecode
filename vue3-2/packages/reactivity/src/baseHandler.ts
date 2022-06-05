@@ -6,6 +6,10 @@ export const enum ReactiveFlags {
   IS_REACTIVE = '__v_isReactive'
 }
 
+export function isReactive(value) {
+  return value && value[ReactiveFlags.IS_REACTIVE]
+}
+
 /**
  * @Author: wyb
  * @Descripttion: proxy 处理函数
