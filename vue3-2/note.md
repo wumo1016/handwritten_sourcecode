@@ -77,6 +77,8 @@
   - dirty
   - 依赖收集
 
+- ref
+
 ## runtime-dom
 
 - watch

@@ -86,7 +86,7 @@ export function track(target, key) {
  * @param {*} deps
  */
 export function trackEffects(deps) {
-  if (!deps.has(activeEffect)) {
+  if (activeEffect && !deps.has(activeEffect)) {
     deps.add(activeEffect)
     activeEffect.deps.push(deps)
   }
