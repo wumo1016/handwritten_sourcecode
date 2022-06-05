@@ -32,17 +32,35 @@
     // }, 1000)
 
     /* 示例2 */
+    // const state = reactive({ name: 'zf', age: 13 })
+
+    // let { name, age } = toRefs(state);
+
+    // effect(() => {
+    //   app.innerHTML = state.name + state.age;
+    // });
+
+    // setTimeout(() => {
+    //   state.name = 'wyb'
+    // }, 1000)
+
+    /* 示例3 */
     const state = reactive({ name: 'zf', age: 13 })
 
     let { name, age } = toRefs(state);
 
+    const my = proxyRefs({
+      name, age
+    })
+
     effect(() => {
-      app.innerHTML = name.value + age.value;
+      app.innerHTML = my.name + my.age;
     });
 
     setTimeout(() => {
-      name.value = 'wyb'
+      my.name = 'wyb'
     }, 1000)
+
 
   </script>
 </body>

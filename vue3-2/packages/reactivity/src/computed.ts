@@ -35,6 +35,7 @@ class ComputedRefImpl {
   private _dirty = true // 是否是脏的 脏的就需要重新执行
   public effect
   public deps
+  private __v_isRef = true
 
   constructor(getter, public setter) {
     this.effect = new ReactiveEffect(getter, () => {

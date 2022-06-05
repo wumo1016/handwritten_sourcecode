@@ -82,6 +82,7 @@
   - 设置一个 `_value` 原值放在 `rawValue` 上
   - get value 依赖收集
   - set value 触发更新
+  - 如果被 reactive 使用 会自动拆包 使用的时候不需要加.value
   - 其他
     - toRef(object, key)
       - 创建一个 ObjectRefImpl
@@ -89,6 +90,9 @@
       - set value => object[key] = value
     - toRefs(object)
       - 创建一个新对象 循环传入的对象 将所有值用 toRef 包裹一下
+    - proxyRefs(object)
+      - 将 ref 包装到一个新对象上
+      - 通过 Proxy 代理实现
 
 ## runtime-dom
 
