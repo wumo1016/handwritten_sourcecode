@@ -108,6 +108,8 @@
 ## runtime-core
 
 - 主要是虚拟 dom
+- createVNode
+  - 创建一个虚拟节点
 
 ## vue
 
