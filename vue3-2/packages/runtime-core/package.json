@@ -1,0 +1,9 @@
+{
+  "name": "@vue/runtime-core",
+  "version": "1.0.0",
+  "main": "dist/runtime-core.cjs.js",
+  "module": "dist/runtime-core.esm.js",
+  "buildOptions": {
+    "name": "VueRuntimeCore"
+  }
+}

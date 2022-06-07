@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+</head>
+
+<body>
+  <!-- <script src="../../../node_modules/@vue/runtime-dom/dist/runtime-dom.global.js"></script> -->
+  <script src="../dist/runtime-dom.global.js"></script>
+
+  <div id="app"></div>
+
+  <script>
+
+    // const { createRenderer, h, createVNode } = VueRuntimeDOM
+
+    // /* 使用 createRenderer 创建一个渲染函数 */
+    // const { render, createApp } = createRenderer({
+    //   // patchProp, // 如何渲染属性
+    //   // ...nodeOps // 节点操作
+    //   createElement(element) {
+    //     return document.createElement(element)
+    //   },
+    //   setElementText(element, text) {
+    //     element.textContent = text
+    //   },
+    //   insert(element, container) {
+    //     container.appendChild(element)
+    //   }
+    // })
+
+    /* 创建虚拟dom */
+    // console.log(h('h1', 'hello world'));
+
+    /* 渲染函数 可以直接使用内置的 */
+    // render(h('h1', 'hello world'), app)
+
+
+
+    // 函数的重载重载  不同的参数 决定了不同的功能
+    // 1) 元素 内容
+    // 2) 元素 属性 内容
+    // 3) 元素 属性 多个儿子
+    // 4) 元素 儿子 / 元素    (只要不是文本节点，都会把儿子转成数组)
+    // 5) 元素 空属性 多个儿子
+    // console.log(h('h1',null,h('span','hello'),h('span','hello'),h('span','hello')))
+
+    // console.log(createVNode('h1', {}, ['hello', ' world']))
+  </script>
+</body>
+
+</html>
