@@ -8,4 +8,4 @@ const renderOptions = {
   ...nodeOps
 }
 
-console.log(renderOptions)
+// console.log(renderOptions)

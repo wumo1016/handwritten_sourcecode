@@ -3,6 +3,7 @@ import { isArray, isString } from '@vue/shared'
 export function createVNode(type, props = null, children = null) {
   // 创建虚拟节点
   const vnode = {
+    __v_isVNode: true,
     type,
     props,
     children,
@@ -36,4 +37,8 @@ export const enum ShapeFlags { // vue3提供的形状标识
   COMPONENT_SHOULD_KEEP_ALIVE = 1 << 8,
   COMPONENT_KEPT_ALIVE = 1 << 9,
   COMPONENT = ShapeFlags.STATEFUL_COMPONENT | ShapeFlags.FUNCTIONAL_COMPONENT
+}
+
+export function isVnode(val) {
+  return !!val.__v_isVNode
 }

@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+</head>
+
+<body>
+  <!-- <script src="../../../node_modules/@vue/runtime-dom/dist/runtime-dom.global.js"></script> -->
+  <script src="../dist/runtime-dom.global.js"></script>
+
+  <div id="app"></div>
+
+  <script>
+
+    const { h } = VueRuntimeDOM
+    /* h方法使用 */
+    // 1) 元素 属性
+    // console.log(h('h1', {}));
+    // 2) 元素 vnode对象
+    // console.log(h('h1', h('h2', {})));
+    // 3) 元素 内容
+    // console.log(h('h1', 'hello world'));
+    // 4) 元素 属性 vnode对象
+    // console.log(h('h1', {}, h('h2', {})));
+    // 5) 元素 属性 内容
+    // console.log(h('h1', {}, 'hello world'));
+    // 6) 元素 属性 多个儿子
+    console.log(h('h1', {}, 'hello world1', 'hello world2'));
+
+  </script>
+</body>
+
+</html>
