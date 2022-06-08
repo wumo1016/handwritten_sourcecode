@@ -10,7 +10,7 @@ const reactiveMap = new WeakMap()
  * @param {*} target
  */
 export function reactive(target) {
-  // 不是对象 或者 已经被代理过了
+  // 不是对象 或者 target是被代理过的 proxy
   if (!isObject(target) || target[ReactiveFlags.IS_REACTIVE]) return target
   // 如果代理过 直接返回代理结果
   if (reactiveMap.has(target)) return reactiveMap.get(target)
