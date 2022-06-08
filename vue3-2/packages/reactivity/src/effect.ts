@@ -97,9 +97,8 @@ export function trackEffects(deps) {
  * @Descripttion:
  * @param {*} target
  * @param {*} key
- * @param {*} value
  */
-export function trigger(target, key, value) {
+export function trigger(target, key) {
   // 先获取对象的 Map
   let depsMap = targetMap.get(target)
   if (!depsMap) return
