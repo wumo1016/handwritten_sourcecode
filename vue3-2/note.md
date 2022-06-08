@@ -96,6 +96,7 @@
 
 ## runtime-dom
 
+- 提供一些常用的节点操作 api
 - watch
   - 监控的如果是一个对象
     - 是无法拿到新值和老值的
@@ -103,3 +104,14 @@
   - 默认深度检测
   - onCleanup
     - 执行下一次的监听函数 会执行上一次的 onCleanup 的回调
+
+## runtime-core
+
+- 主要是虚拟 dom
+- createVNode
+  - 创建一个虚拟节点
+
+## vue
+
+- 用户引入的其实是 runtime-dom => 依赖 runtime-core(用户需要编写虚拟 dom) => reactivity
+- compiler-dom => compiler-core
