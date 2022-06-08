@@ -113,5 +113,10 @@
 
 ## vue
 
-- 用户引入的其实是 runtime-dom => 依赖 runtime-core(用户需要编写虚拟 dom) => reactivity
-- compiler-dom => compiler-core
+- 主要两部分
+  - 编译时
+    - compiler-dom => compiler-core
+    - 将模板编译成 render 函数
+  - 运行时
+    - 将虚拟节点变成真实节点
+    - runtime-dom(提供 dom api) => runtime-core(生成 dom) => reactivity
