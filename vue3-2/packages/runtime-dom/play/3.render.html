@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+</head>
+
+<body>
+  <!-- <script src="../../../node_modules/@vue/runtime-dom/dist/runtime-dom.global.js"></script> -->
+  <script src="../dist/runtime-dom.global.js"></script>
+
+  <div id="app"></div>
+
+  <script>
+
+    const { h, render } = VueRuntimeDOM
+
+    /* ------------------ 初始化 ------------------ */
+    /* 文本孩子节点 */
+    // render(h('h1', {}, 'hello world'), app)
+
+    /* 数组孩子(vnode)节点 */
+    // render(h('h1', {}, h('span', 'hello world')), app)
+    
+    /* 数组孩子(文本)节点 */
+    render(h('h1', {}, ['hello', 'world']), app)
+
+    /* diff */
+    // render(h('h1', {}, 'hello world'), app)
+    // setTimeout(() => {
+    //   render(h('h1', {}, 'hello world 123'), app)
+    // }, 1000);
+
+    /* 卸载 */
+    // render(h('h1', {}, 'hello world'), app)
+    // setTimeout(() => {
+    //   render(null, app)
+    // }, 1000);
+
+  </script>
+</body>
+
+</html>

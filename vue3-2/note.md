@@ -113,6 +113,19 @@
 - h
   - 两个参数
   - 三个参数
+- render(vnode, container)
+  - 初始化
+  - 更新 diff
+  - 卸载
+  - 将每一次的 vnode 保存到容器上
+- patch(oldVNode, newVNode, container)
+  - processText(n1, n2, container)
+    - n1 == null => 初始化
+      - 创建文本节点并插入
+  - processElement(n1, n2, container)
+    - n1 == null => 初始化
+      - mountElement(vnode, container)
+        - mountChildren(children, container)
 
 ## vue
 

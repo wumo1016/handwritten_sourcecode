@@ -1,5 +1,8 @@
 import { isArray, isString } from '@vue/shared'
 
+export const Text = Symbol('Text')
+export const Fragment = Symbol('Fragment')
+
 export function createVNode(type, props = null, children = null) {
   // 创建虚拟节点
   const vnode = {

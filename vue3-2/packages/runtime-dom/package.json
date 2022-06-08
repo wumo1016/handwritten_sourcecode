@@ -5,5 +5,8 @@
   "module": "dist/runtime-dom.esm.js",
   "buildOptions": {
     "name": "VueRuntimeDOM"
+  },
+  "dependencies": {
+    "@vue/shared": "workspace: ^1.0.0"
   }
 }
