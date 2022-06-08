@@ -37,10 +37,3 @@ export const enum ShapeFlags { // vue3提供的形状标识
   COMPONENT_KEPT_ALIVE = 1 << 9,
   COMPONENT = ShapeFlags.STATEFUL_COMPONENT | ShapeFlags.FUNCTIONAL_COMPONENT
 }
-
-// vue 两部分组成  编译时（将模板变异成render函数 compiler-dom compiler-core），返回的依旧是虚拟节点
-// 运行时 就是将虚拟节点变成（真实的节点）runtime-dom(提供domapi) runtime-core(虚拟节点),core中会调用runtime-dom ,你提供对应的方法，我内部会调用这个方法
-// runtime-core 基于reactivity 内部用的是响应式原理来做的
-// vue-loader webpack 里面做的，   vite  @vite/vue-plugin
-// 早期mpvue 就是基于vue2源码扩展了一层 实现小程序的渲染  weex platform
-//  我暴露api 提供给你 ，你基于这个方法来实现
