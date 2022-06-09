@@ -28,17 +28,11 @@
     /* 数组孩子(文本)节点 */
     // render(h('h1', { tag1: 'x1', tags: 'x2' }, ['hello', 'world']), app)
 
-    /* diff1 */
+    /* 卸载 */
     render(h('h1', {}, 'hello world'), app)
     setTimeout(() => {
-      render(h('h2', {}, 'hello world 123'), app)
+      render(null, app)
     }, 1000);
-
-    /* 卸载 */
-    // render(h('h1', {}, 'hello world'), app)
-    // setTimeout(() => {
-    //   render(null, app)
-    // }, 1000);
 
   </script>
 </body>
