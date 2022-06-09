@@ -45,3 +45,7 @@ export const enum ShapeFlags { // vue3提供的形状标识
 export function isVnode(val) {
   return !!val.__v_isVNode
 }
+
+export function isSameVNode(v1, v2) {
+  return v1.type === v2.type && v1.key == v2.key
+}

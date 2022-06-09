@@ -123,6 +123,7 @@
 - createRenderer
   - render
     - patch(oldVNode, newVNode, container)
+      - 判断新旧节点如果不是同一节点 直接移除旧的 然后将旧节点置为 null
       - processText(n1, n2, container)
         - n1 == null => 初始化
           - 创建文本节点并插入
@@ -137,9 +138,12 @@
 ## vue
 
 - 主要两部分
+
   - 编译时
     - compiler-dom => compiler-core
     - 将模板编译成 render 函数
   - 运行时
     - 将虚拟节点变成真实节点
     - runtime-dom(提供 dom api) => runtime-core(生成 dom) => reactivity
+
+- 靶向更新

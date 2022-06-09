@@ -1,5 +1,5 @@
 import { isNumber, isString } from '@vue/shared'
-import { createVNode, ShapeFlags, Text } from './createVNode'
+import { createVNode, isSameVNode, ShapeFlags, Text } from './createVNode'
 
 /**
  * @Author: wyb
@@ -32,6 +32,15 @@ export function createRenderer(options) {
     setElementText: hostSetElementText,
     patchProp: hostPatchProp
   } = options
+
+  /**
+   * @Author: wyb
+   * @Descripttion:
+   * @param {*} n1
+   */
+  function unmount(n1) {
+    hostRemove(n1.el)
+  }
 
   /**
    * @Author: wyb
@@ -133,6 +142,12 @@ export function createRenderer(options) {
    * @param {*} container 容器
    */
   function patch(n1, n2, container) {
+    // 如果不是同一个节点 直接将旧的移除
+    if (n1 && !isSameVNode(n1, n2)) {
+      unmount(n1)
+      n1 = null
+    }
+
     const { type, shapeFlag } = n2
     switch (type) {
       case Text:
