@@ -12,9 +12,13 @@
   <!-- <a href="#/app1">应用1</a>
   <a href="#/app2">应用2</a> -->
 
-  <button onClick="m()">本应用</button>
-  <button onClick="a()">应用1</button>
-  <button onClick="b()">应用2</button>
+  <button onClick="pushState('/')">本应用</button>
+  <button onClick="pushState('/app1')">应用1</button>
+  <button onClick="pushState('/app1/1')">应用1-1</button>
+  <button onClick="pushState('/app1/2')">应用1-2</button>
+  <button onClick="pushState('/app2')">应用2</button>
+  <button onClick="pushState('/app2/1')">应用2-1</button>
+  <button onClick="pushState('/app2/2')">应用2-2</button>
   <!-- <script src="./lib/umd/single-spa.js"></script> -->
   <script src="./single-spa.dev.js"></script>
   <script>
@@ -25,6 +29,9 @@
       return {
         bootstrap: [
           async (props) => {
+            window.addEventListener('popstate', () => {
+              console.log('app1-popstate');
+            })
             console.log('bootstrap1-1');
           }, async (props) => {
             console.log('bootstrap1-2');
@@ -50,6 +57,9 @@
       return {
         bootstrap: [
           async (props) => {
+            window.addEventListener('popstate', () => {
+              console.log('app2-popstate');
+            })
             console.log('bootstrap2-1');
           }, async (props) => {
             console.log('bootstrap2-2');
@@ -76,20 +86,14 @@
     // registerApplication 默认会加载应用
     // start 会挂载应用
 
-    window.addEventListener('hashchange', (e) => {
-      console.log(123);
-    })
+    // window.addEventListener('hashchange', (e) => {
+    //   console.log(123);
+    // })
   </script>
 
   <script>
-    function m() {
-      window.history.pushState({}, "", '/')
-    }
-    function a() {
-      window.history.pushState({}, "", '/app1')
-    }
-    function b() {
-      window.history.pushState({}, "", '/app2')
+    function pushState(path) {
+      window.history.pushState({}, "", path)
     }
   </script>
 </body>
