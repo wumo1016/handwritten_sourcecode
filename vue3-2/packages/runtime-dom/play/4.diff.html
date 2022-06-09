@@ -63,9 +63,27 @@
     // }, 1000);
 
     /* diff6 新数组-旧数组 */
-    render(h('h1', {}, ['hello', ' world']), app)
+    /* ------------------- 子一样 只有属性不一致 ------------------- */
+    // render(h('h1', {}, [
+    //   h('p', { style: { color: 'red' } }, 'hello1'),
+    //   h('p', { style: { color: 'blue' } }, 'hello2'),
+    // ]), app)
+    // setTimeout(() => {
+    //   render(h('h1', {}, [
+    //     h('p', { style: { color: 'blue' } }, 'hello1'),
+    //     h('p', { style: { color: 'red' } }, 'hello2')
+    //   ]), app)
+    // }, 1000);
+
+    /* ------------------- 开头一致 新的减少 ------------------- */
+    render(h('h1', {}, [
+      h('p', { style: { color: 'red' } }, 'hello1'),
+      h('p', { style: { color: 'blue' } }, 'hello2'),
+    ]), app)
     setTimeout(() => {
-      render(h('h1', {}, ['world', ' hello']), app)
+      render(h('h1', {}, [
+        h('p', { style: { color: 'blue' } }, 'hello1')
+      ]), app)
     }, 1000);
 
   </script>

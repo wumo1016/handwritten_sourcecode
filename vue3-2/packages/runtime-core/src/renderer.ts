@@ -227,7 +227,23 @@ export function createRenderer(options) {
    * @param {*} c1
    * @param {*} c2
    */
-  function patchKeyedChildren(c1, c2, el) {}  
+  function patchKeyedChildren(c1, c2, el) {
+    let i = 0 // 头指针
+    let e1 = c1.length - 1 // 旧尾指针
+    let e2 = c2.length - 1 // 新尾指针
+
+    // 有任何一方比对完毕 就无需比对了
+    while (i <= e1 && i <= e2) {
+      const n1 = c1[i]
+      const n2 = c2[i]
+      if (isSameVNode(n1, n2)) {
+        patch(n1, n2, el)
+        i++
+      } else {
+        break
+      }
+    }
+  }
 
   /**
    * @Author: wyb
