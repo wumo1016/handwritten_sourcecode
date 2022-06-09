@@ -35,11 +35,22 @@ export function createRenderer(options) {
 
   /**
    * @Author: wyb
-   * @Descripttion:
+   * @Descripttion: 卸载单个vnode
    * @param {*} n1
    */
   function unmount(n1) {
     hostRemove(n1.el)
+  }
+
+  /**
+   * @Author: wyb
+   * @Descripttion: 批量卸载vnode
+   * @param {*} children
+   */
+  function unmountChildren(children) {
+    children.forEach(child => {
+      unmount(child)
+    })
   }
 
   /**
@@ -68,6 +79,7 @@ export function createRenderer(options) {
     if (n1 == null) {
       mountElement(n2, container)
     } else {
+      patchElement(n1, n2)
     }
   }
   /**
@@ -136,6 +148,89 @@ export function createRenderer(options) {
 
   /**
    * @Author: wyb
+   * @Descripttion: 更新元素
+   * @param {*} n1
+   * @param {*} n2
+   * @param {*} container
+   */
+  function patchElement(n1, n2) {
+    // 节点复用
+    const el = (n2.el = n1.el)
+    // 更新属性
+    patchProps(el, n1.props, n2.props)
+    // 更新孩子
+    pathChildren(n1, n2, el)
+  }
+
+  /**
+   * @Author: wyb
+   * @Descripttion: 比对孩子
+   * @param {*} n1
+   * @param {*} n2
+   */
+  function pathChildren(n1, n2, el) {
+    /* 
+     新    旧
+    文本	数组	（删除老儿子，设置文本内容）
+    文本	文本/空	（更新文本即可）
+    数组	数组	（diff算法）
+    数组	文本	（清空文本，进行挂载）
+    数组	空	（进行挂载） 与上面的类似
+    空	数组	（删除所有儿子）
+    空	文本	（清空文本）
+    空	空	（无需处理）
+    */
+
+    const oldShapFlag = n1.shapeFlag
+    const newShapFlag = n2.shapeFlag
+    const c1 = n1.children
+    const c2 = n2.children
+
+    // 新文本
+    if (newShapFlag & ShapeFlags.TEXT_CHILDREN) {
+      // 旧数组
+      if (oldShapFlag & ShapeFlags.ARRAY_CHILDREN) {
+        unmountChildren(c1)
+      }
+      // 旧文本 或 旧空
+      if (c1 !== c2) {
+        hostSetElementText(el, c2)
+      }
+      // 新数组
+    } else if (newShapFlag & ShapeFlags.ARRAY_CHILDREN) {
+      // 旧数组
+      if (oldShapFlag & ShapeFlags.ARRAY_CHILDREN) {
+        patchKeyedChildren(c1, c2, el)
+        // 旧文本 或 旧文本
+      } else {
+        // 旧文本
+        if (oldShapFlag & ShapeFlags.TEXT_CHILDREN) {
+          hostSetElementText(el, '') // 先清空旧文本
+        }
+        // 旧空
+        mountChildren(c2, el) // 直接挂载孩子
+      }
+      // 新空
+    } else {
+      // 旧数组
+      if (oldShapFlag & ShapeFlags.ARRAY_CHILDREN) {
+        unmountChildren(c1) // 卸载旧孩子
+      }
+      // 旧文本 或 旧空
+      hostSetElementText(el, c2)
+    }
+  }
+
+  /**
+   * @Author: wyb
+   * @Descripttion: diff算法
+   * @param {*} c1
+   * @param {*} c2
+   */
+  function patchKeyedChildren(c1, c2, el) {}  
+
+  /**
+   * @Author: wyb
    * @Descripttion:
    * @param {*} n1 oldVNode
    * @param {*} n2 newVNode
@@ -169,6 +264,9 @@ export function createRenderer(options) {
   function render(vnode, container) {
     // 卸载
     if (vnode == null) {
+      if (container._vnode) {
+        unmount(container._vnode)
+      }
     } else {
       // 初始化 或 更新
       patch(container._vnode || null, vnode, container)

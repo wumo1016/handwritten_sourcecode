@@ -134,6 +134,11 @@
             - hostSetElementText
             - mountChildren(children, container)
             - hostInsert
+        - diff
+          - patchElement(n1, n2, container)
+            - patchProps
+            - pathChildren
+              - patchKeyedChildren
 
 ## vue
 

@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+</head>
+
+<body>
+  <!-- <script src="../../../node_modules/@vue/runtime-dom/dist/runtime-dom.global.js"></script> -->
+  <script src="../dist/runtime-dom.global.js"></script>
+
+  <div id="app"></div>
+
+  <script>
+
+    const { h, render } = VueRuntimeDOM
+
+    /* diff1 标签不一样 */
+    // render(h('h1', {}, 'hello world'), app)
+    // setTimeout(() => {
+    //   render(h('h2', {}, 'hello world'), app)
+    // }, 1000);
+
+    /* diff2 标签一样，属性不一样 */
+    // render(h('h1', { style: { color: 'red' } }, 'hello world'), app)
+    // setTimeout(() => {
+    //   render(h('h1', { style: { color: 'blue' } }, 'hello world'), app)
+    // }, 1000);
+
+    /* ------------------- patchChildren ------------------- */
+
+    /* diff1 新文本-旧数组 */
+    // render(h('h1', {}, ['hello', ' world']), app)
+    // setTimeout(() => {
+    //   render(h('h1', {}, 'hello'), app)
+    // }, 1000);
+
+    /* diff2 新文本-旧文本(旧空) */
+    // render(h('h1', {}, 'hello'), app)
+    // setTimeout(() => {
+    //   render(h('h1', {}, 'world'), app)
+    // }, 1000);
+
+    /* diff3 新空-旧数组 */
+    // render(h('h1', {}, ['hello', ' world']), app)
+    // setTimeout(() => {
+    //   render(h('h1', {}), app)
+    // }, 1000);
+
+    /* diff4 新空-旧文本(旧空) */
+    // render(h('h1', {}, 'hello'), app)
+    // setTimeout(() => {
+    //   render(h('h1', {}), app)
+    // }, 1000);
+
+    /* diff5 新数组-旧空(旧文本) */
+    // render(h('h1', {}, ''), app)
+    // setTimeout(() => {
+    //   render(h('h1', {}, ['hello', ' world']), app)
+    // }, 1000);
+
+    /* diff6 新数组-旧数组 */
+    render(h('h1', {}, ['hello', ' world']), app)
+    setTimeout(() => {
+      render(h('h1', {}, ['world', ' hello']), app)
+    }, 1000);
+
+  </script>
+</body>
+
+</html>
