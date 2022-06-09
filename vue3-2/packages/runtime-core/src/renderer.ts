@@ -71,10 +71,17 @@ export function createRenderer(options) {
     const { type, props, children, shapeFlag } = vnode
     // 创建真实元素 并将其保存到 vnode 上
     const el = (vnode.el = hostCreateElement(type))
-    // 渲染孩子
+
+    // 处理 props
+    if (props) {
+      patchProps(el, null, props)
+    }
+
+    // 渲染孩子 - 文本
     if (shapeFlag & ShapeFlags.TEXT_CHILDREN) {
       hostSetElementText(el, children)
     }
+    // 渲染孩子 - 数组
     if (shapeFlag & ShapeFlags.ARRAY_CHILDREN) {
       mountChildren(children, el)
     }
@@ -93,6 +100,28 @@ export function createRenderer(options) {
     for (let i = 0, len = children.length; i < len; i++) {
       const child = normalize(children, i)
       patch(null, child, container)
+    }
+  }
+
+  /**
+   * @Author: wyb
+   * @Descripttion:
+   * @param {*} el
+   * @param {*} oldProp
+   * @param {*} newProps
+   */
+  function patchProps(el, oldProps, newProps) {
+    if (!oldProps) oldProps = {}
+    if (!newProps) newProps = {}
+    // 新的覆盖旧的
+    for (let key in newProps) {
+      hostPatchProp(el, key, oldProps[key], newProps[key])
+    }
+    // 老的有的新没有要删除
+    for (let key in oldProps) {
+      if (newProps[key] == null) {
+        hostPatchProp(el, key, oldProps[key], null)
+      }
     }
   }
 

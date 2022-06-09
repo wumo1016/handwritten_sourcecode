@@ -24,9 +24,9 @@
 
     /* 数组孩子(vnode)节点 */
     // render(h('h1', {}, h('span', 'hello world')), app)
-    
+
     /* 数组孩子(文本)节点 */
-    render(h('h1', {}, ['hello', 'world']), app)
+    render(h('h1', { tag1: 'x1', tags: 'x2' }, ['hello', 'world']), app)
 
     /* diff */
     // render(h('h1', {}, 'hello world'), app)
