@@ -288,6 +288,11 @@ export function createRenderer(options) {
       keyToNewIndexMap.set(c2[j].key, j)
     }
 
+    // 需要插入的个数
+    const toBePatch = e2 - s2 + 1
+    // 用新的位置和老的位置做一个关联
+    const seq = new Array(toBePatch).fill(0)
+
     // 循环老的
     for (let j = s1; j <= e1; j++) {
       const oldVNode = c1[j]
@@ -299,17 +304,21 @@ export function createRenderer(options) {
       } else {
         // 都有做 patch
         patch(oldVNode, c2[newIndex], el)
+        // 新的相对索引 => 老的真实索引
+        seq[newIndex - s2] = j + 1 // 加1 保证不会出现0
       }
     }
 
+    console.log(seq)
+
     // 倒序插入 新增的元素
-    const toBePatch = e2 - s2 + 1 // 需要插入的个数
     for (let j = toBePatch - 1; j >= 0; j--) {
       const curIndex = s2 + j
       const child = c2[curIndex]
       const anchor = curIndex + 1 >= c2.length ? null : c2[curIndex + 1].el
       // 新增
-      if (child.el == null) {
+      // if (child.el == null) {
+      if (seq[j] === 0) {
         patch(null, child, el, anchor)
       } else {
         hostInsert(child.el, el, anchor)
