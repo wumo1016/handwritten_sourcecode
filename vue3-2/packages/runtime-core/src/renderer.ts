@@ -74,10 +74,10 @@ export function createRenderer(options) {
    * @param {*} n2
    * @param {*} container
    */
-  function processElement(n1, n2, container) {
+  function processElement(n1, n2, container, anchor) {
     // 初始化
     if (n1 == null) {
-      mountElement(n2, container)
+      mountElement(n2, container, anchor)
     } else {
       patchElement(n1, n2)
     }
@@ -88,7 +88,7 @@ export function createRenderer(options) {
    * @param {*} vnode
    * @param {*} container
    */
-  function mountElement(vnode, container) {
+  function mountElement(vnode, container, anchor) {
     const { type, props, children, shapeFlag } = vnode
     // 创建真实元素 并将其保存到 vnode 上
     const el = (vnode.el = hostCreateElement(type))
@@ -107,7 +107,7 @@ export function createRenderer(options) {
       mountChildren(children, el)
     }
 
-    hostInsert(el, container)
+    hostInsert(el, container, anchor)
   }
 
   /**
@@ -232,6 +232,7 @@ export function createRenderer(options) {
     let e1 = c1.length - 1 // 旧尾指针
     let e2 = c2.length - 1 // 新尾指针
 
+    // 从头开始比 sync from start
     // 有任何一方比对完毕 就无需比对了
     while (i <= e1 && i <= e2) {
       const n1 = c1[i]
@@ -244,21 +245,34 @@ export function createRenderer(options) {
       }
     }
 
-    // 有新增
-    if (i > e1) {
-      while (i <= e2) {
-        patch(null, c2[i], el)
-        i++
+    console.log(i, e1, e2)
+
+    // 从尾开始比 sync from end
+    // 有任何一方比对完毕 就无需比对了
+    while (i <= e1 && i <= e2) {
+      const n1 = c1[e1]
+      const n2 = c2[e2]
+      if (isSameVNode(n1, n2)) {
+        patch(n1, n2, el)
+        e1--
+        e2--
+      } else {
+        break
       }
     }
 
-    /* 
-    a b c d
-    a b c d e f
-    i=4, e1=3, e2=5
-    */
-
     console.log(i, e1, e2)
+
+    // // 有新增
+    if (i > e1) {
+      while (i <= e2) {
+        // 看e2是不是末尾项 找到插入的参照物
+        const nextPos = e2 + 1
+        const anchor = nextPos >= c2.length ? null : c2[nextPos].el
+        patch(null, c2[i], el, anchor)
+        i++
+      }
+    }
   }
 
   /**
@@ -268,7 +282,7 @@ export function createRenderer(options) {
    * @param {*} n2 newVNode
    * @param {*} container 容器
    */
-  function patch(n1, n2, container) {
+  function patch(n1, n2, container, anchor = null) {
     // 如果不是同一个节点 直接将旧的移除
     if (n1 && !isSameVNode(n1, n2)) {
       unmount(n1)
@@ -282,7 +296,7 @@ export function createRenderer(options) {
         break
       default:
         if (shapeFlag & ShapeFlags.ELEMENT) {
-          processElement(n1, n2, container)
+          processElement(n1, n2, container, anchor)
         }
     }
   }
