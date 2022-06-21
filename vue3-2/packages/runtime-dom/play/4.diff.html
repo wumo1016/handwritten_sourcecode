@@ -27,7 +27,7 @@
     /* diff2 标签一样，属性不一样 */
     // render(h('h1', { style: { color: 'red' } }, 'hello world'), app)
     // setTimeout(() => {
-    //   render(h('h1', { style: { color: 'blue' } }, 'hello world'), app)
+    //   render(h('h1', 'hello world'), app)
     // }, 1000);
 
     /* ------------------- patchChildren ------------------- */
@@ -66,23 +66,30 @@
     /* ------------------- 子一样 只有属性不一致 ------------------- */
     // render(h('h1', {}, [
     //   h('p', { style: { color: 'red' } }, 'hello1'),
-    //   h('p', { style: { color: 'blue' } }, 'hello2'),
+    //   h('p', 'hello2'),
     // ]), app)
     // setTimeout(() => {
     //   render(h('h1', {}, [
-    //     h('p', { style: { color: 'blue' } }, 'hello1'),
+    //     h('p', 'hello1'),
     //     h('p', { style: { color: 'red' } }, 'hello2')
     //   ]), app)
     // }, 1000);
 
     /* ------------------- 开头一致 新的减少 ------------------- */
     render(h('h1', {}, [
-      h('p', { style: { color: 'red' } }, 'hello1'),
-      h('p', { style: { color: 'blue' } }, 'hello2'),
+      h('p', 'a'),
+      h('p', 'b'),
+      h('p', 'c'),
+      h('p', 'd'),
     ]), app)
     setTimeout(() => {
       render(h('h1', {}, [
-        h('p', { style: { color: 'blue' } }, 'hello1')
+        h('p', 'a'),
+        h('p', 'b'),
+        h('p', 'c'),
+        h('p', 'd'),
+        h('p', 'e'),
+        h('p', 'f'),
       ]), app)
     }, 1000);
 

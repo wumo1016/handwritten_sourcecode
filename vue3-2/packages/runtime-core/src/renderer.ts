@@ -243,6 +243,22 @@ export function createRenderer(options) {
         break
       }
     }
+
+    // 有新增
+    if (i > e1) {
+      while (i <= e2) {
+        patch(null, c2[i], el)
+        i++
+      }
+    }
+
+    /* 
+    a b c d
+    a b c d e f
+    i=4, e1=3, e2=5
+    */
+
+    console.log(i, e1, e2)
   }
 
   /**
