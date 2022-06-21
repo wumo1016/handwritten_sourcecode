@@ -245,7 +245,7 @@ export function createRenderer(options) {
       }
     }
 
-    console.log(i, e1, e2)
+    // console.log(i, e1, e2)
 
     // 从尾开始比 sync from end
     // 有任何一方比对完毕 就无需比对了
@@ -261,15 +261,19 @@ export function createRenderer(options) {
       }
     }
 
-    console.log(i, e1, e2)
-
-    // // 有新增
+    // 有新增
     if (i > e1) {
       while (i <= e2) {
         // 看e2是不是末尾项 找到插入的参照物
         const nextPos = e2 + 1
         const anchor = nextPos >= c2.length ? null : c2[nextPos].el
         patch(null, c2[i], el, anchor)
+        i++
+      }
+    } else if (i > e2) {
+      // 有减少
+      while (i <= e1) {
+        unmount(c1[i])
         i++
       }
     }
