@@ -6,6 +6,8 @@
  * @param {*} nextValue
  */
 export function patchStyle(el, preValue, nextValue) {
+  if (preValue == null) preValue = {}
+  if (nextValue == null) nextValue = {}
   const style = el.style
   for (let key in nextValue) {
     style[key] = nextValue[key]

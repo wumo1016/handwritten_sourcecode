@@ -277,6 +277,44 @@ export function createRenderer(options) {
         i++
       }
     }
+
+    // 乱序比对
+    let s1 = i // s1 => e1 老的需要比对的地方
+    let s2 = i // s2 => e2 新的需要比对的地方
+
+    // 将新的数据做一个映射表 childKey => index
+    const keyToNewIndexMap = new Map()
+    for (let j = s2; j <= e2; j++) {
+      keyToNewIndexMap.set(c2[j].key, j)
+    }
+
+    // 循环老的
+    for (let j = s1; j <= e1; j++) {
+      const oldVNode = c1[j]
+      const newIndex = keyToNewIndexMap.get(oldVNode.key)
+
+      // 如果新的里面没有 直接移除
+      if (newIndex == null) {
+        unmount(oldVNode)
+      } else {
+        // 都有做 patch
+        patch(oldVNode, c2[newIndex], el)
+      }
+    }
+
+    // 倒序插入 新增的元素
+    const toBePatch = e2 - s2 + 1 // 需要插入的个数
+    for (let j = toBePatch - 1; j >= 0; j--) {
+      const curIndex = s2 + j
+      const child = c2[curIndex]
+      const anchor = curIndex + 1 >= c2.length ? null : c2[curIndex + 1].el
+      // 新增
+      if (child.el == null) {
+        patch(null, child, el, anchor)
+      } else {
+        hostInsert(child.el, el, anchor)
+      }
+    }
   }
 
   /**
