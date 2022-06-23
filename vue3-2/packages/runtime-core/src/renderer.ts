@@ -3,6 +3,60 @@ import { createVNode, isSameVNode, ShapeFlags, Text } from './createVNode'
 
 /**
  * @Author: wyb
+ * @Descripttion: 最长递增子序列
+ * @param {*} arr
+ */
+function getSequence(arr) {
+  let len = arr.length
+  let result = [0]
+  let p = new Array(len).fill(0) // p 中存的是什么目前不重要
+  let lastIndex
+  let start
+  let end
+  let middle
+  for (let i = 0; i < len; i++) {
+    const arrI = arr[i]
+    if (arrI !== 0) {
+      // 0在vue3中意味着新增节点，这个不计入最长递增子序列列表
+      lastIndex = result[result.length - 1] // 去到数组中的最后一项，就是最大的那个索引
+      if (arr[lastIndex] < arrI) {
+        // 说明当前这一项比结果集中最后一项大则直接将索引放入即可
+        p[i] = lastIndex // 存的是索引
+        result.push(i)
+        continue
+      }
+      // 否则的情况
+      start = 0
+      end = result.length - 1 // 二分查找
+      while (start < end) {
+        // 计算有序比较都可以这样搞
+        middle = Math.floor((start + end) / 2)
+        if (arr[result[middle]] < arrI) {
+          start = middle + 1
+        } else {
+          end = middle
+        }
+      }
+      if (arrI < arr[result[end]]) {
+        p[i] = result[end - 1]
+        result[end] = i
+      }
+    }
+  }
+  // 倒叙追溯 先取到结果集中的最后一个
+  let i = result.length
+  let last = result[i - 1]
+
+  while (i-- > 0) {
+    // 当检索后停止
+    result[i] = last // 最后一项是正确的
+    last = p[last] // 根据最后一项 向前追溯
+  }
+  return result
+}
+
+/**
+ * @Author: wyb
  * @Descripttion: 格式化 children(文本、数字) => 虚拟节点
  * @param {*} children
  * @param {*} i
@@ -309,19 +363,25 @@ export function createRenderer(options) {
       }
     }
 
-    console.log(seq)
+    const incr = getSequence(seq)
+    let j = incr.length - 1
 
     // 倒序插入 新增的元素
-    for (let j = toBePatch - 1; j >= 0; j--) {
-      const curIndex = s2 + j
+    for (let i = toBePatch - 1; i >= 0; i--) {
+      const curIndex = s2 + i
       const child = c2[curIndex]
       const anchor = curIndex + 1 >= c2.length ? null : c2[curIndex + 1].el
       // 新增
       // if (child.el == null) {
-      if (seq[j] === 0) {
+      if (seq[i] === 0) {
         patch(null, child, el, anchor)
       } else {
-        hostInsert(child.el, el, anchor)
+        // 不需要动
+        if (i === incr[j]) {
+          j--
+        } else {
+          hostInsert(child.el, el, anchor) // 需要移动
+        }
       }
     }
   }
