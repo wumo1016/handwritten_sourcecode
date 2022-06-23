@@ -1,5 +1,11 @@
 import { isNumber, isString } from '@vue/shared'
-import { createVNode, isSameVNode, ShapeFlags, Text } from './createVNode'
+import {
+  createVNode,
+  isSameVNode,
+  ShapeFlags,
+  Text,
+  Fragment
+} from './createVNode'
 
 /**
  * @Author: wyb
@@ -93,6 +99,9 @@ export function createRenderer(options) {
    * @param {*} n1
    */
   function unmount(n1) {
+    if (n1.type === Fragment) {
+      return unmountChildren(n1.children)
+    }
     hostRemove(n1.el)
   }
 
@@ -118,9 +127,28 @@ export function createRenderer(options) {
     // 初始化
     if (n1 == null) {
       hostInsert((n2.el = hostCreateTextNode(n2.children)), container)
+    } else {
+      const el = (n2.el = n1.el)
+      if (n2.children !== n1.children) {
+        hostSetText(el, n2.children)
+      }
     }
   }
-
+  /**
+   * @Author: wyb
+   * @Descripttion: 处理Fragment节点
+   * @param {*} n1
+   * @param {*} n2
+   * @param {*} container
+   */
+  function processFragment(n1, n2, container) {
+    // 初始化
+    if (n1 == null) {
+      mountChildren(n2.children, container) // 直接挂载到父容器上
+    } else {
+      patchKeyedChildren(n1.children, n2.children, container)
+    }
+  }
   /**
    * @Author: wyb
    * @Descripttion: 处理元素节点
@@ -177,7 +205,6 @@ export function createRenderer(options) {
       patch(null, child, container)
     }
   }
-
   /**
    * @Author: wyb
    * @Descripttion:
@@ -199,7 +226,6 @@ export function createRenderer(options) {
       }
     }
   }
-
   /**
    * @Author: wyb
    * @Descripttion: 更新元素
@@ -330,57 +356,56 @@ export function createRenderer(options) {
         unmount(c1[i])
         i++
       }
-    }
+    } else {
+      // 乱序比对
+      let s1 = i // s1 => e1 老的需要比对的地方
+      let s2 = i // s2 => e2 新的需要比对的地方
 
-    // 乱序比对
-    let s1 = i // s1 => e1 老的需要比对的地方
-    let s2 = i // s2 => e2 新的需要比对的地方
-
-    // 将新的数据做一个映射表 childKey => index
-    const keyToNewIndexMap = new Map()
-    for (let j = s2; j <= e2; j++) {
-      keyToNewIndexMap.set(c2[j].key, j)
-    }
-
-    // 需要插入的个数
-    const toBePatch = e2 - s2 + 1
-    // 用新的位置和老的位置做一个关联
-    const seq = new Array(toBePatch).fill(0)
-
-    // 循环老的
-    for (let j = s1; j <= e1; j++) {
-      const oldVNode = c1[j]
-      const newIndex = keyToNewIndexMap.get(oldVNode.key)
-
-      // 如果新的里面没有 直接移除
-      if (newIndex == null) {
-        unmount(oldVNode)
-      } else {
-        // 都有做 patch
-        patch(oldVNode, c2[newIndex], el)
-        // 新的相对索引 => 老的真实索引
-        seq[newIndex - s2] = j + 1 // 加1 保证不会出现0
+      // 将新的数据做一个映射表 childKey => index
+      const keyToNewIndexMap = new Map()
+      for (let j = s2; j <= e2; j++) {
+        keyToNewIndexMap.set(c2[j].key, j)
       }
-    }
+      // 需要插入的个数
+      const toBePatch = e2 - s2 + 1
+      // 用新的位置和老的位置做一个关联
+      const seq = new Array(toBePatch).fill(0)
 
-    const incr = getSequence(seq)
-    let j = incr.length - 1
+      // 循环老的
+      for (let j = s1; j <= e1; j++) {
+        const oldVNode = c1[j]
+        const newIndex = keyToNewIndexMap.get(oldVNode.key)
 
-    // 倒序插入 新增的元素
-    for (let i = toBePatch - 1; i >= 0; i--) {
-      const curIndex = s2 + i
-      const child = c2[curIndex]
-      const anchor = curIndex + 1 >= c2.length ? null : c2[curIndex + 1].el
-      // 新增
-      // if (child.el == null) {
-      if (seq[i] === 0) {
-        patch(null, child, el, anchor)
-      } else {
-        // 不需要动
-        if (i === incr[j]) {
-          j--
+        // 如果新的里面没有 直接移除
+        if (newIndex == null) {
+          unmount(oldVNode)
         } else {
-          hostInsert(child.el, el, anchor) // 需要移动
+          // 都有做 patch
+          patch(oldVNode, c2[newIndex], el)
+          // 新的相对索引 => 老的真实索引
+          seq[newIndex - s2] = j + 1 // 加1 保证不会出现0
+        }
+      }
+
+      const incr = getSequence(seq)
+      let j = incr.length - 1
+
+      // 倒序插入 新增的元素
+      for (let i = toBePatch - 1; i >= 0; i--) {
+        const curIndex = s2 + i
+        const child = c2[curIndex]
+        const anchor = curIndex + 1 >= c2.length ? null : c2[curIndex + 1].el
+        // 新增
+        // if (child.el == null) {
+        if (seq[i] === 0) {
+          patch(null, child, el, anchor)
+        } else {
+          // 不需要动
+          if (i === incr[j]) {
+            j--
+          } else {
+            hostInsert(child.el, el, anchor) // 需要移动
+          }
         }
       }
     }
@@ -399,11 +424,13 @@ export function createRenderer(options) {
       unmount(n1)
       n1 = null
     }
-
     const { type, shapeFlag } = n2
     switch (type) {
       case Text:
         processText(n1, n2, container)
+        break
+      case Fragment:
+        processFragment(n1, n2, container)
         break
       default:
         if (shapeFlag & ShapeFlags.ELEMENT) {

@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+</head>
+
+<body>
+  <!-- <script src="../../../node_modules/@vue/runtime-dom/dist/runtime-dom.global.js"></script> -->
+  <script src="../dist/runtime-dom.global.js"></script>
+
+  <div id="app"></div>
+
+  <script>
+    const { render, Text, h, Fragment } = VueRuntimeDOM;
+
+    // render(
+    //   h(Fragment, [
+    //     h(Text, 'hello world'),
+    //     h(Text, 'hello world'),
+    //     h(Text, 'hello world'),
+    //   ]), app)
+
+    /* 减少 */
+    // setTimeout(() => {
+    //   render(
+    //     h(Fragment, [
+    //       h(Text, 'hello world1'),
+    //     ]), app)
+    // }, 1000)
+
+    /* 移除所有 */
+    // setTimeout(() => {
+    //   render(null, app)
+    // }, 1000)
+
+    /* ------------------------ 文本更新 ------------------------ */
+    render(h(Text, '123'), app)
+    setTimeout(() => {
+      render(h(Text, '456'), app)
+    }, 1000)
+
+
+  </script>
+</body>
+
+</html>
