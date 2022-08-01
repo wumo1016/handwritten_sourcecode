@@ -1,3 +1,5 @@
+import { recordEffectScope } from "./effectScope"
+
 export let activeEffect = undefined
 
 function cleanEffect(effect) {
@@ -17,8 +19,7 @@ export class ReactiveEffect {
   public parent = null
   public deps = [] // 被哪些属性用到了
   constructor(public fn, public scheduler?) {
-    this.fn = fn
-    this.scheduler = scheduler
+    recordEffectScope(this)
   }
   /**
    * @Author: wyb
