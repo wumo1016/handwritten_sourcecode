@@ -13,8 +13,26 @@ const userStore = useUserStore()
 <template>
   <div>count: {{ mainStore.count }}</div>
   <div>double: {{ mainStore.double }}</div>
-  <button @click="mainStore.count++">测试1</button>
-  <button @click="mainStore.increment(2)">测试2</button>
+  <button @click="mainStore.count++">测试1-1</button>
+  <button @click="mainStore.increment(2)">测试1-2</button>
+  <button
+    @click="
+      mainStore.$patch({
+        count: mainStore.count + 1
+      })
+    "
+  >
+    测试1-3
+  </button>
+  <button
+    @click="
+      mainStore.$patch(state => {
+        mainStore.count = state.count + 1
+      })
+    "
+  >
+    测试1-4
+  </button>
 
   <div>age: {{ userStore.age }}</div>
   <div>doubleAge: {{ userStore.doubleAge }}</div>

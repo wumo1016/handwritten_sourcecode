@@ -6,7 +6,7 @@ import {
   reactive,
   toRefs
 } from 'vue'
-import { symbolPinia } from './util'
+import { symbolPinia, isObject } from './util'
 
 export function defineStore(idOrOptions, setup) {
   let id, options
@@ -68,8 +68,17 @@ function createSetupStore(id, setup, pinia) {
     return scope.run(() => setup())
   })
 
+  function $patch(partialStateOrMutator) {
+    if (typeof partialStateOrMutator === 'function') {
+      partialStateOrMutator(pinia.state.value[id])
+    } else {
+      merge(pinia.state.value[id], partialStateOrMutator)
+    }
+  }
   // 方便扩展
-  const store = reactive({})
+  const store = reactive({
+    $patch
+  })
   Object.assign(store, setupStore)
   pinia._s.set(id, store)
 
@@ -85,4 +94,17 @@ function createSetupStore(id, setup, pinia) {
       setupStore[key] = wrapAction(val)
     }
   }
+}
+
+function merge(target, state) {
+  for (let key in state) {
+    let oldValue = target[key]
+    let newValue = state[key]
+    if (isObject(oldValue) && isObject(newValue)) {
+      target[key] = merge(oldValue, newValue)
+    } else {
+      target[key] = newValue
+    }
+  }
+  return target
 }

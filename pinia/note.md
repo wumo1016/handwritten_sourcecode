@@ -9,3 +9,5 @@
 
 - createPinia
 - defineStore
+- 支持 compositionApi 传入的方式
+- $patch 批量修改状态
