@@ -24,7 +24,11 @@ export function defineStore(idOrOptions, setup) {
 
     // 应该做缓存 用户多次调用useStore 返回第一次创建的store
     if (!pinia._s.has(id)) {
-      createOptionsStore(id, options, pinia)
+      if (typeof setup === 'function') {
+        createSetupStore(id, setup, pinia)
+      } else {
+        createOptionsStore(id, options, pinia)
+      }
     }
     const store = pinia._s.get(id)
     return store
@@ -44,12 +48,19 @@ function createOptionsStore(id, options, pinia) {
       localState,
       actions,
       Object.keys(getters).reduce((memo, key) => {
-        memo[key] = computed(() => getters[key].call(store, store))
+        memo[key] = computed(() => {
+          const store = pinia._s.get(id)
+          return getters[key].call(store, store)
+        })
         return memo
       }, {})
     )
   }
 
+  createSetupStore(id, setup, pinia)
+}
+
+function createSetupStore(id, setup, pinia) {
   // 自己的独立的store 可以独立停止
   let scope
   const setupStore = pinia._e.run(() => {
@@ -74,5 +85,4 @@ function createOptionsStore(id, options, pinia) {
       setupStore[key] = wrapAction(val)
     }
   }
-  console.log(store)
 }
