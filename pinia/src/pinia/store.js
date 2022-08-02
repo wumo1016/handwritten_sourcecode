@@ -1,6 +1,11 @@
-import { getCurrentInstance } from 'vue'
-
-import { inject, effectScope } from 'vue'
+import {
+  computed,
+  inject,
+  effectScope,
+  getCurrentInstance,
+  reactive,
+  toRefs
+} from 'vue'
 import { symbolPinia } from './util'
 
 export function defineStore(idOrOptions, setup) {
@@ -22,7 +27,6 @@ export function defineStore(idOrOptions, setup) {
       createOptionsStore(id, options, pinia)
     }
     const store = pinia._s.get(id)
-
     return store
   }
 
@@ -30,10 +34,20 @@ export function defineStore(idOrOptions, setup) {
 }
 
 function createOptionsStore(id, options, pinia) {
-  const { state } = options
+  const { state, getters, actions } = options
   function setup() {
     // 全局保存state
     pinia.state.value[id] = state ? state() : {}
+
+    const localState = toRefs(pinia.state.value[id])
+    return Object.assign(
+      localState,
+      actions,
+      Object.keys(getters).reduce((memo, key) => {
+        memo[key] = computed(() => getters[key].call(store, store))
+        return memo
+      }, {})
+    )
   }
 
   // 自己的独立的store 可以独立停止
@@ -42,4 +56,23 @@ function createOptionsStore(id, options, pinia) {
     scope = effectScope()
     return scope.run(() => setup())
   })
+
+  // 方便扩展
+  const store = reactive({})
+  Object.assign(store, setupStore)
+  pinia._s.set(id, store)
+
+  function wrapAction(action) {
+    return function (...args) {
+      return action.call(store, ...args)
+    }
+  }
+
+  for (const key in setupStore) {
+    const val = setupStore[key]
+    if (typeof val === 'function') {
+      setupStore[key] = wrapAction(val)
+    }
+  }
+  console.log(store)
 }

@@ -4,6 +4,9 @@ import { useMainStore } from './stores/main.ts'
 import { storeToRefs } from 'pinia'
 
 const mainStore = useMainStore()
+
+// console.log(mainStore);
+
 // const userStore = useUserStore()
 
 // const { count, double } = storeToRefs(mainStore)
@@ -11,9 +14,9 @@ const mainStore = useMainStore()
 </script>
 
 <template>
-  <div>count: {{ count }}</div>
-  <div>double: {{ double }}</div>
-  <button @click="count++">测试1</button>
+  <div>count: {{ mainStore.count }}</div>
+  <div>double: {{ mainStore.double }}</div>
+  <button @click="mainStore.count++">测试1</button>
   <button @click="mainStore.increment(2)">测试2</button>
 
   <!-- <div>age: {{ age }}</div>
