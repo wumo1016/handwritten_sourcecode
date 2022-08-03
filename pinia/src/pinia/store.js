@@ -5,7 +5,10 @@ import {
   getCurrentInstance,
   reactive,
   toRefs,
-  watch
+  watch,
+  isRef,
+  isReactive,
+  isReadonly
 } from 'vue'
 import { symbolPinia, isObject } from './util'
 import { addSubscription, triggerSubscriptions } from './subcriptions'
@@ -78,20 +81,18 @@ function createSetupStore(id, setup, pinia) {
     return scope.run(() => setup())
   })
 
-  if (!pinia.state.value[id]) {
-    pinia.state.value[id] = {}
-  }
-
   let actionSubscriptions = []
+
+  function $patch(partialStateOrMutator) {
+    if (typeof partialStateOrMutator === 'function') {
+      partialStateOrMutator(pinia.state.value[id])
+    } else {
+      merge(pinia.state.value[id], partialStateOrMutator)
+    }
+  }
   // 方便扩展
   const store = reactive({
-    $patch(partialStateOrMutator) {
-      if (typeof partialStateOrMutator === 'function') {
-        partialStateOrMutator(pinia.state.value[id])
-      } else {
-        merge(pinia.state.value[id], partialStateOrMutator)
-      }
-    },
+    $patch,
     $subscribe(callback, options = {}) {
       scope.run(() => {
         watch(
@@ -142,15 +143,28 @@ function createSetupStore(id, setup, pinia) {
     }
   }
 
+  const state = {}
   for (const key in setupStore) {
-    const val = setupStore[key]
-    if (typeof val === 'function') {
-      setupStore[key] = wrapAction(val)
+    const v = setupStore[key]
+    if ((isRef(v) || isReactive(v)) && !isReadonly(v)) {
+      state[key] = v
     }
+    if (typeof v === 'function') {
+      setupStore[key] = wrapAction(v)
+    }
+  }
+
+  if (!pinia.state.value[id]) {
+    pinia.state.value[id] = state
   }
 
   Object.assign(store, setupStore)
   pinia._s.set(id, store)
+
+  Object.defineProperty(store, '$state', {
+    get: () => pinia.state.value[id],
+    set: state => $patch($state => Object.assign($state, state))
+  })
 
   return store
 }

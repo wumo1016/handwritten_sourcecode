@@ -6,9 +6,9 @@ import { storeToRefs } from 'pinia'
 const mainStore = useMainStore()
 const userStore = useUserStore()
 
-// mainStore.$subscribe(state => {
-//   console.log(state, 'state变化啦')
-// })
+userStore.$subscribe(state => {
+  console.log(state, 'state变化啦')
+})
 
 mainStore.$onAction(({ after, onError }) => {
   after(resolveValue => {})
