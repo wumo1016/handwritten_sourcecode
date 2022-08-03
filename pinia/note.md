@@ -12,3 +12,5 @@
 - 支持 compositionApi 传入的方式
 - $patch 批量修改状态
 - $reset 重置状态 (只有使用 optionsStore 才可以)
+- $subscribe() 订阅状态改变的
+- $onActions 订阅 action 的

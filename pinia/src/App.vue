@@ -6,6 +6,15 @@ import { storeToRefs } from 'pinia'
 const mainStore = useMainStore()
 const userStore = useUserStore()
 
+// mainStore.$subscribe(state => {
+//   console.log(state, 'state变化啦')
+// })
+
+mainStore.$onAction(({ after, onError }) => {
+  after(resolveValue => {})
+  onError(error => {})
+})
+
 // const { count, double } = storeToRefs(mainStore)
 // const { age, doubleAge } = storeToRefs(userStore)
 </script>

@@ -13,7 +13,6 @@ export const useMainStore = defineStore('main', {
   actions: {
     async increment(payload) {
       this.count += payload;
-
       return this.count
     },
     decrement() {

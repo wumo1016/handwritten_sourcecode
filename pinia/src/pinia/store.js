@@ -4,9 +4,11 @@ import {
   effectScope,
   getCurrentInstance,
   reactive,
-  toRefs
+  toRefs,
+  watch
 } from 'vue'
 import { symbolPinia, isObject } from './util'
+import { addSubscription, triggerSubscriptions } from './subcriptions'
 
 export function defineStore(idOrOptions, setup) {
   let id, options
@@ -76,23 +78,62 @@ function createSetupStore(id, setup, pinia) {
     return scope.run(() => setup())
   })
 
-  function $patch(partialStateOrMutator) {
-    if (typeof partialStateOrMutator === 'function') {
-      partialStateOrMutator(pinia.state.value[id])
-    } else {
-      merge(pinia.state.value[id], partialStateOrMutator)
-    }
+  if (!pinia.state.value[id]) {
+    pinia.state.value[id] = {}
   }
+
+  const actionSubscriptions = []
   // 方便扩展
   const store = reactive({
-    $patch
+    $patch(partialStateOrMutator) {
+      if (typeof partialStateOrMutator === 'function') {
+        partialStateOrMutator(pinia.state.value[id])
+      } else {
+        merge(pinia.state.value[id], partialStateOrMutator)
+      }
+    },
+    $subscribe(callback, options = {}) {
+      scope.run(() => {
+        watch(
+          pinia.state.value[id],
+          state => {
+            callback(state)
+          },
+          options
+        )
+      })
+    },
+    $onAction: addSubscription.bind(null, actionSubscriptions)
   })
-  Object.assign(store, setupStore)
-  pinia._s.set(id, store)
 
   function wrapAction(action) {
     return function (...args) {
-      return action.call(store, ...args)
+      let afterList = []
+      let errorList = []
+      function after(callback) {
+        afterList.push(callback)
+      }
+      function onError(callback) {
+        errorList.push(callback)
+      }
+      triggerSubscriptions(actionSubscriptions, { after, onError })
+      let result
+      try {
+        result = action.call(store, ...args)
+      } catch (e) {
+        triggerSubscriptions(errorList, e)
+      }
+      if (result instanceof Promise) {
+        return result
+          .then(v => {
+            triggerSubscriptions(afterList, v)
+          })
+          .catch(e => {
+            triggerSubscriptions(errorList, e)
+            return Promise.reject(e)
+          })
+      }
+      return result
     }
   }
 
@@ -102,6 +143,9 @@ function createSetupStore(id, setup, pinia) {
       setupStore[key] = wrapAction(val)
     }
   }
+
+  Object.assign(store, setupStore)
+  pinia._s.set(id, store)
 
   return store
 }
