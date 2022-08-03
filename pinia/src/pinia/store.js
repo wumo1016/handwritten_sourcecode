@@ -82,7 +82,7 @@ function createSetupStore(id, setup, pinia) {
     pinia.state.value[id] = {}
   }
 
-  const actionSubscriptions = []
+  let actionSubscriptions = []
   // 方便扩展
   const store = reactive({
     $patch(partialStateOrMutator) {
@@ -103,7 +103,12 @@ function createSetupStore(id, setup, pinia) {
         )
       })
     },
-    $onAction: addSubscription.bind(null, actionSubscriptions)
+    $onAction: addSubscription.bind(null, actionSubscriptions),
+    $dispose() {
+      scope.stop()
+      actionSubscriptions = []
+      pinia._s.delete(id)
+    }
   })
 
   function wrapAction(action) {
