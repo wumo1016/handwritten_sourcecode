@@ -112,6 +112,8 @@ function createSetupStore(id, setup, pinia) {
     }
   })
 
+  store._id = id
+
   function wrapAction(action) {
     return function (...args) {
       let afterList = []
@@ -164,6 +166,12 @@ function createSetupStore(id, setup, pinia) {
   Object.defineProperty(store, '$state', {
     get: () => pinia.state.value[id],
     set: state => $patch($state => Object.assign($state, state))
+  })
+
+  pinia._p.forEach(plugin => {
+    scope.run(() => {
+      plugin(store)
+    })
   })
 
   return store

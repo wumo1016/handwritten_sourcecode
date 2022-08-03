@@ -12,6 +12,10 @@ export function createPinia() {
     install(app) {
       app.provide(symbolPinia, pinia)
     },
+    use(plugin) {
+      _p.push(plugin)
+      return this
+    },
     state, // 维护所有store状态
     _s: new Map(),
     _e: scope,

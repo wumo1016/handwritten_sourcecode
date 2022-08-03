@@ -16,3 +16,5 @@
 - $onActions 订阅 action 的
 - $dispose()
 - $state 批量覆盖状态
+- plugins
+  - 每个 store 创建的时候都会调用 store
