@@ -33,6 +33,7 @@ const userStore = useUserStore()
   >
     测试1-4
   </button>
+  <button @click="mainStore.$reset()">重置</button>
 
   <div>age: {{ userStore.age }}</div>
   <div>doubleAge: {{ userStore.doubleAge }}</div>

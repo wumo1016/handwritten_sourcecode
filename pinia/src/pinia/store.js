@@ -57,7 +57,15 @@ function createOptionsStore(id, options, pinia) {
     )
   }
 
-  createSetupStore(id, setup, pinia)
+  const store = createSetupStore(id, setup, pinia)
+
+  // 此方法只能用在optionsApi
+  store.$reset = function () {
+    const newState = state ? state() : {}
+    store.$patch(state => {
+      Object.assign(state, newState)
+    })
+  }
 }
 
 function createSetupStore(id, setup, pinia) {
@@ -94,6 +102,8 @@ function createSetupStore(id, setup, pinia) {
       setupStore[key] = wrapAction(val)
     }
   }
+
+  return store
 }
 
 function merge(target, state) {
