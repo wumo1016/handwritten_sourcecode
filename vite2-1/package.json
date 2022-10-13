@@ -6,6 +6,9 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
+  "bin": {
+    "vite2-1": "./bin/vite.js"
+  },
   "keywords": [],
   "author": "",
   "license": "ISC",
