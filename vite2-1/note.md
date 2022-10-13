@@ -11,3 +11,4 @@
 - connect: 类似于 express
 - serve-static: 静态文件中中间件
 - es-module-lexer: JS 模块语法解析器
+- resolve: 实现了 node 的 require.resolve()算法
