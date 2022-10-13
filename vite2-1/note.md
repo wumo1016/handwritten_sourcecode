@@ -12,3 +12,4 @@
 - serve-static: 静态文件中中间件
 - es-module-lexer: JS 模块语法解析器
 - resolve: 实现了 node 的 require.resolve()算法
+- fast-glob: 该包提供了一些方法，用于遍历文件系统
