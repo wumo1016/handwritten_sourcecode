@@ -9,3 +9,4 @@
 ## 依赖模块
 
 - connect: 类似于 express
+- serve-static: 静态文件中中间件
