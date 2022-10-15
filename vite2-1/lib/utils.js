@@ -8,6 +8,11 @@ function normalizePath(path) {
   return path.replace(/\\/g, '/')
 }
 
+const htmlTypesRE = /\.html$/
+const scriptModuleRE = /<script\s+type="module"\s+src\="(.+?)">/
+
 module.exports = {
-  normalizePath
+  normalizePath,
+  htmlTypesRE,
+  scriptModuleRE
 }

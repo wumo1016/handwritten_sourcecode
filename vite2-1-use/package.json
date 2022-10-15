@@ -1,0 +1,19 @@
+{
+  "name": "vite2-1-use",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "vite2-1",
+    "dev": "vite"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "vite": "^3.1.8"
+  },
+  "dependencies": {
+    "vue": "^3.2.41"
+  }
+}
