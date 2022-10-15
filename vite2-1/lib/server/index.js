@@ -33,7 +33,7 @@ async function createServer() {
 async function createOptimizeDepsRun(config) {
   // 获取第三方依赖
   const deps = await scanImports(config)
-  // console.log(deps)
+  console.log(deps)
 }
 /**
  * @Author: wyb
@@ -56,7 +56,7 @@ async function scanImports(config) {
     plugins: [scanPlugin]
   })
 
-  console.log(depImports)
+  return depImports
 }
 
 exports.createServer = createServer
