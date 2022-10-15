@@ -2,9 +2,11 @@ const connect = require('connect')
 const serverStatic = require('serve-static')
 const { build } = require('esbuild')
 const path = require('path')
+const fs = require('fs-extra')
 
 const resolveConfig = require('../config')
 const getScanPlugin = require('./scan-plugin')
+const { normalizePath } = require('../utils')
 
 /**
  * @Author: wyb
@@ -17,8 +19,7 @@ async function createServer() {
   const server = {
     async listen(port, callback) {
       /* 项目启动前进行 依赖预构建 */
-      // 1.找到本项目中的第三方依赖
-      const optimizeDeps = await createOptimizeDepsRun(config)
+      const optimizeDeps = await getOptimizeDeps(config, server)
 
       require('http').createServer(app).listen(port, callback)
     }
@@ -29,11 +30,46 @@ async function createServer() {
  * @Author: wyb
  * @Descripttion: 分析项目依赖
  * @param {*} config
+ * @param {*} server
  */
-async function createOptimizeDepsRun(config) {
-  // 获取第三方依赖
+async function getOptimizeDeps(config, server) {
+  /* 1.找到本项目中的第三方依赖 */
   const deps = await scanImports(config)
-  console.log(deps)
+  /* 2.预构建 */
+  const metadata = {
+    optimized: {}
+  }
+  const depsCacheDir = path.resolve(config.cacheDir, 'deps') // E:\wumo\handwritten_sourcecode\vite2-1-use\node_modules\.vite2_1\deps
+  const metaDataPath = path.join(depsCacheDir, '_metadata.json') // E:\wumo\handwritten_sourcecode\vite2-1-use\node_modules\.vite2_1\deps\_metadata.json
+  for (const id in deps) {
+    const file = path.resolve(depsCacheDir, id + '.js')
+    metadata.optimized[id] = {
+      src: deps[id],
+      file
+    }
+    // 将依赖文件及其子依赖全部打包进一个文件
+    await build({
+      absWorkingDir: config.root,
+      entryPoints: [deps[id]],
+      outfile: file, // 打包后写入的路径
+      bundle: true,
+      write: true,
+      format: 'esm'
+    })
+  }
+  // 写入metadata文件
+  await fs.writeFile(
+    metaDataPath,
+    JSON.stringify(metadata, (key, value) => {
+      if (key === 'file' || key === 'src') {
+        return normalizePath(path.relative(depsCacheDir, value)) // 将路径格式化为相对路径
+      }
+      return value
+    })
+  )
+  // 将第三方依赖等保存
+  server._optimizeDepsMetadata = metadata
+  return deps
 }
 /**
  * @Author: wyb
