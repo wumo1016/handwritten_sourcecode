@@ -1,12 +1,18 @@
 const connect = require('connect')
+const static = require('serve-static')
+const resolveConfig = require('../config')
+const { normalizePath } = require('../utils')
 
-function createServer() {
+/**
+ * @Author: wyb
+ * @Descripttion: 创建服务器
+ */
+async function createServer() {
+  const config = await resolveConfig()
   const app = connect()
+  app.use(static(normalizePath(config.root))) // 设置静态文件中间件
   const server = {
     async listen(port, callback) {
-      app.use((req, res, next) => {
-        res.end('end')
-      })
       require('http').createServer(app).listen(port, callback)
     }
   }
