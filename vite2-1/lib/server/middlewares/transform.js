@@ -1,3 +1,4 @@
+const fs = require('fs-extra')
 const { isJSRequest } = require('../../utils')
 
 /**
@@ -30,12 +31,20 @@ async function transformRequest(url, server) {
   const { pluginContainer } = server
   /* resolveId */
   const resolved = await pluginContainer.resolveId(url)
-  console.log(123, resolved.id)
-  return {
-    code: 'const res = "123"'
-  }
+  if (!resolved) return
+  const id = resolved.id
   /* load */
+  const loadResult = await pluginContainer.load(id)
+  let code
+  if (loadResult) {
+    code = loadResult.code
+  } else {
+    let fsPath = id.split('?')[0]
+    code = await fs.readFile(fsPath, 'utf-8')
+  }
   /* transform */
+  const res = await pluginContainer.transform(code, id)
+  return res
 }
 
 // Content-Type 映射

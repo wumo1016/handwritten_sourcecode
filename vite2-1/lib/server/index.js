@@ -27,6 +27,11 @@ async function createServer() {
       http.createServer(app).listen(port, callback)
     }
   }
+  for (const plugin of config.plugins) {
+    if (plugin.configureServer) {
+      plugin.configureServer(server)
+    }
+  }
   /* 拦截请求 重写导入路径 */
   app.use(transformMiddleware(server))
   /* 设置静态文件中间件 */
