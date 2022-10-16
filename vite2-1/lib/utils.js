@@ -11,8 +11,11 @@ function normalizePath(path) {
 const htmlTypesRE = /\.html$/
 const scriptModuleRE = /<script\s+type="module"\s+src\="(.+?)">/
 
+const isJSRequest = (url) => /\.(js|vue)($|\?)/.test(url)
+
 module.exports = {
   normalizePath,
   htmlTypesRE,
-  scriptModuleRE
+  scriptModuleRE,
+  isJSRequest
 }

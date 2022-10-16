@@ -7,6 +7,8 @@ const fs = require('fs-extra')
 const resolveConfig = require('../config')
 const getScanPlugin = require('./scan-plugin')
 const { normalizePath } = require('../utils')
+const transformMiddleware = require('./middlewares/transform')
+const createPluginContainer = require('./plugin-container')
 
 /**
  * @Author: wyb
@@ -14,25 +16,30 @@ const { normalizePath } = require('../utils')
  */
 async function createServer() {
   const config = await resolveConfig()
+  const http = require('http')
   const app = connect()
-  app.use(serverStatic(config.root)) // 设置静态文件中间件
+  const pluginContainer = await createPluginContainer(config)
   const server = {
+    pluginContainer,
     async listen(port, callback) {
       /* 项目启动前进行 依赖预构建 */
-      const optimizeDeps = await getOptimizeDeps(config, server)
-
-      require('http').createServer(app).listen(port, callback)
+      await runOptimize(config, server)
+      http.createServer(app).listen(port, callback)
     }
   }
+  /* 拦截请求 重写导入路径 */
+  app.use(transformMiddleware(server))
+  /* 设置静态文件中间件 */
+  app.use(serverStatic(config.root))
   return server
 }
 /**
  * @Author: wyb
- * @Descripttion: 分析项目依赖
+ * @Descripttion:
  * @param {*} config
  * @param {*} server
  */
-async function getOptimizeDeps(config, server) {
+async function runOptimize(config, server) {
   /* 1.找到本项目中的第三方依赖 */
   const deps = await scanImports(config)
   /* 2.预构建 */
@@ -69,9 +76,8 @@ async function getOptimizeDeps(config, server) {
       return value
     })
   )
-  // 将第三方依赖等保存
+  // 将第三方依赖等保存到服务上 后面请求拦截的时候方便取值
   server._optimizeDepsMetadata = metadata
-  return deps
 }
 /**
  * @Author: wyb
