@@ -54,7 +54,9 @@ async function getOptimizeDeps(config, server) {
       outfile: file, // 打包后写入的路径
       bundle: true,
       write: true,
-      format: 'esm'
+      format: 'esm',
+      sourcemap: true,
+      sourceRoot: depsCacheDir
     })
   }
   // 写入metadata文件
