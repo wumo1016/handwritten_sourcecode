@@ -14,6 +14,7 @@ async function createPluginContainer({ plugins, root }) {
   }
   const container = {
     async resolveId(path, importer) {
+      let resolveId = path
       const ctx = new PluginContext()
       for (const plugin of plugins) {
         if (!plugin.resolveId) continue
