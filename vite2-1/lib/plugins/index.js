@@ -7,10 +7,11 @@ const importAnalysisPlugin = require('./import-analysis')
  * @param {*} config
  * @param {*} userPlugins
  */
-async function getAllPlugins(config) {
+async function getAllPlugins(config, userPlugins) {
   return [
     preAliasPlugin(config),
     resolvePlugin(config),
+    ...userPlugins,
     importAnalysisPlugin(config)
   ]
 }

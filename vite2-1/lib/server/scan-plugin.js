@@ -20,6 +20,16 @@ async function getScanPlugin(config, depImports) {
   return {
     name: 'sacn',
     setup(build) {
+      //如果遇到vue文件，则返回它的绝对路径，并且标识为外部依赖，不再进一步解析了
+      build.onResolve({ filter: /\.vue$/ }, async ({ path: id, importer }) => {
+        const resolved = await resolve(id, importer)
+        if (resolved) {
+          return {
+            path: resolved.id || resolved,
+            external: true
+          }
+        }
+      })
       /* ------------------------ 处理html ------------------------ */
       // 处理 html
       build.onResolve({ filter: htmlTypesRE }, async ({ path, importer }) => {

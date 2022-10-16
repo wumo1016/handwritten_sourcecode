@@ -1,4 +1,5 @@
 const path = require('path')
+const fs = require('fs-extra')
 const { normalizePath } = require('./utils')
 const { getAllPlugins } = require('./plugins')
 
@@ -13,8 +14,16 @@ async function resolveConfig() {
     cacheDir: normalizePath(path.resolve('node_modules/.vite2_1'))
   }
 
+  //读取用户自己设置的插件
+  const configFile = path.resolve(root, 'vite.config.js')
+  const exists = await fs.pathExists(configFile)
+  if (exists) {
+    const userConfig = require(configFile)
+    // 覆盖默认配置
+    config = { ...config, ...userConfig }
+  }
   // 获取所有插件
-  config.plugins = await getAllPlugins(config)
+  config.plugins = await getAllPlugins(config, config.plugins || [])
   return config
 }
 

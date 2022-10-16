@@ -1,2 +1,4 @@
 import { createApp } from 'vue'
-console.log(createApp)
+import App from './app.vue'
+
+createApp(App).mount('#app')
