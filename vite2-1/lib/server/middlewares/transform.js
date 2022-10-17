@@ -39,7 +39,7 @@ async function transformRequest(url, server) {
   if (loadResult) {
     code = loadResult.code
   } else {
-    let fsPath = id.split('?')[0]
+    let fsPath = id.split('?')[0] // 去掉 query
     code = await fs.readFile(fsPath, 'utf-8')
   }
   /* transform */

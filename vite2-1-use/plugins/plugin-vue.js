@@ -6,6 +6,7 @@ const {
   compileTemplate, // 编译模板
   compileStyleAsync // 编译样式
 } = require('vue/compiler-sfc')
+const hash = require('hash-sum')
 const descriptorCache = new Map()
 /**
  * @Author: wyb
@@ -22,10 +23,29 @@ function vue() {
         }
       }
     },
+    async load(id) {
+      const { filename, query } = parseVueRequest(id)
+      if (query.has('vue')) {
+        const descriptor = await getDescriptor(filename)
+        if (query.get('type') === 'style') {
+          const styleBlock = descriptor.styles[Number(query.get('index'))]
+          if (styleBlock) {
+            return { code: styleBlock.content }
+          }
+        }
+      }
+    },
     async transform(source, id) {
-      if (id.endsWith('.vue')) {
-        const { filename, query } = parseVueRequest(id) // E:/wumo/handwritten_sourcecode/vite2-1-use/src/app.vue
-        if (filename.endsWith('.vue')) {
+      const { filename, query } = parseVueRequest(id) // E:/wumo/handwritten_sourcecode/vite2-1-use/src/app.vue
+      if (filename.endsWith('.vue')) {
+        if (query.get('type') === 'style') {
+          const descriptor = await getDescriptor(filename)
+          return await transformStyle(
+            source,
+            descriptor,
+            Number(query.get('index'))
+          )
+        } else {
           return await transformMain(source, filename)
         }
       }
@@ -49,6 +69,30 @@ function parseVueRequest(id) {
 /**
  * @Author: wyb
  * @Descripttion:
+ * @param {*} code
+ * @param {*} descriptor
+ * @param {*} index
+ */
+async function transformStyle(code, descriptor, index) {
+  const styleBlock = descriptor.styles[index]
+  const result = await compileStyleAsync({
+    filename: descriptor.filename, //文件名
+    source: code, // 样式的源代码
+    id: `data-v-${descriptor.id}`, // 为了实现局部作用域，需要一个唯一的ID
+    scoped: styleBlock.scoped //实现局部样式
+  })
+  const styleCode = result.code
+  return {
+    code: `
+     var style = document.createElement('style');
+     style.innerHTML = ${JSON.stringify(styleCode)};
+     document.head.appendChild(style);
+  `
+  }
+}
+/**
+ * @Author: wyb
+ * @Descripttion:
  * @param {*} source
  * @param {*} filename
  */
@@ -59,8 +103,11 @@ async function transformMain(source, filename) {
   const scriptCode = genScriptCode(descriptor, filename)
   // 获取模板代码
   const templateCode = genTemplateCode(descriptor, filename)
+  // 获取样式代码
+  const styleCode = genStyleCode(descriptor, filename)
   // 构建返回的代码
   const code = [
+    styleCode,
     scriptCode,
     templateCode,
     '_sfc_main.render = render;',
@@ -81,6 +128,7 @@ async function getDescriptor(filename) {
   const content = await fs.readFile(filename, 'utf8')
   const result = parse(content, { filename })
   descriptor = result.descriptor
+  descriptor.id = hash(filename)
   descriptorCache.set(filename, descriptor)
   return descriptor
 }
@@ -103,6 +151,25 @@ function genScriptCode(descriptor, id) {
 function genTemplateCode(descriptor, id) {
   const result = compileTemplate({ source: descriptor.template.content, id })
   return result.code
+}
+/**
+ * @Author: wyb
+ * @Descripttion: 生成样式代码
+ * @param {*} descriptor
+ * @param {*} filename
+ */
+function genStyleCode(descriptor, filename) {
+  let styleCode = ''
+  if (descriptor.styles.length > 0) {
+    descriptor.styles.forEach((style, index) => {
+      const styleRequest = (
+        filename + `?vue&type=style&index=${index}&lang.css`
+      ).replace(/\\/g, '/')
+      // import "/src/App.vue?vue&type=style&index=0&lang.css"
+      styleCode += `\nimport "${styleRequest}"`
+    })
+    return styleCode
+  }
 }
 
 module.exports = vue
