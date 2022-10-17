@@ -14,6 +14,14 @@ const descriptorCache = new Map()
 function vue() {
   return {
     name: 'vue',
+    async config(config) {
+      return {
+        define: {
+          __VUE_OPTIONS_API__: true,
+          __VUE_PROD_DEVTOOLS__: false
+        }
+      }
+    },
     async transform(source, id) {
       if (id.endsWith('.vue')) {
         const { filename, query } = parseVueRequest(id) // E:/wumo/handwritten_sourcecode/vite2-1-use/src/app.vue
