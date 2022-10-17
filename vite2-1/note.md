@@ -33,6 +33,7 @@
   - esbuild 处理 vue 文件
 - 实现 vue 插件
   - 使用 vue/compiler-sfc 解析 vue 文件 然后返回
+- 热更新
 
 ## esbuild
 

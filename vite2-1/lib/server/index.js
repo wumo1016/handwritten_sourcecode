@@ -9,22 +9,29 @@ const getScanPlugin = require('./scan-plugin')
 const { normalizePath } = require('../utils')
 const transformMiddleware = require('./middlewares/transform')
 const createPluginContainer = require('./plugin-container')
+const { createWebSocketServer } = require('./ws')
 
 /**
  * @Author: wyb
  * @Descripttion: 创建服务器
  */
 async function createServer() {
+  // 获取配置
   const config = await resolveConfig()
-  const http = require('http')
+  // 创建服务器
   const app = connect()
+  const http = require('http').createServer(app)
+  // 创建 websocket
+  const ws = createWebSocketServer(http, config)
+  // 创建插件容器
   const pluginContainer = await createPluginContainer(config)
   const server = {
     pluginContainer,
+    ws,
     async listen(port, callback) {
       /* 项目启动前进行 依赖预构建 */
       await runOptimize(config, server)
-      http.createServer(app).listen(port, callback)
+      http.listen(port, callback)
     }
   }
   for (const plugin of config.plugins) {
