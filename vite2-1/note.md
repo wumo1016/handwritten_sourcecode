@@ -34,6 +34,9 @@
 - 实现 vue 插件
   - 使用 vue/compiler-sfc 解析 vue 文件 然后返回
 - 热更新
+  - 服务端根据 http 服务器建立一个 websocket 服务
+  - 客户端发送一个 websocket 请求 建立链接
+  - 需要建立一个模块依赖图
 
 ## esbuild
 

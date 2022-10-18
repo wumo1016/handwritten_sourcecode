@@ -3,6 +3,7 @@ const serverStatic = require('serve-static')
 const { build } = require('esbuild')
 const path = require('path')
 const fs = require('fs-extra')
+const chokidar = require('chokidar')
 
 const resolveConfig = require('../config')
 const getScanPlugin = require('./scan-plugin')
@@ -10,6 +11,8 @@ const { normalizePath } = require('../utils')
 const transformMiddleware = require('./middlewares/transform')
 const createPluginContainer = require('./plugin-container')
 const { createWebSocketServer } = require('./ws')
+const { handleHMRUpdate } = require('./hmr')
+const { ModuleGraph } = require('./moduleGraph')
 
 /**
  * @Author: wyb
@@ -23,11 +26,22 @@ async function createServer() {
   const http = require('http').createServer(app)
   // 创建 websocket
   const ws = createWebSocketServer(http, config)
+  // 监听文件变化
+  const watcher = chokidar.watch(path.resolve(config.root), {
+    ignored: ['**/node_modules/**', '**/.git/**']
+  })
+  watcher.on('change', async (file) => {
+    const normalizeFile = normalizePath(file)
+    await handleHMRUpdate(normalizeFile, server)
+  })
+  // 模块依赖图
+  const moduleGraph = new ModuleGraph((url) => pluginContainer.resolveId(url))
   // 创建插件容器
   const pluginContainer = await createPluginContainer(config)
   const server = {
     pluginContainer,
     ws,
+    watcher,
     async listen(port, callback) {
       /* 项目启动前进行 依赖预构建 */
       await runOptimize(config, server)

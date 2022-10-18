@@ -11,7 +11,7 @@ function createWebSocketServer(httpServer) {
   httpServer.on('upgrade', (req, client, head) => {
     // Sec-WebSocket-Protocol: vite-hmr
     if (req.headers['sec-websocket-protocol'] === 'vite-hmr') {
-      // 把通信 协议从HTTP协议升级成websocket协议
+      // 把通信协议从 HTTP 协议升级成 websocket 协议
       wss.handleUpgrade(req, client, head, (client) => {
         wss.emit('connection', client, req) // 连接成功
       })
