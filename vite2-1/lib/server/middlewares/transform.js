@@ -42,6 +42,7 @@ async function transformRequest(url, server) {
     let fsPath = id.split('?')[0] // 去掉 query
     code = await fs.readFile(fsPath, 'utf-8')
   }
+  await server.moduleGraph.ensureEntryFromUrl(url)
   /* transform */
   const res = await pluginContainer.transform(code, id)
   return res

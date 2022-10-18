@@ -42,6 +42,7 @@ async function createServer() {
     pluginContainer,
     ws,
     watcher,
+    moduleGraph,
     async listen(port, callback) {
       /* 项目启动前进行 依赖预构建 */
       await runOptimize(config, server)
