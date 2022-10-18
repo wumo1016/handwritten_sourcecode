@@ -78,6 +78,10 @@ async function runOptimize(config, server) {
       sourceRoot: depsCacheDir
     })
   }
+  const existed = await fs.existsSync(depsCacheDir)
+  if (!existed) {
+    fs.mkdirsSync(depsCacheDir)
+  }
   // 写入metadata文件
   await fs.writeFile(
     metaDataPath,
