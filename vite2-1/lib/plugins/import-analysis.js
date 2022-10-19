@@ -1,5 +1,7 @@
 const { init, parse } = require('es-module-lexer')
 const MagicString = require('magic-string')
+const path = require('path')
+const { lexAcceptedHmrDeps } = require('../server/hmr')
 
 /**
  * @Author: wyb
@@ -50,10 +52,11 @@ function importAnalysisPlugin(config) {
           const prop = source.slice(end, end + 4)
           if (prop === '.hot') {
             if (source.slice(end + 4, end + 11) === '.accept') {
-              // lexAcceptedHmrDeps(source,
-              //   source.indexOf('(', end + 11) + 1,
-              //   acceptedUrls //此处存放的是原始的路径 相对的，也可能绝对的，也可以第三方的
-              // );
+              lexAcceptedHmrDeps(
+                source,
+                source.indexOf('(', end + 11) + 1,
+                acceptedUrls // 此处存放的是原始的路径 相对的，也可能绝对的，也可以第三方的
+              )
             }
           }
         }
@@ -65,7 +68,22 @@ function importAnalysisPlugin(config) {
           importedUrls.add(url) // 添加依赖
         }
       }
-      // console.log(importedUrls)
+      // 格式化 importedUrls 里的路径为绝对路径
+      const normalizedAcceptedUrls = new Set()
+      const toAbsoluteUrl = (url) =>
+        path.posix.resolve(path.posix.dirname(currentModule.url), url)
+      for (const { url, start, end } of acceptedUrls) {
+        // 格式化相对根目录路径
+        const normalized = await normalizeUrl(toAbsoluteUrl(url))
+        normalizedAcceptedUrls.add(normalized)
+        ms.overwrite(start, end, JSON.stringify(normalized))
+      }
+      //更新模块的依赖信息
+      await moduleGraph.updateModuleInfo(
+        currentModule,
+        importedUrls,
+        normalizedAcceptedUrls
+      )
       return {
         code: ms.toString()
       }
