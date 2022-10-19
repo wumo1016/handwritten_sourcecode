@@ -1,3 +1,3 @@
 export function render() {
-  app.innerHTML = 'title123'
+  app.innerHTML = 'title'
 }

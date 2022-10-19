@@ -9,13 +9,13 @@ async function handleHMRUpdate(file, server) {
   const updateModule = moduleGraph.getModuleById(file)
   if (updateModule) {
     const updates = []
-    const boundaries = new Set()
+    const boundaries = new Set() // 向上更新的边界
     propagateUpdate(updateModule, boundaries)
     updates.push(
       ...[...boundaries].map(({ boundary, acceptedVia }) => ({
         type: `${boundary.type}-update`,
-        path: boundary.url, //边界
-        acceptedPath: acceptedVia.url //变更的模块路径
+        path: boundary.url,
+        acceptedPath: acceptedVia.url
       }))
     )
     ws.send({
@@ -25,17 +25,20 @@ async function handleHMRUpdate(file, server) {
   }
 }
 /**
- * 找到updateModule的边界，放到boundaries集合中
+ * @Author: wyb
+ * @Descripttion: 找到updateModule的边界，放到boundaries集合中
  * @param {*} updateModule
  * @param {*} boundaries
  */
 function propagateUpdate(updateModule, boundaries) {
   if (!updateModule.importers.size) return
+  // 循环引入当前模块的模块
   for (const importerModule of updateModule.importers) {
+    // 看当前模块是否接受自己的变更
     if (importerModule.acceptedHmrDeps.has(updateModule)) {
       boundaries.add({
-        boundary: importerModule, //界面就是接收变更的模块
-        acceptedVia: updateModule //通过谁得到的变更，其实就是变更的模块
+        boundary: importerModule, // 接受变更的模块
+        acceptedVia: updateModule // 谁变更了
       })
     }
   }

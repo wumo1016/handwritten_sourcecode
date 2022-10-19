@@ -58,6 +58,7 @@ async function createServer() {
   app.use(transformMiddleware(server))
   /* 设置静态文件中间件 */
   app.use(serverStatic(config.root))
+
   return server
 }
 /**

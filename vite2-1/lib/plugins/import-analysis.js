@@ -19,8 +19,6 @@ function importAnalysisPlugin(config) {
     async transform(source, id) {
       await init
       const [imports, exports] = parse(source)
-      // console.log(imports)
-      // console.log(exports)
       if (!imports.length) {
         return {
           code: source

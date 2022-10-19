@@ -36,7 +36,7 @@ class ModuleGraph {
    * @param {*} rawUrl
    */
   async ensureEntryFromUrl(rawUrl) {
-    //先获得它的绝对路径
+    // 先获得它的绝对路径
     const [url, resolveId] = await this.resolveUrl(rawUrl) // rawUrl => /src/main.js
     let moduleNode = this.getModuleById(resolveId)
     if (!moduleNode) {
