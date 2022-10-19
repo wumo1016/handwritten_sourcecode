@@ -105,11 +105,16 @@ async function transformMain(source, filename) {
   const templateCode = genTemplateCode(descriptor, filename)
   // 获取样式代码
   const styleCode = genStyleCode(descriptor, filename)
+  // 样式隔离 只要有一个样式加了scoped 就给模板传递 __scopeId 属性
+  const scopedCode = descriptor.styles.some((v) => !!v.scoped)
+    ? `_sfc_main.__scopeId = ${JSON.stringify('data-v-' + descriptor.id)}`
+    : ''
   // 构建返回的代码
   const code = [
     styleCode,
     scriptCode,
     templateCode,
+    scopedCode,
     '_sfc_main.render = render;',
     'export default _sfc_main;'
   ].join('\n')
