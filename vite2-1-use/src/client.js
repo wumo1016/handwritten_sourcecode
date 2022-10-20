@@ -28,17 +28,15 @@ async function fetchUpdate({ path, acceptedPath }) {
   // 接受变更的模块
   const module = window.hotModulesMap.get(path)
   if (!module) return
-  // 存放模块路径和新的模块内容的映射
-  const moduleMap = new Map()
   // 将要更新的模块集合
   const modulesToUpdate = new Set()
   for (const { deps } of module.callbacks) {
     deps.forEach((dep) => {
-      if (acceptedPath === dep) {
-        modulesToUpdate.add(dep)
-      }
+      if (acceptedPath === dep) modulesToUpdate.add(dep)
     })
   }
+  // 存放模块路径和新的模块内容的映射
+  const moduleMap = new Map()
   await Promise.all(
     Array.from(modulesToUpdate).map(async (dep) => {
       const newModule = await import(dep + '?ts' + Date.now())
