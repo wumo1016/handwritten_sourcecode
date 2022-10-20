@@ -6,7 +6,7 @@
       "request": "launch",
       "name": "vite",
       "runtimeExecutable": "npm",
-      "runtimeArgs": ["dev"],
+      "runtimeArgs": ["start"],
       "skipFiles": ["<node_internals>/**"]
     }
   ]
