@@ -1,3 +1,5 @@
+import { createRoot } from 'react-dom/client'
+
 const element = (
   <h1>
     <span>hello</span>
@@ -5,7 +7,8 @@ const element = (
   </h1>
 )
 
-console.log(element)
+const root = createRoot(document.getElementById('root'))
+root.render(element)
 
 // import { createRoot } from 'react-dom/client'
 // function FunctionComponent() {
