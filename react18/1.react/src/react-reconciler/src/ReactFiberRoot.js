@@ -1,11 +1,11 @@
 import { createHostRootFiber } from './ReactFiber'
-// import { initialUpdateQueue } from './ReactFiberClassUpdateQueue'
+import { initialUpdateQueue } from './ReactFiberClassUpdateQueue'
 
 /**
  * @Author: wyb
  * @Descripttion:
  * @param {*} containerInfo
- */
+ */ b
 export function createFiberRoot(containerInfo) {
   const root = new FiberRootNode(containerInfo)
   // HostRoot指的就是根节点div#root
@@ -14,7 +14,8 @@ export function createFiberRoot(containerInfo) {
   root.current = uninitializedFiber
   // 根fiber的stateNode,也就是真实DOM节点指向FiberRootNode
   uninitializedFiber.stateNode = root
-  // initialUpdateQueue(uninitializedFiber)
+  // 初始化队列
+  initialUpdateQueue(uninitializedFiber)
   return root
 }
 /**
