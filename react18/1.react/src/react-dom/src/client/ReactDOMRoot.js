@@ -1,21 +1,17 @@
 import {
-  createContainer
-  // updateContainer
+  createContainer,
+  updateContainer
 } from 'react-reconciler/src/ReactFiberReconciler'
 // import { listenToAllSupportedEvents } from 'react-dom-bindings/src/events/DOMPluginEventSystem'
 
 function ReactDOMRoot(internalRoot) {
   this._internalRoot = internalRoot
-
-  this.render = function () {}
-  console.log(internalRoot)
 }
-// ReactDOMRoot.prototype.render = function (children) {
-//   const root = this._internalRoot
-//   root.containerInfo.innerHTML = ''
-//   updateContainer(children, root)
-// }
-
+ReactDOMRoot.prototype.render = function (children) {
+  const root = this._internalRoot
+  root.containerInfo.innerHTML = ''
+  updateContainer(children, root)
+}
 /**
  * @Author: wyb
  * @Descripttion:

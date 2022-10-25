@@ -5,7 +5,7 @@ import { initialUpdateQueue } from './ReactFiberClassUpdateQueue'
  * @Author: wyb
  * @Descripttion:
  * @param {*} containerInfo
- */ b
+ */
 export function createFiberRoot(containerInfo) {
   const root = new FiberRootNode(containerInfo)
   // HostRoot指的就是根节点div#root

@@ -1,3 +1,7 @@
+import { markUpdateLaneFromFiberToRoot } from './ReactFiberConcurrentUpdates'
+
+export const UpdateState = 0
+
 /**
  * @Author: wyb
  * @Descripttion: 初始化更新队列
