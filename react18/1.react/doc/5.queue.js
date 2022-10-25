@@ -12,7 +12,12 @@ function initialUpdateQueue(fiber) {
 function createUpdate() {
   return {}
 }
-
+/**
+ * @Author: wyb
+ * @Descripttion: 入队
+ * @param {*} fiber
+ * @param {*} update
+ */
 function enqueueUpdate(fiber, update) {
   const updateQueue = fiber.updateQueue
   const shared = updateQueue.shared
@@ -27,11 +32,16 @@ function enqueueUpdate(fiber, update) {
   }
   updateQueue.shared.pending = update
 }
-
+/**
+ * @Author: wyb
+ * @Descripttion: 处理队列 获取新状态
+ * @param {*} fiber
+ */
 function processUpdateQueue(fiber) {
   const queue = fiber.updateQueue
   const pending = queue.shared.pending
   if (pending !== null) {
+    // 断开连接
     queue.shared.pending = null
     //最后一个更新
     const lastPendingUpdate = pending
@@ -64,4 +74,4 @@ enqueueUpdate(fiber, update2)
 
 // 基于老状态，计算新状态
 processUpdateQueue(fiber)
-console.log(fiber.memoizedState)
+console.log(fiber)
