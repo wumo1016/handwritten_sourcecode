@@ -25,6 +25,13 @@
   - current => FiberNode
     - stateNode => FiberRootNode
 
+## 过程
+
+- 创建根 fiber
+- 初始化更新队列 (设置 fiber 的 udpateQueue)
+- 开始渲染 走根节点的 render 方法
+- 构建 fiber 树
+
 ## 备注
 
 - path.posix: 返回 linux 下的路径等

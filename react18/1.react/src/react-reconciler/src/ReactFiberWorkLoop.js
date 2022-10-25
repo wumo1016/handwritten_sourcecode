@@ -1,12 +1,12 @@
 import { scheduleCallback } from 'scheduler'
-// import { createWorkInProgress } from './ReactFiber'
-// import { beginWork } from './ReactFiberBeginWork'
+import { createWorkInProgress } from './ReactFiber'
+import { beginWork } from './ReactFiberBeginWork'
 // import { completeWork } from './ReactFiberCompleteWork'
 // import { NoFlags, MutationMask, Placement, Update } from './ReactFiberFlags'
 // import { commitMutationEffectsOnFiber } from './ReactFiberCommitWork'
 // import { HostComponent, HostRoot, HostText } from './ReactWorkTags'
 
-// 正在进行的工作
+// 正在进行的工作 当前 fiber
 let workInProgress = null
 
 /**
@@ -46,9 +46,9 @@ function performConcurrentWorkOnRoot(root) {
  * @param {*} root
  */
 function renderRootSync(root) {
-  // 构建fiber树
+  // 准备一个新的栈 根fiber
   prepareFreshStack(root)
-  //
+  // 同步递归构建 fiber 树
   workLoopSync()
 }
 /**
@@ -58,47 +58,41 @@ function renderRootSync(root) {
  */
 function prepareFreshStack(root) {
   workInProgress = createWorkInProgress(root.current, null)
-  console.log(workInProgress)
 }
-
-function commitRoot(root) {
-  const { finishedWork } = root
-  printFinishedWork(finishedWork)
-  //判断子树有没有副作用
-  const subtreeHasEffects =
-    (finishedWork.subtreeFlags & MutationMask) !== NoFlags
-  const rootHasEffect = (finishedWork.flags & MutationMask) !== NoFlags
-  //如果自己的副作用或者子节点有副作用就进行提交DOM操作
-  if (subtreeHasEffects || rootHasEffect) {
-    commitMutationEffectsOnFiber(finishedWork, root)
-  }
-  //等DOM变更后，就可以把让root的current指向新的fiber树
-  root.current = finishedWork
-}
+/**
+ * @Author: wyb
+ * @Descripttion:
+ */
 function workLoopSync() {
   while (workInProgress !== null) {
     performUnitOfWork(workInProgress)
   }
 }
 /**
- * 执行一个工作单元
+ * @Author: wyb
+ * @Descripttion:
  * @param {*} unitOfWork
  */
 function performUnitOfWork(unitOfWork) {
-  //获取新的fiber对应的老fiber
+  // 获取老fiber
   const current = unitOfWork.alternate
-  //完成当前fiber的子fiber链表构建后
+  // 完成当前fiber的子fiber链表构建后
   const next = beginWork(current, unitOfWork)
   unitOfWork.memoizedProps = unitOfWork.pendingProps
   if (next === null) {
-    //如果没有子节点表示当前的fiber已经完成了
-    completeUnitOfWork(unitOfWork)
+    // 如果没有子节点表示当前的fiber已经完成了
+    // completeUnitOfWork(unitOfWork)
+    workInProgress = null
   } else {
-    //如果有子节点，就让子节点成为下一个工作单元
+    // 如果有子节点，就让子节点成为下一个工作单元
     workInProgress = next
   }
 }
-
+/**
+ * @Author: wyb
+ * @Descripttion: 完成一个工作单元(fiber)
+ * @param {*} unitOfWork
+ */
 function completeUnitOfWork(unitOfWork) {
   let completedWork = unitOfWork
   do {
@@ -117,6 +111,21 @@ function completeUnitOfWork(unitOfWork) {
     completedWork = returnFiber
     workInProgress = completedWork
   } while (completedWork !== null)
+}
+
+function commitRoot(root) {
+  const { finishedWork } = root
+  printFinishedWork(finishedWork)
+  //判断子树有没有副作用
+  const subtreeHasEffects =
+    (finishedWork.subtreeFlags & MutationMask) !== NoFlags
+  const rootHasEffect = (finishedWork.flags & MutationMask) !== NoFlags
+  //如果自己的副作用或者子节点有副作用就进行提交DOM操作
+  if (subtreeHasEffects || rootHasEffect) {
+    commitMutationEffectsOnFiber(finishedWork, root)
+  }
+  //等DOM变更后，就可以把让root的current指向新的fiber树
+  root.current = finishedWork
 }
 
 function printFinishedWork(fiber) {

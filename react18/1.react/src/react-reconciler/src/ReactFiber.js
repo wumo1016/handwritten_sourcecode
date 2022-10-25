@@ -44,3 +44,32 @@ export function FiberNode(tag, pendingProps, key) {
   this.subtreeFlags = NoFlags // 子节点对应的副使用标识
   this.alternate = null // 替身，轮替 dom diff时使用
 }
+/**
+ * @Author: wyb
+ * @Descripttion: 基于老的fiber和新的属性创建新的fiber
+ * @param {*} current 老fiber
+ * @param {*} pendingProps 新属性
+ */
+export function createWorkInProgress(current, pendingProps) {
+  let workInProgress = current.alternate
+  if (workInProgress === null) {
+    workInProgress = createFiber(current.tag, pendingProps, current.key)
+    workInProgress.type = current.type
+    workInProgress.stateNode = current.stateNode
+    // 新旧 fiber 建立双向指针
+    workInProgress.alternate = current
+    current.alternate = workInProgress
+  } else {
+    workInProgress.pendingProps = pendingProps
+    workInProgress.type = current.type
+    workInProgress.flags = NoFlags
+    workInProgress.subtreeFlags = NoFlags
+  }
+  workInProgress.child = current.child
+  workInProgress.memoizedProps = current.memoizedProps
+  workInProgress.memoizedState = current.memoizedState
+  workInProgress.updateQueue = current.updateQueue
+  workInProgress.sibling = current.sibling
+  workInProgress.index = current.index
+  return workInProgress
+}
