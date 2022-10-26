@@ -20,9 +20,9 @@
   - Fiber 是一种数据结构
     - React 目前的做法是使用链表, 每个虚拟节点内部表示为一个 Fiber
 
-- FiberRootNode
+- FiberRootNode(真实 dom)
   - containerInfo => div#root
-  - current => FiberNode
+  - current => RootFiber
     - stateNode => FiberRootNode
 
 ## 过程
