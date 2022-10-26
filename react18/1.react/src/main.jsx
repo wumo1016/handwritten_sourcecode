@@ -2,7 +2,7 @@ import { createRoot } from 'react-dom/client'
 
 const element = (
   <h1>
-    <span>hello</span>
+    hello
     <span style={{ color: 'red' }}>world</span>
   </h1>
 )

@@ -10,16 +10,16 @@ function createChildReconciler(shouldTrackSideEffects) {
   /**
    * @Author: wyb
    * @Descripttion:
-   * @param {*} newFiber
+   * @param {*} parentFiber
    * @param {*} currentFirstFiber
    * @param {*} element
    */
-  function reconcileSingleElement(newFiber, oldFiberFirstChild, newChild) {
+  function reconcileSingleElement(parentFiber, oldFiberFirstChild, newChild) {
     // 因为我们现实的初次挂载，老节点oldFiberFirstChild肯定是没有的
     // 根据虚拟DOM创建新的Fiber节点
-    const created = createFiberFromElement(newChild)
-    created.return = newFiber
-    return created
+    const newChildFiber = createFiberFromElement(newChild)
+    newChildFiber.return = parentFiber
+    return newChildFiber
   }
   /**
    * 设置副作用

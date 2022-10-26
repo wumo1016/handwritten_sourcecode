@@ -31,6 +31,7 @@
 - 初始化更新队列 (设置 fiber 的 udpateQueue)
 - 开始渲染 走根节点的 render 方法
 - 构建 fiber 树
+  - 先构建根 fiber
 
 ## 备注
 

@@ -1,7 +1,7 @@
 import { scheduleCallback } from 'scheduler'
 import { createWorkInProgress } from './ReactFiber'
 import { beginWork } from './ReactFiberBeginWork'
-// import { completeWork } from './ReactFiberCompleteWork'
+import { completeWork } from './ReactFiberCompleteWork'
 // import { NoFlags, MutationMask, Placement, Update } from './ReactFiberFlags'
 // import { commitMutationEffectsOnFiber } from './ReactFiberCommitWork'
 // import { HostComponent, HostRoot, HostText } from './ReactWorkTags'
@@ -81,8 +81,7 @@ function performUnitOfWork(curFiber) {
   curFiber.memoizedProps = curFiber.pendingProps
   if (next === null) {
     // 如果没有子节点表示当前的fiber已经完成了
-    // completeUnitOfWork(curFiber)
-    workInProgress = null
+    completeUnitOfWork(curFiber)
   } else {
     // 如果有子节点，就让子节点成为下一个工作单元
     workInProgress = next
@@ -96,18 +95,18 @@ function performUnitOfWork(curFiber) {
 function completeUnitOfWork(unitOfWork) {
   let completedWork = unitOfWork
   do {
-    const current = completedWork.alternate
+    const oldFiber = completedWork.alternate
     const returnFiber = completedWork.return
-    //执行此fiber 的完成工作,如果是原生组件的话就是创建真实的DOM节点
-    completeWork(current, completedWork)
-    //如果有弟弟，就构建弟弟对应的fiber子链表
+    // 执行此fiber 的完成工作,如果是原生组件的话就是创建真实的DOM节点
+    completeWork(oldFiber, completedWork)
+    // 如果有弟弟，就构建弟弟对应的fiber子链表
     const siblingFiber = completedWork.sibling
     if (siblingFiber !== null) {
       workInProgress = siblingFiber
       return
     }
-    //如果没有弟弟，说明这当前完成的就是父fiber的最后一个节点
-    //也就是说一个父fiber,所有的子fiber全部完成了
+    // 如果没有弟弟，说明这当前完成的就是父fiber的最后一个节点
+    // 也就是说一个父fiber,所有的子fiber全部完成了
     completedWork = returnFiber
     workInProgress = completedWork
   } while (completedWork !== null)
