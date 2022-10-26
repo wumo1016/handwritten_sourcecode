@@ -71,17 +71,17 @@ function workLoopSync() {
 /**
  * @Author: wyb
  * @Descripttion:
- * @param {*} unitOfWork
+ * @param {*} curFiber
  */
-function performUnitOfWork(unitOfWork) {
+function performUnitOfWork(curFiber) {
   // 获取老fiber
-  const current = unitOfWork.alternate
+  const oldFiber = curFiber.alternate
   // 完成当前fiber的子fiber链表构建后
-  const next = beginWork(current, unitOfWork)
-  unitOfWork.memoizedProps = unitOfWork.pendingProps
+  const next = beginWork(oldFiber, curFiber)
+  curFiber.memoizedProps = curFiber.pendingProps
   if (next === null) {
     // 如果没有子节点表示当前的fiber已经完成了
-    // completeUnitOfWork(unitOfWork)
+    // completeUnitOfWork(curFiber)
     workInProgress = null
   } else {
     // 如果有子节点，就让子节点成为下一个工作单元

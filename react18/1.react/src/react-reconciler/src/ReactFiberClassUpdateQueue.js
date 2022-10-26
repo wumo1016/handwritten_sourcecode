@@ -45,13 +45,14 @@ export function enqueueUpdate(fiber, update) {
 }
 /**
  * @Author: wyb
- * @Descripttion:
- * @param {*} fiber
+ * @Descripttion: 根据老状态和更新队列中的更新计算最新的状态
+ * @param {*} fiber 要计算的fiber
  */
-function processUpdateQueue(fiber) {
+export function processUpdateQueue(fiber) {
   const queue = fiber.updateQueue
   const pending = queue.shared.pending
   if (pending !== null) {
+    // 清除等待更新的队列
     queue.shared.pending = null
     // 最后一个更新
     const lastPendingUpdate = pending
@@ -71,8 +72,12 @@ function processUpdateQueue(fiber) {
  * @Author: wyb
  * @Descripttion:
  * @param {*} update
- * @param {*} newState
+ * @param {*} prevState
  */
-function getStateFromUpdate(update, newState) {
-  return Object.assign({}, newState, update.payload)
+function getStateFromUpdate(update, prevState) {
+  switch (update.tag) {
+    case UpdateState:
+      const { payload } = update
+      return Object.assign({}, prevState, payload)
+  }
 }

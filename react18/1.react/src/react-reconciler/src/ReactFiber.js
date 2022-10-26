@@ -1,5 +1,10 @@
 import { NoFlags } from './ReactFiberFlags'
-import { HostRoot } from './ReactWorkTags'
+import {
+  HostComponent,
+  HostRoot,
+  HostText,
+  IndeterminateComponent
+} from './ReactWorkTags'
 
 /**
  * @Author: wyb
@@ -43,6 +48,7 @@ export function FiberNode(tag, pendingProps, key) {
   this.flags = NoFlags // 副作用标识 表示要针对此fiber节点进行何种操作
   this.subtreeFlags = NoFlags // 子节点对应的副使用标识
   this.alternate = null // 替身，轮替 dom diff时使用
+  this.index = 0 // 此fiber在兄弟节点中的位置
 }
 /**
  * @Author: wyb
@@ -72,4 +78,38 @@ export function createWorkInProgress(current, pendingProps) {
   workInProgress.sibling = current.sibling
   workInProgress.index = current.index
   return workInProgress
+}
+
+/**
+ * 根据虚拟DOM创建Fiber节点
+ * @param {*} element
+ */
+export function createFiberFromElement(element) {
+  const { type, key, props: pendingProps } = element
+  return createFiberFromTypeAndProps(type, key, pendingProps)
+}
+/**
+ * @Author: wyb
+ * @Descripttion:
+ * @param {*} type
+ * @param {*} key
+ * @param {*} pendingProps
+ */
+function createFiberFromTypeAndProps(type, key, pendingProps) {
+  let tag = IndeterminateComponent //
+  // 如果类型 type是一字符串 span div ，说此此Fiber类型是一个原生组件
+  if (typeof type === 'string') {
+    tag = HostComponent
+  }
+  const fiber = createFiber(tag, pendingProps, key)
+  fiber.type = type
+  return fiber
+}
+/**
+ * @Author: wyb
+ * @Descripttion: 根据文本创建Fiber节点
+ * @param {*} content
+ */
+export function createFiberFromText(content) {
+  return createFiber(HostText, content, null)
 }

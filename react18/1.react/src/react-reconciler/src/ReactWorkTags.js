@@ -8,4 +8,5 @@ export const HostText = 6
 export const FunctionComponent = 0
 // 类组件
 export const ClassComponent = 1
+// 未决定的组件
 export const IndeterminateComponent = 2
