@@ -28,13 +28,31 @@ export function createInstance(type, props, internalInstanceHandle) {
   // updateFiberProps(domElement, props)
   return domElement
 }
-
+/**
+ * @Author: wyb
+ * @Descripttion: 添加子节点
+ * @param {*} parent
+ * @param {*} child
+ */
 export function appendInitialChild(parent, child) {
   parent.appendChild(child)
 }
+/**
+ * @Author: wyb
+ * @Descripttion:
+ * @param {*} domElement
+ * @param {*} type
+ * @param {*} props
+ */
 export function finalizeInitialChildren(domElement, type, props) {
   setInitialProperties(domElement, type, props)
 }
+/**
+ * @Author: wyb
+ * @Descripttion:
+ * @param {*} parentInstance
+ * @param {*} child
+ */
 export function appendChild(parentInstance, child) {
   parentInstance.appendChild(child)
 }

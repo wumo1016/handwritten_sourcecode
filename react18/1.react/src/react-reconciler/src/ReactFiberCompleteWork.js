@@ -1,9 +1,9 @@
 import logger, { indent } from 'shared/logger'
 import {
   createTextInstance,
-  createInstance
-  //   appendInitialChild,
-  //   finalizeInitialChildren
+  createInstance,
+  appendInitialChild,
+  finalizeInitialChildren
 } from 'react-dom-bindings/src/client/ReactDOMHostConfig'
 import { NoFlags } from './ReactFiberFlags'
 import { HostComponent, HostRoot, HostText } from './ReactWorkTags'
@@ -23,15 +23,16 @@ export function completeWork(oldFiber, newFiber) {
     //     break;
     // 如果完成的是原生节点的话
     case HostComponent:
-      ///现在只是在处理创建或者说挂载新节点的逻辑，后面此处分进行区分是初次挂载还是更新
-      //创建真实的DOM节点
+      // 现在只是在处理创建或者说挂载新节点的逻辑，后面此处分进行区分是初次挂载还是更新
       const { type } = newFiber
-      const instance = createInstance(type, newProps, newFiber)
-      // //把自己所有的儿子都添加到自己的身上
-      // appendAllChildren(instance, newFiber)
-      // newFiber.stateNode = instance
-      // finalizeInitialChildren(instance, type, newProps)
-      // bubbleProperties(newFiber)
+      // 创建真实的DOM节点
+      const dom = createInstance(type, newProps, newFiber)
+      // 把自己所有的儿子都添加到自己的身上
+      appendAllChildren(dom, newFiber)
+      newFiber.stateNode = dom
+      // 处理已经完成挂载的dom 例如：设置dom属性等
+      finalizeInitialChildren(dom, type, newProps)
+      bubbleProperties(newFiber)
       break
     case HostText:
       // 如果完成的fiber是文本节点，那就创建真实的文本节点
@@ -45,32 +46,34 @@ export function completeWork(oldFiber, newFiber) {
 }
 /**
  * 把当前的完成的fiber所有的子节点对应的真实DOM都挂载到自己父parent真实DOM节点上
- * @param {*} parent 当前完成的fiber真实的DOM节点
- * @param {*} workInProgress 完成的fiber
+ * @param {*} parentDom 当前完成的fiber真实的DOM节点
+ * @param {*} curFiber 完成的fiber
  */
-function appendAllChildren(parent, workInProgress) {
-  let node = workInProgress.child
-  while (node) {
-    //如果子节点类型是一个原生节点或者是一个文件节点
-    if (node.tag === HostComponent || node.tag === HostText) {
-      appendInitialChild(parent, node.stateNode)
-      //如果第一个儿子不是一个原生节点，说明它可能是一个函数组件
-    } else if (node.child !== null) {
-      node = node.child
+function appendAllChildren(parentDom, curFiber) {
+  // 一般只处理儿子 或者是 离自己最近的真实节点
+  let childFiber = curFiber.child
+  while (childFiber) {
+    // 如果子节点类型是一个原生节点或者是一个文本节点
+    if (childFiber.tag === HostComponent || childFiber.tag === HostText) {
+      appendInitialChild(parentDom, childFiber.stateNode)
+      // 如果第一个儿子不是一个原生节点，说明它可能是一个函数组件，跳到子节点
+    } else if (childFiber.child !== null) {
+      childFiber = childFiber.child
       continue
     }
-    if (node === workInProgress) {
+    // 当子 fiber与当前 fiber 相等时 跳出循环
+    if (childFiber === curFiber) {
       return
     }
-    //如果当前的节点没有弟弟
-    while (node.sibling === null) {
-      if (node.return === null || node.return === workInProgress) {
+    // 如果当前的节点没有弟弟，就一直向上找父亲，直到找到父亲的弟弟
+    while (childFiber.sibling === null) {
+      if (childFiber.return === null || childFiber.return === curFiber) {
         return
       }
       //回到父节点
-      node = node.return
+      childFiber = childFiber.return
     }
-    node = node.sibling
+    childFiber = childFiber.sibling
   }
 }
 /**

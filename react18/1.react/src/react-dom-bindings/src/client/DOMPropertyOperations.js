@@ -1,8 +1,14 @@
-
-export function setValueForProperty(node, name, value) {
+/**
+ * @Author: wyb
+ * @Descripttion: 设置 dom 属性
+ * @param {*} dom
+ * @param {*} key
+ * @param {*} value
+ */
+export function setValueForProperty(dom, key, value) {
   if (value === null) {
-    node.removeAttribute(name);
+    dom.removeAttribute(key)
   } else {
-    node.setAttribute(name, value);
+    dom.setAttribute(key, value)
   }
 }
