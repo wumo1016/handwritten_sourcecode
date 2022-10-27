@@ -33,6 +33,27 @@
 - 构建 fiber 树
   - 先构建根 fiber
 
+## render
+
+- render => (ReactDOMRoot.js)
+- updateContainer(vdom, container) => (ReactFiberReconciler.js)
+  - createUpdate: 创建一个对象 { payload: { element: vdom } }
+  - enqueueUpdate: 返回根节点 FiberRootNode
+    - 设置当前 fiber 的 updateQueue
+    - markUpdateLaneFromFiberToRoot: 找到 FiberRootNode 并返回
+  - scheduleUpdateOnFiber
+    - ensureRootIsScheduled
+      - scheduleCallback(performConcurrentWorkOnRoot): scheduleCallback 为调度器 空闲的时候执行 performConcurrentWorkOnRoot
+      - performConcurrentWorkOnRoot: 真正执行的函数，构建 fiber 树，渲染等等
+        - renderRootSync: 第一次从根部同步渲染
+          - prepareFreshStack
+            - createWorkInProgress: 基于 oldFiber 和新属性创建一个 newFiber 和 oldFiber 使用 alternate 属性相互关联
+            - 将 创建的 newFiber 赋给 workInProgress
+          - workLoopSync
+            - performUnitOfWork
+              - beginWork
+              - completeUnitOfWork
+
 ## 备注
 
 - path.posix: 返回 linux 下的路径等
