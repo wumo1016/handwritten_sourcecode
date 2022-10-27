@@ -18,9 +18,9 @@ export function completeWork(oldFiber, newFiber) {
   logger(' '.repeat(indent.number) + 'completeWork', newFiber)
   const newProps = newFiber.pendingProps
   switch (newFiber.tag) {
-    //   case HostRoot:
-    //     bubbleProperties(newFiber);
-    //     break;
+    case HostRoot:
+      bubbleProperties(newFiber)
+      break
     // 如果完成的是原生节点的话
     case HostComponent:
       // 现在只是在处理创建或者说挂载新节点的逻辑，后面此处分进行区分是初次挂载还是更新

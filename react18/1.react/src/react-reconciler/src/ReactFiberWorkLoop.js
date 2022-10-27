@@ -2,8 +2,8 @@ import { scheduleCallback } from 'scheduler'
 import { createWorkInProgress } from './ReactFiber'
 import { beginWork } from './ReactFiberBeginWork'
 import { completeWork } from './ReactFiberCompleteWork'
-// import { NoFlags, MutationMask, Placement, Update } from './ReactFiberFlags'
-// import { commitMutationEffectsOnFiber } from './ReactFiberCommitWork'
+import { NoFlags, MutationMask, Placement, Update } from './ReactFiberFlags'
+import { commitMutationEffectsOnFiber } from './ReactFiberCommitWork'
 // import { HostComponent, HostRoot, HostText } from './ReactWorkTags'
 
 // 正在进行的工作 当前 fiber
@@ -35,10 +35,11 @@ function ensureRootIsScheduled(root) {
 function performConcurrentWorkOnRoot(root) {
   // 第一次渲染以同步的方式渲染根节点，初次渲染的时候，都是同步
   renderRootSync(root)
-  //开始进入提交 阶段，就是执行副作用，修改真实DOM
-  // const finishedWork = root.current.alternate
-  // root.finishedWork = finishedWork
-  // commitRoot(root)
+  // 开始进入提交 阶段，就是执行副作用，修改真实DOM
+  const newRootFiber = root.current.alternate
+  root.finishedWork = newRootFiber
+  // 提交根节点
+  commitRoot(root)
 }
 /**
  * @Author: wyb
@@ -111,19 +112,24 @@ function completeUnitOfWork(unitOfWork) {
     workInProgress = completedWork
   } while (completedWork !== null)
 }
-
+/**
+ * @Author: wyb
+ * @Descripttion:
+ * @param {*} root
+ */
 function commitRoot(root) {
   const { finishedWork } = root
-  printFinishedWork(finishedWork)
-  //判断子树有没有副作用
+  // printFinishedWork(finishedWork)
+  // 判断子树有没有副作用 就是有没有新增或修改
   const subtreeHasEffects =
     (finishedWork.subtreeFlags & MutationMask) !== NoFlags
+  // 根是否有副作用
   const rootHasEffect = (finishedWork.flags & MutationMask) !== NoFlags
-  //如果自己的副作用或者子节点有副作用就进行提交DOM操作
+  // 如果自己的副作用或者子节点有副作用就进行提交DOM操作
   if (subtreeHasEffects || rootHasEffect) {
     commitMutationEffectsOnFiber(finishedWork, root)
   }
-  //等DOM变更后，就可以把让root的current指向新的fiber树
+  // 等DOM变更后，就可以把让root的current指向新的fiber树
   root.current = finishedWork
 }
 
@@ -142,6 +148,7 @@ function printFinishedWork(fiber) {
     )
   }
 }
+
 function getFlags(flags) {
   if (flags === Placement) {
     return '插入'
@@ -151,6 +158,7 @@ function getFlags(flags) {
   }
   return flags
 }
+
 function getTag(tag) {
   switch (tag) {
     case HostRoot:

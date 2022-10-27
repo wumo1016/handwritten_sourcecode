@@ -65,3 +65,18 @@ export function appendChild(parentInstance, child) {
 export function insertBefore(parentInstance, child, beforeChild) {
   parentInstance.insertBefore(child, beforeChild)
 }
+
+export function commitUpdate(
+  domElement,
+  updatePayload,
+  type,
+  oldProps,
+  newProps
+) {
+  updateProperties(domElement, updatePayload, type, oldProps, newProps)
+  updateFiberProps(domElement, newProps)
+}
+
+export function removeChild(parentInstance, child) {
+  parentInstance.removeChild(child)
+}
