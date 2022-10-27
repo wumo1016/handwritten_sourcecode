@@ -14,7 +14,7 @@ export function createFiberRoot(containerInfo) {
   root.current = uninitializedFiber
   // 根fiber的stateNode,也就是真实DOM节点指向FiberRootNode
   uninitializedFiber.stateNode = root
-  // 初始化队列
+  // 初始化队列 设置下根 fiber 的 updateQueue
   initialUpdateQueue(uninitializedFiber)
   return root
 }
