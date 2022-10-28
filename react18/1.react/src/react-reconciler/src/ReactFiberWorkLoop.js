@@ -94,23 +94,23 @@ function performUnitOfWork(curFiber) {
  * @param {*} unitOfWork
  */
 function completeUnitOfWork(unitOfWork) {
-  let completedWork = unitOfWork
+  let curFiber = unitOfWork
   do {
-    const oldFiber = completedWork.alternate
-    const returnFiber = completedWork.return
+    const oldFiber = curFiber.alternate
+    const returnFiber = curFiber.return
     // 执行此fiber 的完成工作,如果是原生组件的话就是创建真实的DOM节点
-    completeWork(oldFiber, completedWork)
+    completeWork(oldFiber, curFiber)
     // 如果有弟弟，就构建弟弟对应的fiber子链表
-    const siblingFiber = completedWork.sibling
+    const siblingFiber = curFiber.sibling
     if (siblingFiber !== null) {
       workInProgress = siblingFiber
       return
     }
     // 如果没有弟弟，说明这当前完成的就是父fiber的最后一个节点
     // 也就是说一个父fiber,所有的子fiber全部完成了
-    completedWork = returnFiber
-    workInProgress = completedWork
-  } while (completedWork !== null)
+    curFiber = returnFiber
+    workInProgress = curFiber
+  } while (curFiber !== null)
 }
 /**
  * @Author: wyb
