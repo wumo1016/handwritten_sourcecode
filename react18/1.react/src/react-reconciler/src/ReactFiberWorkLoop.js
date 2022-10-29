@@ -4,7 +4,7 @@ import { beginWork } from './ReactFiberBeginWork'
 import { completeWork } from './ReactFiberCompleteWork'
 import { NoFlags, MutationMask, Placement, Update } from './ReactFiberFlags'
 import { commitMutationEffectsOnFiber } from './ReactFiberCommitWork'
-// import { HostComponent, HostRoot, HostText } from './ReactWorkTags'
+import { HostComponent, HostRoot, HostText } from './ReactWorkTags'
 
 // 正在进行的工作 当前 fiber
 let workInProgress = null
@@ -119,7 +119,7 @@ function completeUnitOfWork(unitOfWork) {
  */
 function commitRoot(root) {
   const { finishedWork } = root
-  // printFinishedWork(finishedWork)
+  printFinishedWork(finishedWork)
   // 判断子树有没有副作用 就是有没有新增或修改
   const subtreeHasEffects =
     (finishedWork.subtreeFlags & MutationMask) !== NoFlags
@@ -132,7 +132,11 @@ function commitRoot(root) {
   // 等DOM变更后，就可以把让root的current指向新的fiber树
   root.current = finishedWork
 }
-
+/**
+ * @Author: wyb
+ * @Descripttion: 打印完成工作的副作用
+ * @param {*} fiber
+ */
 function printFinishedWork(fiber) {
   let child = fiber.child
   while (child) {
@@ -148,7 +152,11 @@ function printFinishedWork(fiber) {
     )
   }
 }
-
+/**
+ * @Author: wyb
+ * @Descripttion:
+ * @param {*} flags
+ */
 function getFlags(flags) {
   if (flags === Placement) {
     return '插入'
@@ -158,7 +166,11 @@ function getFlags(flags) {
   }
   return flags
 }
-
+/**
+ * @Author: wyb
+ * @Descripttion:
+ * @param {*} tag
+ */
 function getTag(tag) {
   switch (tag) {
     case HostRoot:
