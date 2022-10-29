@@ -1,4 +1,5 @@
-export const allNativeEvents = new Set();
+// 所有原生事件
+export const allNativeEvents = new Set()
 /**
  * 注册两个阶段的事件
  * 当我在页面中触发click事件的时候，会走事件处理函数
@@ -7,13 +8,19 @@ export const allNativeEvents = new Set();
  * @param {*} dependencies 原生事件数组 [click]
  */
 export function registerTwoPhaseEvent(registrationName, dependencies) {
-  //注册冒泡事件的对应关系
-  registerDirectEvent(registrationName, dependencies);
-  //注意捕获事件的对应的关系
-  registerDirectEvent(registrationName + 'Capture', dependencies);
+  // 注册冒泡事件的对应关系
+  registerDirectEvent(registrationName, dependencies)
+  // 注意捕获事件的对应的关系
+  registerDirectEvent(registrationName + 'Capture', dependencies)
 }
+/**
+ * @Author: wyb
+ * @Descripttion: 注册事件
+ * @param {*} registrationName
+ * @param {*} dependencies
+ */
 export function registerDirectEvent(registrationName, dependencies) {
   for (let i = 0; i < dependencies.length; i++) {
-    allNativeEvents.add(dependencies[i]);//click
+    allNativeEvents.add(dependencies[i]) // 添加了click
   }
 }

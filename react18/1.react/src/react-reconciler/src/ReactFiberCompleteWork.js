@@ -15,7 +15,7 @@ import { HostComponent, HostRoot, HostText } from './ReactWorkTags'
  */
 export function completeWork(oldFiber, newFiber) {
   indent.number -= 2
-  logger(' '.repeat(indent.number) + 'completeWork', newFiber)
+  // logger(' '.repeat(indent.number) + 'completeWork', newFiber)
   const newProps = newFiber.pendingProps
   switch (newFiber.tag) {
     case HostRoot:

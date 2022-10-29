@@ -19,14 +19,15 @@ export function createTextInstance(content) {
  * @Descripttion: 创建标签节点
  * @param {*} type
  * @param {*} props
- * @param {*} internalInstanceHandle
+ * @param {*} fiber
  */
-export function createInstance(type, props, internalInstanceHandle) {
-  const domElement = document.createElement(type)
-  // precacheFiberNode(internalInstanceHandle, domElement)
-  // //把属性直接保存在domElement的属性上
-  // updateFiberProps(domElement, props)
-  return domElement
+export function createInstance(type, props, fiber) {
+  const dom = document.createElement(type)
+  // 将 fiber 缓存到 dom 节点上
+  precacheFiberNode(fiber, dom)
+  // 将 props 缓存到 dom 节点上
+  updateFiberProps(dom, props)
+  return dom
 }
 /**
  * @Author: wyb

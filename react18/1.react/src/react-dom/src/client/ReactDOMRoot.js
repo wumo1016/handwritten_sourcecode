@@ -2,7 +2,7 @@ import {
   createContainer,
   updateContainer
 } from 'react-reconciler/src/ReactFiberReconciler'
-// import { listenToAllSupportedEvents } from 'react-dom-bindings/src/events/DOMPluginEventSystem'
+import { listenToAllSupportedEvents } from 'react-dom-bindings/src/events/DOMPluginEventSystem'
 
 function ReactDOMRoot(internalRoot) {
   this._internalRoot = internalRoot
@@ -19,6 +19,6 @@ ReactDOMRoot.prototype.render = function (children) {
  */
 export function createRoot(container) {
   const root = createContainer(container) // FiberRootNode
-  // listenToAllSupportedEvents(container)
+  listenToAllSupportedEvents(container)
   return new ReactDOMRoot(root)
 }

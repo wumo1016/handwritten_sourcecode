@@ -119,7 +119,7 @@ function completeUnitOfWork(unitOfWork) {
  */
 function commitRoot(root) {
   const { finishedWork } = root
-  printFinishedWork(finishedWork)
+  // printFinishedWork(finishedWork)
   // 判断子树有没有副作用 就是有没有新增或修改
   const subtreeHasEffects =
     (finishedWork.subtreeFlags & MutationMask) !== NoFlags

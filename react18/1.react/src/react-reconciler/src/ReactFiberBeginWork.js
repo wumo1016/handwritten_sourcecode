@@ -18,7 +18,7 @@ import { renderWithHooks } from 'react-reconciler/src/ReactFiberHooks'
  * @param {*} newFiber 新的fiber
  */
 export function beginWork(oldFiber, newFiber) {
-  logger(' '.repeat(indent.number) + 'beginWork', newFiber)
+  // logger(' '.repeat(indent.number) + 'beginWork', newFiber)
   indent.number += 2
   switch (newFiber.tag) {
     // 因为在React里组件其实有两种，一种是函数组件，一种是类组件，但是它们都是都是函数

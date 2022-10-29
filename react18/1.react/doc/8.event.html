@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+
+  <body>
+    <div id="root">
+      <div id="parent" xx="yy">
+        <div id="child">点击</div>
+      </div>
+    </div>
+  </body>
+  <script>
+    var parentBubble = (e) => {
+      console.log('父React冒泡', e)
+    }
+    var parentCapture = (e) => {
+      console.log('父React捕获', e)
+    }
+    var childBubble = (e) => {
+      console.log('子React冒泡', e)
+    }
+    var childCapture = (e) => {
+      console.log('子React捕获', e)
+    }
+
+    let root = document.getElementById('root')
+    let parent = document.getElementById('parent')
+    let child = document.getElementById('child')
+
+    parent.onxxClick = parentBubble
+    parent.onxxClickCapture = parentCapture
+    child.onxxClick = childBubble
+    child.onxxClickCapture = childCapture
+
+    // 模拟React中的事件委托
+    // 老师，问一下，这个函数绑定了两次，但实际点击的时候，只调用了一次是吗
+    root.addEventListener('click', dispatchEvent.bind(null, true), true)
+    root.addEventListener('click', dispatchEvent.bind(null, false), false)
+
+    function dispatchEvent(isCapture, nativeEvent) {
+      console.log('dispatchEvent', isCapture ? '捕获' : '冒泡')
+      let paths = [] // child parent div#root
+      let currentTarget = nativeEvent.target
+      while (currentTarget) {
+        paths.push(currentTarget)
+        currentTarget = currentTarget.parentNode
+      }
+      // console.log(paths) // [div#child, div#parent, div#root, body, html, document]
+      if (isCapture) {
+        // 捕获倒叙执行
+        for (let i = paths.length - 1; i >= 0; i--) {
+          let handler = paths[i].onxxClickCapture
+          handler && handler(nativeEvent)
+        }
+      } else {
+        // 冒泡正向执行
+        for (let i = 0; i < paths.length; i++) {
+          let handler = paths[i].onxxClick
+          handler && handler(nativeEvent)
+        }
+      }
+    }
+
+    parent.addEventListener(
+      'click',
+      (e) => {
+        console.log('父原生捕获', e)
+      },
+      true
+    )
+    parent.addEventListener(
+      'click',
+      (e) => {
+        console.log('父原生冒泡', e)
+      },
+      false
+    )
+    child.addEventListener(
+      'click',
+      (e) => {
+        console.log('子原生捕获', e)
+      },
+      true
+    )
+    child.addEventListener(
+      'click',
+      (e) => {
+        console.log('子原生冒泡', e)
+      },
+      false
+    )
+  </script>
+</html>
