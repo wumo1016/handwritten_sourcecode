@@ -19,19 +19,12 @@
   - Fiber 是一个执行单元,每次执行完一个执行单元, React 就会检查现在还剩多少时间，如果没有时间就将控制权让出去
   - Fiber 是一种数据结构
     - React 目前的做法是使用链表, 每个虚拟节点内部表示为一个 Fiber
+  - 每个 fiber 都有自己独特的更细你队列
 
 - FiberRootNode(真实 dom)
   - containerInfo => div#root
   - current => RootFiber
     - stateNode => FiberRootNode
-
-## 过程
-
-- 创建根 fiber
-- 初始化更新队列 (设置 fiber 的 udpateQueue)
-- 开始渲染 走根节点的 render 方法
-- 构建 fiber 树
-  - 先构建根 fiber
 
 ## render
 
@@ -57,6 +50,9 @@
             - performUnitOfWork
               - beginWork: 构建 fiber 树
                 - case 未决定组件：mountIndeterminateComponent (一种是函数组件，一种是类组件，但是它们都是都是函数)
+                  - renderWithHooks
+                  - reconcileChildren
+                  - 然后返回刚刚创建的子 fiber
                 - case 根组件：updateHostRoot
                   - processUpdateQueue: 将虚拟 dom 从 updateQueue 保存到当前 fiber 的 memoizedState 上
                   - reconcileChildren
@@ -88,6 +84,8 @@
             - commitReconciliationEffects: 再处理自己身上的副作用
               - commitPlacement: 如果当前 fiber 是新增，将自己插入到父节点中
             - 如果是原生节点 fiber
+
+## 函数组件
 
 ## 备注
 

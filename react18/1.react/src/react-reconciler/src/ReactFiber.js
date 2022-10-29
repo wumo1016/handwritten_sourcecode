@@ -96,7 +96,7 @@ export function createFiberFromElement(element) {
  * @param {*} pendingProps
  */
 function createFiberFromTypeAndProps(type, key, pendingProps) {
-  let tag = IndeterminateComponent //
+  let tag = IndeterminateComponent // 未决策的 例如：函数组件、类组件
   // 如果类型 type是一字符串 span div ，说此此Fiber类型是一个原生组件
   if (typeof type === 'string') {
     tag = HostComponent

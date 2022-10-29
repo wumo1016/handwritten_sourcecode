@@ -9,7 +9,7 @@ import {
 import { processUpdateQueue } from './ReactFiberClassUpdateQueue'
 import { mountChildFibers, reconcileChildFibers } from './ReactChildFiber'
 import { shouldSetTextContent } from 'react-dom-bindings/src/client/ReactDOMHostConfig'
-// import { renderWithHooks } from 'react-reconciler/src/ReactFiberHooks';
+import { renderWithHooks } from 'react-reconciler/src/ReactFiberHooks'
 
 /**
  * @Author: wyb
@@ -90,19 +90,14 @@ function updateHostComponent(oldFiber, newFiber) {
 }
 /**
  * 挂载函数组件
- * @param {*} current  老fiber
- * @param {*} workInProgress 新的fiber
- * @param {*} Component 组件类型，也就是函数组件的定义
+ * @param {*} oldFiber  老fiber
+ * @param {*} newFiber 新的fiber
+ * @param {*} fn 组件类型，也就是函数组件的定义
  */
-export function mountIndeterminateComponent(
-  current,
-  workInProgress,
-  Component
-) {
-  const props = workInProgress.pendingProps
-  //const value = Component(props);
-  const value = renderWithHooks(current, workInProgress, Component, props)
-  workInProgress.tag = FunctionComponent
-  reconcileChildren(current, workInProgress, value)
-  return workInProgress.child
+export function mountIndeterminateComponent(oldFiber, newFiber, fn) {
+  const props = newFiber.pendingProps
+  const value = renderWithHooks(oldFiber, newFiber, fn, props)
+  newFiber.tag = FunctionComponent
+  reconcileChildren(oldFiber, newFiber, value)
+  return newFiber.child
 }
