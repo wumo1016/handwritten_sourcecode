@@ -51,6 +51,7 @@
               - beginWork: 构建 fiber 树
                 - case 未决定组件：mountIndeterminateComponent (一种是函数组件，一种是类组件，但是它们都是都是函数)
                   - renderWithHooks
+                    - 执行函数 获取子 vdom
                   - reconcileChildren
                   - 然后返回刚刚创建的子 fiber
                 - case 根组件：updateHostRoot
@@ -91,6 +92,10 @@
 - jsx 中写的事件都编译在 props 中
 - 有一个插件系统
 - 合成事件: 绑定的事件参数是一个合成事件对象
+
+## hooks
+
+- useReducer
 
 ## 备注
 
