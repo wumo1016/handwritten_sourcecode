@@ -1,6 +1,6 @@
 import ReactSharedInternals from 'shared/ReactSharedInternals'
-// import { scheduleUpdateOnFiber } from './ReactFiberWorkLoop'
-// import { enqueueConcurrentHookUpdate } from './ReactFiberConcurrentUpdates'
+import { enqueueConcurrentHookUpdate } from './ReactFiberConcurrentUpdates'
+import { scheduleUpdateOnFiber } from './ReactFiberWorkLoop'
 
 const { ReactCurrentDispatcher } = ReactSharedInternals
 let currentlyRenderingFiber = null
@@ -55,7 +55,10 @@ function mountReducer(reducer, initialArg) {
   hook = {
     memoizedState: initialArg,
     queue: {
-      pending: null,
+      pending: {
+        action, // 参数
+        next // 下一个update
+      },
       dispatch: dispatch
     },
     next: 指向下一个hook
@@ -74,6 +77,44 @@ function mountReducer(reducer, initialArg) {
   )
   queue.dispatch = dispatch
   return [hook.memoizedState, dispatch]
+}
+/**
+ * @Author: wyb
+ * @Descripttion: 挂载构建中的hook
+ */
+function mountWorkInProgressHook() {
+  const hook = {
+    memoizedState: null, // hook的状态 0
+    queue: null, // 存放本hook的更新队列 queue.pending=update 的循环链表
+    next: null // 指向下一个hook,一个函数里可以会有多个hook,它们会组成一个单向链表
+  }
+  if (workInProgressHook === null) {
+    // 当前函数对应的fiber的状态等于第一个hook对象
+    workInProgressHook = hook
+    currentlyRenderingFiber.memoizedState = hook // 将 fiber 与hook关联
+  } else {
+    // 构建 hook 链表
+    workInProgressHook.next = hook
+    workInProgressHook = hook
+  }
+  return workInProgressHook
+}
+
+/**
+ * 执行派发动作的方法，它要更新状态，并且让界面重新更新
+ * @param {*} fiber function对应的fiber
+ * @param {*} queue hook对应的更新队列
+ * @param {*} action 派发的动作
+ */
+function dispatchReducerAction(fiber, queue, action) {
+  // 在每个hook里会存放一个更新队列，更新队列是一个更新对象的循环链表update1.next=update2.next=update1
+  const update = {
+    action, // { type: 'add', payload: 1 } 派发的动作
+    next: null //指向下一个更新对象
+  }
+  // 把当前的最新的更添的添加更新队列中，并且返回当前的根的 stateNode
+  const root = enqueueConcurrentHookUpdate(fiber, queue, update)
+  scheduleUpdateOnFiber(root)
 }
 
 //useState其实就是一个内置了reducer的useReducer
@@ -107,7 +148,7 @@ function dispatchSetState(fiber, queue, action) {
     eagerState: null, //急切的更新状态
     next: null
   }
-  //当你派发动作后，我立刻用上一次的状态和上一次的reducer计算新状态
+  // 当你派发动作后，我立刻用上一次的状态和上一次的reducer计算新状态
   const { lastRenderedReducer, lastRenderedState } = queue
   const eagerState = lastRenderedReducer(lastRenderedState, action)
   update.hasEagerState = true
@@ -115,7 +156,7 @@ function dispatchSetState(fiber, queue, action) {
   if (Object.is(eagerState, lastRenderedState)) {
     return
   }
-  //下面是真正的入队更新，并调度更新逻辑
+  // 下面是真正的入队更新，并调度更新逻辑
   const root = enqueueConcurrentHookUpdate(fiber, queue, update)
   scheduleUpdateOnFiber(root)
 }
@@ -170,43 +211,4 @@ function updateReducer(reducer) {
   }
   hook.memoizedState = newState
   return [hook.memoizedState, queue.dispatch]
-}
-
-/**
- * 执行派发动作的方法，它要更新状态，并且让界面重新更新
- * @param {*} fiber function对应的fiber
- * @param {*} queue hook对应的更新队列
- * @param {*} action 派发的动作
- */
-function dispatchReducerAction(fiber, queue, action) {
-  console.log(fiber, queue, action)
-  // 在每个hook里会存放一个更新队列，更新队列是一个更新对象的循环链表update1.next=update2.next=update1
-  // const update = {
-  //   action, //{ type: 'add', payload: 1 } 派发的动作
-  //   next: null //指向下一个更新对象
-  // }
-  // // 把当前的最新的更添的添加更新队列中，并且返回当前的根fiber
-  // const root = enqueueConcurrentHookUpdate(fiber, queue, update)
-  // scheduleUpdateOnFiber(root)
-}
-/**
- * @Author: wyb
- * @Descripttion: 挂载构建中的hook
- */
-function mountWorkInProgressHook() {
-  const hook = {
-    memoizedState: null, // hook的状态 0
-    queue: null, // 存放本hook的更新队列 queue.pending=update 的循环链表
-    next: null // 指向下一个hook,一个函数里可以会有多个hook,它们会组成一个单向链表
-  }
-  if (workInProgressHook === null) {
-    // 当前函数对应的fiber的状态等于第一个hook对象
-    workInProgressHook = hook
-    currentlyRenderingFiber.memoizedState = hook // 将 fiber 与hook关联
-  } else {
-    // 构建 hook 链表
-    workInProgressHook.next = hook
-    workInProgressHook = hook
-  }
-  return workInProgressHook
 }

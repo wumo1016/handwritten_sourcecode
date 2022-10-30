@@ -9,7 +9,7 @@ const internalPropsKey = '__reactProps$' + randomKey
 export function getClosestInstanceFromNode(targetNode) {
   // 在 completeWork => createInstance 中缓存的
   const targetInst = targetNode[internalInstanceKey]
-  return targetInst
+  return targetInst || null
 }
 /**
  * 提前缓存fiber节点的实例到DOM节点上 构建冒泡和捕获队列的

@@ -5,8 +5,9 @@ import { completeWork } from './ReactFiberCompleteWork'
 import { NoFlags, MutationMask, Placement, Update } from './ReactFiberFlags'
 import { commitMutationEffectsOnFiber } from './ReactFiberCommitWork'
 import { HostComponent, HostRoot, HostText } from './ReactWorkTags'
+import { finishQueueingConcurrentUpdates } from './ReactFiberConcurrentUpdates'
 
-// 正在进行的工作 当前 fiber
+// 正在进行的工作 当前 fiber 防止同步修改多次渲染
 let workInProgress = null
 
 /**
@@ -24,6 +25,8 @@ export function scheduleUpdateOnFiber(root) {
  * @param {*} root
  */
 function ensureRootIsScheduled(root) {
+  if (workInProgress) return
+  workInProgress = root
   // 告诉浏览器要执行performConcurrentWorkOnRoot
   scheduleCallback(performConcurrentWorkOnRoot.bind(null, root))
 }
@@ -40,6 +43,8 @@ function performConcurrentWorkOnRoot(root) {
   root.finishedWork = newRootFiber
   // 提交根节点
   commitRoot(root)
+  // 清空
+  workInProgress = null
 }
 /**
  * @Author: wyb
@@ -59,6 +64,7 @@ function renderRootSync(root) {
  */
 function prepareFreshStack(root) {
   workInProgress = createWorkInProgress(root.current, null)
+  finishQueueingConcurrentUpdates()
 }
 /**
  * @Author: wyb
