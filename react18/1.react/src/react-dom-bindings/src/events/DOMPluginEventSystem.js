@@ -120,7 +120,7 @@ function dispatchEventForPlugins(
     eventSystemFlags,
     targetContainer
   )
-  console.log('dispatchQueue', dispatchQueue)
+  processDispatchQueue(dispatchQueue, eventSystemFlags)
 }
 /**
  * @Author: wyb
@@ -164,10 +164,79 @@ export function accumulateSinglePhaseListeners(
     if (tag === HostComponent && stateNode !== null) {
       const listener = getListener(instance, reactEventName)
       if (listener) {
-        listeners.push(listener)
+        listeners.push(createDispatchListener(instance, listener, stateNode))
       }
     }
     instance = instance.return
   }
   return listeners
+}
+/**
+ * @Author: wyb
+ * @Descripttion:
+ * @param {*} instance
+ * @param {*} listener
+ * @param {*} currentTarget
+ */
+function createDispatchListener(instance, listener, currentTarget) {
+  return { instance, listener, currentTarget }
+}
+/**
+ * @Author: wyb
+ * @Descripttion: 处理派发队列
+ * @param {*} dispatchQueue
+ * @param {*} eventSystemFlags
+ */
+function processDispatchQueue(dispatchQueue, eventSystemFlags) {
+  //判断是否在捕获阶段
+  const inCapturePhase = (eventSystemFlags & IS_CAPTURE_PHASE) !== 0
+  for (let i = 0; i < dispatchQueue.length; i++) {
+    const { event, listeners } = dispatchQueue[i]
+    processDispatchQueueItemsInOrder(event, listeners, inCapturePhase)
+  }
+}
+/**
+ * @Author: wyb
+ * @Descripttion: 桉顺序处理派发队列
+ * @param {*} event
+ * @param {*} dispatchListeners
+ * @param {*} inCapturePhase
+ */
+function processDispatchQueueItemsInOrder(
+  event,
+  dispatchListeners,
+  inCapturePhase
+) {
+  if (inCapturePhase) {
+    // dispatchListeners[子，父]
+    for (let i = dispatchListeners.length - 1; i >= 0; i--) {
+      if (event.isPropagationStopped()) {
+        return
+      }
+      const { listener, currentTarget } = dispatchListeners[i]
+      executeDispatch(event, listener, currentTarget)
+    }
+  } else {
+    for (let i = 0; i < dispatchListeners.length; i++) {
+      if (event.isPropagationStopped()) {
+        return
+      }
+      const { listener, currentTarget } = dispatchListeners[i]
+      executeDispatch(event, listener, currentTarget)
+    }
+  }
+}
+/**
+ * @Author: wyb
+ * @Descripttion: 执行事件回调
+ * @param {*} event
+ * @param {*} listener
+ * @param {*} currentTarget
+ */
+function executeDispatch(event, listener, currentTarget) {
+  // 合成事件实例currentTarget是在不断的变化的
+  // event nativeEventTarget 它的是原始的事件源，是永远不变的
+  // event currentTarget 当前的事件源，它是会随着事件回调的执行不断变化的
+  event.currentTarget = currentTarget
+  listener(event)
 }

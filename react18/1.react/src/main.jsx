@@ -34,7 +34,7 @@ import { createRoot } from 'react-dom/client'
 function FunctionComponent() {
   return (
     <h1
-      onClick={() => console.log(`父冒泡`)}
+      onClick={(e) => console.log(`父冒泡`, e.currentTarget)}
       onClickCapture={() => console.log(`父捕获`)}
     >
       hello

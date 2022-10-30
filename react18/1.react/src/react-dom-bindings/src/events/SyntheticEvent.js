@@ -1,12 +1,5 @@
 import assign from 'shared/assign'
 
-function functionThatReturnsTrue() {
-  return true
-}
-
-function functionThatReturnsFalse() {
-  return false
-}
 // 鼠标事件接口
 const MouseEventInterface = {
   clientX: 0,
@@ -45,9 +38,9 @@ function createSyntheticEvent(inter) {
       }
       this[propName] = nativeEvent[propName]
     }
-    //是否已经阻止默认事件
+    // 是否已经阻止默认事件
     this.isDefaultPrevented = functionThatReturnsFalse
-    //是否已经阻止继续传播
+    // 是否已经阻止继续传播
     this.isPropagationStopped = functionThatReturnsFalse
     return this
   }
@@ -74,6 +67,14 @@ function createSyntheticEvent(inter) {
   })
 
   return SyntheticBaseEvent
+}
+
+function functionThatReturnsTrue() {
+  return true
+}
+
+function functionThatReturnsFalse() {
+  return false
 }
 
 export const SyntheticMouseEvent = createSyntheticEvent(MouseEventInterface)
