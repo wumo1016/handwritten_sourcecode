@@ -30,5 +30,5 @@ function registerSimpleEvent(domEventName, reactName) {
   //真实DOM元素[internalPropsKey] = props; props.onClick
   //把原生事件名和处理函数的名字进行映射或者说绑定，click=>onClick
   topLevelEventsToReactNames.set(domEventName, reactName)
-  registerTwoPhaseEvent(reactName, [domEventName]) //'onClick' ['click']
+  registerTwoPhaseEvent(reactName, [domEventName]) // 'onClick' ['click']
 }

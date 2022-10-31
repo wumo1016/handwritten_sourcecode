@@ -29,7 +29,6 @@ const root = createRoot(document.getElementById('root'))
 root.render(element)
 */
 
-/* 
 // 示例3-事件
 import { createRoot } from 'react-dom/client'
 function FunctionComponent() {
@@ -48,8 +47,12 @@ function FunctionComponent() {
       </span>
     </h1>
   )
-} */
+}
+const element = <FunctionComponent />
+const root = createRoot(document.getElementById('root'))
+root.render(element)
 
+/* 
 // 示例4-useReducer
 import * as React from 'react'
 import { createRoot } from 'react-dom/client'
@@ -76,3 +79,4 @@ function FunctionComponent() {
 const element = <FunctionComponent />
 const root = createRoot(document.getElementById('root'))
 root.render(element)
+ */

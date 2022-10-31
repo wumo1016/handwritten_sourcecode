@@ -92,6 +92,36 @@
 - jsx 中写的事件都编译在 props 中
 - 有一个插件系统
 - 合成事件: 绑定的事件参数是一个合成事件对象
+- 过程
+  - 注册事件: SimpleEventPlugin.registerEvents (ReactDOMRoot.js)
+    - registerSimpleEvent(遍历 simpleEventPluginEvents => ['click'])
+      - 设置原生事件名对 react 事件名的映射 topLevelEventsToReactNames<name, reactName>
+      - registerTwoPhaseEvent: 注册两种事件
+        - registerDirectEvent: 冒泡事件
+        - registerDirectEvent: 捕获事件
+  - 添加监听事件: listenToAllSupportedEvents (ReactDOMRoot.js)
+    - 遍历 allNativeEvents 执行
+      - listenToNativeEvent: 捕获
+        - 同下
+      - listenToNativeEvent: 冒泡
+        - addTrappedEventListener
+          - createEventListenerWrapperWithPriority => listener (创建一个监听函数)
+            - dispatchDiscreteEvent
+              - dispatchEvent: 事件实际触发的函数
+                - dispatchEventForPluginEventSystem
+                  - dispatchEventForPlugins
+                    - `const dispatchQueue = []` (创建一个派发队列)
+                    - extractEvents: 往派发队列中添加事件
+                      - SimpleEventPlugin.extractEvents (SimpleEventPlugin.js)
+                        - accumulateSinglePhaseListeners: 获取事件队列(从当前 dom 一直到顶级 dom 的绑定事件) => listeners
+                        - new SyntheticEventCtor: 创建合成事件对象 => event
+                        - dispatchQueue.push({ listeners, event })
+                    - processDispatchQueue: 执行派发队列里的事件
+                      - processDispatchQueueItemsInOrder (遍历 dispatchQueue 执行)
+                        - executeDispatch
+                          - 执行 listener(event) (遍历 listeners 执行)
+          - case 捕获: addEventCaptureListener => 添加原生捕获事件
+          - case 冒泡: addEventBubbleListener => 添加原生冒泡事件
 
 ## hooks
 
