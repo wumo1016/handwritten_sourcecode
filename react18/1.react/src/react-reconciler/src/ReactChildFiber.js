@@ -1,5 +1,9 @@
 import { REACT_ELEMENT_TYPE } from 'shared/ReactSymbols'
-import { createFiberFromElement, createFiberFromText } from './ReactFiber'
+import {
+  createFiberFromElement,
+  createFiberFromText,
+  createWorkInProgress
+} from './ReactFiber'
 import { Placement } from './ReactFiberFlags'
 import isArray from 'shared/isArray'
 
@@ -12,9 +16,33 @@ function createChildReconciler(shouldTrackSideEffects) {
    * @Descripttion:
    * @param {*} parentFiber
    * @param {*} currentFirstFiber
-   * @param {*} element
+   * @param {*} newChild
    */
   function reconcileSingleElement(parentFiber, oldFiberFirstChild, newChild) {
+    // 新的虚拟DOM的key,也就是唯一标识
+    const key = newChild.key // null
+    let child = oldFiberFirstChild // 老的FunctionComponent对应的fiber
+    while (child !== null) {
+      // 判断此老fiber对应的key和新的虚拟DOM对象的key是否一样 null===null
+      if (child.key === key) {
+        // 判断老fiber对应的类型和新虚拟DOM元素对应的类型是否相同 p div
+        if (child.type === newChild.type) {
+          // 删除剩余的子节点
+          // deleteRemainingChildren(parentFiber, child.sibling)
+          // 如果key一样，类型也一样，则认为此节点可以复用
+          const existing = useFiber(child, newChild.props)
+          existing.return = parentFiber
+          return existing
+        } else {
+          //如果找到一key一样老fiber,但是类型不一样，不能此老fiber,把剩下的全部删除
+          // deleteRemainingChildren(parentFiber, child)
+        }
+      } else {
+        // deleteChild(parentFiber, child)
+      }
+      child = child.sibling
+    }
+
     // 因为我们现实的初次挂载，老节点oldFiberFirstChild肯定是没有的
     // 根据虚拟DOM创建新的Fiber节点
     const newChildFiber = createFiberFromElement(newChild)
@@ -22,13 +50,25 @@ function createChildReconciler(shouldTrackSideEffects) {
     return newChildFiber
   }
   /**
+   * @Author: wyb
+   * @Descripttion:
+   * @param {*} fiber
+   * @param {*} pendingProps
+   */
+  function useFiber(oldFiber, pendingProps) {
+    const fiber = createWorkInProgress(oldFiber, pendingProps)
+    fiber.index = 0
+    fiber.sibling = null
+    return fiber
+  }
+  /**
    * 设置副作用
    * @param {*} newFiber
    * @returns
    */
   function placeSingleChild(newFiber) {
-    // 说明要添加副作用
-    if (shouldTrackSideEffects) {
+    // 说明要添加副作用 没有老fiber
+    if (shouldTrackSideEffects && newFiber.alternate === null) {
       // 要在最后的提交阶段插入此节点  React渲染分成渲染(创建Fiber树)和提交(更新真实DOM)二个阶段
       newFiber.flags |= Placement
     }
@@ -113,7 +153,7 @@ function createChildReconciler(shouldTrackSideEffects) {
    * @param {*} newChild 新的子虚拟DOM  h1虚拟DOM
    */
   function reconcileChildFibers(newFiber, oldFiberFirstChild, newChild) {
-    // 现在暂时只考虑新的节点只有一个的情况
+    // 单节点
     if (typeof newChild === 'object' && newChild !== null) {
       switch (newChild.$$typeof) {
         case REACT_ELEMENT_TYPE:
@@ -124,7 +164,7 @@ function createChildReconciler(shouldTrackSideEffects) {
           break
       }
     }
-    // newChild [hello文本节点,span虚拟DOM元素]
+    // 多节点
     if (isArray(newChild)) {
       return reconcileChildrenArray(newFiber, oldFiberFirstChild, newChild)
     }

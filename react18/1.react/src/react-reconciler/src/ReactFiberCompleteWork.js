@@ -3,7 +3,8 @@ import {
   createTextInstance,
   createInstance,
   appendInitialChild,
-  finalizeInitialChildren
+  finalizeInitialChildren,
+  prepareUpdate
 } from 'react-dom-bindings/src/client/ReactDOMHostConfig'
 import { NoFlags } from './ReactFiberFlags'
 import { HostComponent, HostRoot, HostText } from './ReactWorkTags'
@@ -25,13 +26,18 @@ export function completeWork(oldFiber, newFiber) {
     case HostComponent:
       // 现在只是在处理创建或者说挂载新节点的逻辑，后面此处分进行区分是初次挂载还是更新
       const { type } = newFiber
-      // 创建真实的DOM节点
-      const dom = createInstance(type, newProps, newFiber)
-      // 把自己所有的儿子都添加到自己的身上
-      appendAllChildren(dom, newFiber)
-      newFiber.stateNode = dom
-      // 处理已经完成挂载的dom 例如：设置dom属性等
-      finalizeInitialChildren(dom, type, newProps)
+      // 如果老fiber存在 且新fiber上存在真实dom 走更新逻辑
+      if (oldFiber !== null && newFiber.stateNode !== null) {
+        updateHostComponent(oldFiber, newFiber, type, newProps)
+      } else {
+        // 创建真实的DOM节点
+        const dom = createInstance(type, newProps, newFiber)
+        // 把自己所有的儿子都添加到自己的身上
+        appendAllChildren(dom, newFiber)
+        newFiber.stateNode = dom
+        // 处理已经完成挂载的dom 例如：设置dom属性等
+        finalizeInitialChildren(dom, type, newProps)
+      }
       bubbleProperties(newFiber)
       break
     case HostText:
@@ -78,6 +84,25 @@ function appendAllChildren(parentDom, curFiber) {
 }
 /**
  * @Author: wyb
+ * @Descripttion: 更新原生节点组件
+ * @param {*} oldFiber
+ * @param {*} newFiber
+ * @param {*} type
+ * @param {*} newProps
+ */
+function updateHostComponent(oldFiber, newFiber, type, newProps) {
+  const oldProps = oldFiber.memoizedProps // 老的属性
+  const newDom = newFiber.stateNode // 老的DOM节点
+  // 比较新老属性，收集属性的差异
+  const updatePayload = prepareUpdate(newDom, type, oldProps, newProps)
+  // 让原生组件的新fiber更新队列等于[] => [prop1, value1, prop2, value2]
+  newFiber.updateQueue = updatePayload
+  if (updatePayload) {
+    markUpdate(newFiber)
+  }
+}
+/**
+ * @Author: wyb
  * @Descripttion: 更新当前节点的subtreeFlags 就是子节点有什么操作 例如更新、插入等
  * @param {*} curFiber
  */
@@ -92,4 +117,12 @@ function bubbleProperties(curFiber) {
     child = child.sibling
   }
   curFiber.subtreeFlags = subtreeFlags
+}
+/**
+ * @Author: wyb
+ * @Descripttion: 给当前fiber标记更新
+ * @param {*} fiber
+ */
+function markUpdate(fiber) {
+  fiber.flags |= Update // 给当前的fiber添加更新的副作用
 }
