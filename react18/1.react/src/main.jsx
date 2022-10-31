@@ -63,10 +63,6 @@ function FunctionComponent() {
     if (action.type === 'add') return state + 1
     return state
   }, 0)
-  const [number1, setNumber1] = React.useReducer((state, action) => {
-    if (action.type === 'add') return state + 1
-    return state
-  }, 1)
 
   return (
     <button
@@ -74,7 +70,7 @@ function FunctionComponent() {
         setNumber({
           type: 'add'
         })
-        setNumber1({
+        setNumber({
           type: 'add'
         })
       }}

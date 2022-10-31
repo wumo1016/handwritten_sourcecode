@@ -5,16 +5,16 @@ import { scheduleUpdateOnFiber } from './ReactFiberWorkLoop'
 const { ReactCurrentDispatcher } = ReactSharedInternals
 let currentlyRenderingFiber = null
 let workInProgressHook = null
-// let currentHook = null
+let oldHook = null // 当前 hook 对应的老hook
 
 const HooksDispatcherOnMount = {
   useReducer: mountReducer
   // useState: mountState
 }
-// const HooksDispatcherOnUpdate = {
-//   useReducer: updateReducer,
-//   useState: updateState
-// }
+const HooksDispatcherOnUpdate = {
+  useReducer: updateReducer
+  // useState: updateState
+}
 
 /**
  * 渲染函数组件
@@ -26,19 +26,16 @@ const HooksDispatcherOnMount = {
  */
 export function renderWithHooks(oldFiber, newFiber, Component, props) {
   currentlyRenderingFiber = newFiber // Function组件对应的fiber
-  // //如果有老的fiber,并且有老的hook链表
-  // if (oldFiber !== null && oldFiber.memoizedState !== null) {
-  //   ReactCurrentDispatcher.oldFiber = HooksDispatcherOnUpdate
-  // } else {
-  //   ReactCurrentDispatcher.oldFiber = HooksDispatcherOnMount
-  // }
-  // 需要要函数组件执行前给ReactCurrentDispatcher.current赋值
-  ReactCurrentDispatcher.current = HooksDispatcherOnMount
-
+  // 如果有老的fiber,并且有老的hook链表
+  if (oldFiber !== null && oldFiber.memoizedState !== null) {
+    ReactCurrentDispatcher.current = HooksDispatcherOnUpdate
+  } else {
+    ReactCurrentDispatcher.current = HooksDispatcherOnMount
+  }
   const children = Component(props)
-  // currentlyRenderingFiber = null
-  // workInProgressHook = null
-  // currentHook = null
+  currentlyRenderingFiber = null
+  workInProgressHook = null
+  oldHook = null
   return children
 }
 /**
@@ -67,8 +64,7 @@ function mountReducer(reducer, initialArg) {
   hook.memoizedState = initialArg
   const queue = {
     pending: null,
-    dispatch: null,
-    key: initialArg
+    dispatch: null
   }
   hook.queue = queue
   const dispatch = dispatchReducerAction.bind(
@@ -116,6 +112,66 @@ function dispatchReducerAction(fiber, queue, action) {
   const root = enqueueConcurrentHookUpdate(fiber, queue, update)
   scheduleUpdateOnFiber(root)
 }
+/**
+ * @Author: wyb
+ * @Descripttion:
+ * @param {*} reducer
+ */
+function updateReducer(reducer) {
+  // 获取新的hook
+  const hook = updateWorkInProgressHook()
+  // 获取新的hook的更新队列
+  const queue = hook.queue
+  // 获取将要生效的更新队列
+  const pendingQueue = queue.pending
+  // 初始化一个新的状态，取值为当前的状态
+  let newState = oldHook.memoizedState
+  if (pendingQueue !== null) {
+    // 清空更新队列
+    queue.pending = null
+    const firstUpdate = pendingQueue.next
+    let update = firstUpdate
+    do {
+      // if (update.hasEagerState) {
+      //   newState = update.eagerState
+      // } else {
+      //   const action = update.action
+      //   newState = reducer(newState, action)
+      // }
+      newState = reducer(newState, update.action)
+      update = update.next
+    } while (update !== null && update !== firstUpdate)
+  }
+  hook.memoizedState = newState
+  return [hook.memoizedState, queue.dispatch]
+  return []
+}
+/**
+ * @Author: wyb
+ * @Descripttion: 构建新的 hook
+ */
+function updateWorkInProgressHook() {
+  // 获取将要构建的新的hook的老hook
+  if (oldHook === null) {
+    const current = currentlyRenderingFiber.alternate
+    oldHook = current.memoizedState
+  } else {
+    oldHook = oldHook.next
+  }
+  //根据老hook创建新hook
+  const newHook = {
+    memoizedState: oldHook.memoizedState,
+    queue: oldHook.queue,
+    next: null
+  }
+  // 构建新的hook链表
+  if (workInProgressHook === null) {
+    currentlyRenderingFiber.memoizedState = workInProgressHook = newHook
+  } else {
+    workInProgressHook = workInProgressHook.next = newHook
+  }
+  return workInProgressHook
+}
 
 //useState其实就是一个内置了reducer的useReducer
 function baseStateReducer(state, action) {
@@ -159,56 +215,4 @@ function dispatchSetState(fiber, queue, action) {
   // 下面是真正的入队更新，并调度更新逻辑
   const root = enqueueConcurrentHookUpdate(fiber, queue, update)
   scheduleUpdateOnFiber(root)
-}
-/**
- * 构建新的hooks
- */
-function updateWorkInProgressHook() {
-  //获取将要构建的新的hook的老hook
-  if (currentHook === null) {
-    const current = currentlyRenderingFiber.alternate
-    currentHook = current.memoizedState
-  } else {
-    currentHook = currentHook.next
-  }
-  //根据老hook创建新hook
-  const newHook = {
-    memoizedState: currentHook.memoizedState,
-    queue: currentHook.queue,
-    next: null
-  }
-  if (workInProgressHook === null) {
-    currentlyRenderingFiber.memoizedState = workInProgressHook = newHook
-  } else {
-    workInProgressHook = workInProgressHook.next = newHook
-  }
-  return workInProgressHook
-}
-function updateReducer(reducer) {
-  //获取新的hook
-  const hook = updateWorkInProgressHook()
-  //获取新的hook的更新队列
-  const queue = hook.queue
-  //获取老的hook
-  const current = currentHook
-  //获取将要生效的更新队列
-  const pendingQueue = queue.pending
-  //初始化一个新的状态，取值为当前的状态
-  let newState = current.memoizedState
-  if (pendingQueue !== null) {
-    queue.pending = null
-    const firstUpdate = pendingQueue.next
-    let update = firstUpdate
-    do {
-      if (update.hasEagerState) {
-        newState = update.eagerState
-      } else {
-        const action = update.action
-        newState = reducer(newState, action)
-      }
-      update = update.next
-    } while (update !== null && update !== firstUpdate)
-  }
-  hook.memoizedState = newState
-  return [hook.memoizedState, queue.dispatch]
 }
