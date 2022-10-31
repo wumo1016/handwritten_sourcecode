@@ -29,6 +29,7 @@ const root = createRoot(document.getElementById('root'))
 root.render(element)
 */
 
+/* 
 // 示例3-事件
 import { createRoot } from 'react-dom/client'
 function FunctionComponent() {
@@ -51,8 +52,8 @@ function FunctionComponent() {
 const element = <FunctionComponent />
 const root = createRoot(document.getElementById('root'))
 root.render(element)
+ */
 
-/* 
 // 示例4-useReducer
 import * as React from 'react'
 import { createRoot } from 'react-dom/client'
@@ -62,14 +63,21 @@ function FunctionComponent() {
     if (action.type === 'add') return state + 1
     return state
   }, 0)
+  const [number1, setNumber1] = React.useReducer((state, action) => {
+    if (action.type === 'add') return state + 1
+    return state
+  }, 1)
 
   return (
     <button
-      onClick={() =>
+      onClick={() => {
         setNumber({
           type: 'add'
         })
-      }
+        setNumber1({
+          type: 'add'
+        })
+      }}
     >
       {number}
     </button>
@@ -79,4 +87,3 @@ function FunctionComponent() {
 const element = <FunctionComponent />
 const root = createRoot(document.getElementById('root'))
 root.render(element)
- */

@@ -39,7 +39,6 @@ export function renderWithHooks(oldFiber, newFiber, Component, props) {
   // currentlyRenderingFiber = null
   // workInProgressHook = null
   // currentHook = null
-
   return children
 }
 /**
@@ -49,7 +48,7 @@ export function renderWithHooks(oldFiber, newFiber, Component, props) {
  * @param {*} initialArg
  */
 function mountReducer(reducer, initialArg) {
-  // 挂载构件中的hook
+  // 挂载构建中的hook
   const hook = mountWorkInProgressHook()
   /* 
   hook = {
@@ -62,12 +61,14 @@ function mountReducer(reducer, initialArg) {
       dispatch: dispatch
     },
     next: 指向下一个hook
-  }  
+  } 
+  fiber.memoizedState = hook
   */
   hook.memoizedState = initialArg
   const queue = {
     pending: null,
-    dispatch: null
+    dispatch: null,
+    key: initialArg
   }
   hook.queue = queue
   const dispatch = dispatchReducerAction.bind(
@@ -97,9 +98,8 @@ function mountWorkInProgressHook() {
     workInProgressHook.next = hook
     workInProgressHook = hook
   }
-  return workInProgressHook
+  return hook
 }
-
 /**
  * 执行派发动作的方法，它要更新状态，并且让界面重新更新
  * @param {*} fiber function对应的fiber
