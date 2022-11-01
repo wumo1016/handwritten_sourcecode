@@ -97,7 +97,6 @@ function updateHostComponent(oldFiber, newFiber) {
 export function mountIndeterminateComponent(oldFiber, newFiber, fn) {
   const props = newFiber.pendingProps
   const value = renderWithHooks(oldFiber, newFiber, fn, props)
-  console.log(value)
   newFiber.tag = FunctionComponent
   reconcileChildren(oldFiber, newFiber, value)
   return newFiber.child

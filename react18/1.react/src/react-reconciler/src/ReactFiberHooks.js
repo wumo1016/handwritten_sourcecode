@@ -144,7 +144,6 @@ function updateReducer(reducer) {
   }
   hook.memoizedState = newState
   return [hook.memoizedState, queue.dispatch]
-  return []
 }
 /**
  * @Author: wyb
@@ -170,7 +169,7 @@ function updateWorkInProgressHook() {
   } else {
     workInProgressHook = workInProgressHook.next = newHook
   }
-  return workInProgressHook
+  return newHook
 }
 
 //useState其实就是一个内置了reducer的useReducer
