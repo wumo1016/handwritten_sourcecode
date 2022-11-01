@@ -8,12 +8,12 @@ let workInProgressHook = null
 let oldHook = null // 当前 hook 对应的老hook
 
 const HooksDispatcherOnMount = {
-  useReducer: mountReducer
-  // useState: mountState
+  useReducer: mountReducer,
+  useState: mountState
 }
 const HooksDispatcherOnUpdate = {
-  useReducer: updateReducer
-  // useState: updateState
+  useReducer: updateReducer,
+  useState: updateState
 }
 
 /**
@@ -171,14 +171,11 @@ function updateWorkInProgressHook() {
   }
   return newHook
 }
-
-//useState其实就是一个内置了reducer的useReducer
-function baseStateReducer(state, action) {
-  return typeof action === 'function' ? action(state) : action
-}
-function updateState() {
-  return updateReducer(baseStateReducer)
-}
+/**
+ * @Author: wyb
+ * @Descripttion: 初次挂载 useState hook
+ * @param {*} initialState
+ */
 function mountState(initialState) {
   const hook = mountWorkInProgressHook()
   hook.memoizedState = initialState
@@ -196,6 +193,22 @@ function mountState(initialState) {
   ))
   return [hook.memoizedState, dispatch]
 }
+/**
+ * @Author: wyb
+ * @Descripttion:
+ * @param {*} state
+ * @param {*} action
+ */
+function baseStateReducer(state, action) {
+  return typeof action === 'function' ? action(state) : action
+}
+/**
+ * @Author: wyb
+ * @Descripttion:
+ * @param {*} fiber
+ * @param {*} queue
+ * @param {*} action
+ */
 function dispatchSetState(fiber, queue, action) {
   const update = {
     action,
@@ -214,4 +227,11 @@ function dispatchSetState(fiber, queue, action) {
   // 下面是真正的入队更新，并调度更新逻辑
   const root = enqueueConcurrentHookUpdate(fiber, queue, update)
   scheduleUpdateOnFiber(root)
+}
+/**
+ * @Author: wyb
+ * @Descripttion:
+ */
+function updateState() {
+  return updateReducer(baseStateReducer)
 }
