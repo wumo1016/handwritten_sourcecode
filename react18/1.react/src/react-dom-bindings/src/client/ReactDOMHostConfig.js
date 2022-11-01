@@ -1,5 +1,11 @@
+import { setValueForStyles } from './CSSPropertyOperations'
+import { setValueForProperty } from './DOMPropertyOperations'
 import { diffProperties, setInitialProperties } from './ReactDOMComponent'
 import { precacheFiberNode, updateFiberProps } from './ReactDOMComponentTree'
+import setTextContent from './setTextContent'
+
+const STYLE = 'style'
+const CHILDREN = 'children'
 
 export function shouldSetTextContent(type, props) {
   return (
@@ -77,7 +83,10 @@ export function insertBefore(parentInstance, child, beforeChild) {
 export function prepareUpdate(domElement, type, oldProps, newProps) {
   return diffProperties(domElement, type, oldProps, newProps)
 }
-
+/**
+ * @Author: wyb
+ * @Descripttion: 提交更新
+ */
 export function commitUpdate(
   domElement,
   updatePayload,
@@ -85,10 +94,45 @@ export function commitUpdate(
   oldProps,
   newProps
 ) {
+  // 更新dom上的属性
   updateProperties(domElement, updatePayload, type, oldProps, newProps)
+  // 缓存属性到dom上
   updateFiberProps(domElement, newProps)
 }
-
+/**
+ * @Author: wyb
+ * @Descripttion:
+ * @param {*} parentInstance
+ * @param {*} child
+ */
 export function removeChild(parentInstance, child) {
   parentInstance.removeChild(child)
+}
+/**
+ * @Author: wyb
+ * @Descripttion: 更新dom属性
+ * @param {*} domElement
+ * @param {*} updatePayload
+ */
+export function updateProperties(domElement, updatePayload) {
+  updateDOMProperties(domElement, updatePayload)
+}
+/**
+ * @Author: wyb
+ * @Descripttion: 更新dom属性
+ * @param {*} domElement
+ * @param {*} updatePayload
+ */
+function updateDOMProperties(domElement, updatePayload) {
+  for (let i = 0; i < updatePayload.length; i += 2) {
+    const propKey = updatePayload[i]
+    const propValue = updatePayload[i + 1]
+    if (propKey === STYLE) {
+      setValueForStyles(domElement, propValue)
+    } else if (propKey === CHILDREN) {
+      setTextContent(domElement, propValue)
+    } else {
+      setValueForProperty(domElement, propKey, propValue)
+    }
+  }
 }

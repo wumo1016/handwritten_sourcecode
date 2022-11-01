@@ -6,8 +6,14 @@ import {
   finalizeInitialChildren,
   prepareUpdate
 } from 'react-dom-bindings/src/client/ReactDOMHostConfig'
-import { NoFlags } from './ReactFiberFlags'
-import { HostComponent, HostRoot, HostText } from './ReactWorkTags'
+import { NoFlags, Update } from './ReactFiberFlags'
+
+import {
+  FunctionComponent,
+  HostComponent,
+  HostRoot,
+  HostText
+} from './ReactWorkTags'
 
 /**
  * 完成一个fiber节点
@@ -38,6 +44,9 @@ export function completeWork(oldFiber, newFiber) {
         // 处理已经完成挂载的dom 例如：设置dom属性等
         finalizeInitialChildren(dom, type, newProps)
       }
+      bubbleProperties(newFiber)
+      break
+    case FunctionComponent:
       bubbleProperties(newFiber)
       break
     case HostText:
@@ -98,6 +107,7 @@ function updateHostComponent(oldFiber, newFiber, type, newProps) {
   // 让原生组件的新fiber更新队列等于[] => [prop1, value1, prop2, value2]
   newFiber.updateQueue = updatePayload
   if (updatePayload) {
+    // 添加副作用
     markUpdate(newFiber)
   }
 }

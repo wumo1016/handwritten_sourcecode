@@ -64,8 +64,17 @@ function FunctionComponent() {
     return state
   }, 0)
 
+  let attrs = {
+    id: Date.now()
+  }
+  if (number == 2) {
+    delete attrs.id
+    attrs.style = { color: 'red' }
+  }
+
   return (
     <button
+      {...attrs}
       onClick={() => {
         setNumber({
           type: 'add'

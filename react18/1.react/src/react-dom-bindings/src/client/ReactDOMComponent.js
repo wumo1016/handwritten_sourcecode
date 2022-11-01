@@ -9,22 +9,22 @@ const CHILDREN = 'children'
  * @Descripttion:
  * @param {*} tag
  * @param {*} domElement
- * @param {*} nextProps
+ * @param {*} newProps
  */
-function setInitialDOMProperties(tag, domElement, nextProps) {
-  for (const propKey in nextProps) {
-    if (nextProps.hasOwnProperty(propKey)) {
-      const nextProp = nextProps[propKey]
+function setInitialDOMProperties(tag, domElement, newProps) {
+  for (const propKey in newProps) {
+    if (newProps.hasOwnProperty(propKey)) {
+      const newProp = newProps[propKey]
       if (propKey === STYLE) {
-        setValueForStyles(domElement, nextProp)
+        setValueForStyles(domElement, newProp)
       } else if (propKey == CHILDREN) {
-        if (typeof nextProp === 'string') {
-          setTextContent(domElement, nextProp)
-        } else if (typeof nextProp === 'number') {
-          setTextContent(domElement, `${nextProp}`)
+        if (typeof newProp === 'string') {
+          setTextContent(domElement, newProp)
+        } else if (typeof newProp === 'number') {
+          setTextContent(domElement, `${newProp}`)
         }
-      } else if (nextProp !== null) {
-        setValueForProperty(domElement, propKey, nextProp)
+      } else if (newProp !== null) {
+        setValueForProperty(domElement, propKey, newProp)
       }
     }
   }
@@ -44,28 +44,28 @@ export function setInitialProperties(domElement, tag, props) {
  * @Descripttion: 对比属性差异
  * @param {*} domElement
  * @param {*} tag
- * @param {*} lastProps
- * @param {*} nextProps
+ * @param {*} oldProps
+ * @param {*} newProps
  */
-export function diffProperties(domElement, tag, lastProps, nextProps) {
+export function diffProperties(domElement, tag, oldProps, newProps) {
   let updatePayload = null
-  let propKey
-  let styleName
   let styleUpdates = null
-  //处理属性的删除 如果说一个属性在老对象里有，新对象没有的话，那就意味着删除
-  for (propKey in lastProps) {
-    //如果新属性对象里有此属性，或者老的没有此属性，或者老的是个null
+  // 遍历老属性 - 删除属性
+  for (let propKey in oldProps) {
+    // 新有 || 旧无 => 继续下一个
     if (
-      nextProps.hasOwnProperty(propKey) ||
-      !lastProps.hasOwnProperty(propKey) ||
-      lastProps[propKey] === null
+      newProps.hasOwnProperty(propKey) ||
+      !oldProps.hasOwnProperty(propKey) ||
+      oldProps[propKey] === null
     ) {
       continue
     }
+    // 处理样式
     if (propKey === STYLE) {
-      const lastStyle = lastProps[propKey]
-      for (styleName in lastStyle) {
-        if (lastStyle.hasOwnProperty(styleName)) {
+      const oldStyle = oldProps[propKey]
+      // 遍历老样式
+      for (let styleName in oldStyle) {
+        if (oldStyle.hasOwnProperty(styleName)) {
           if (!styleUpdates) {
             styleUpdates = {}
           }
@@ -73,57 +73,62 @@ export function diffProperties(domElement, tag, lastProps, nextProps) {
         }
       }
     } else {
+      // 删除属性
       ;(updatePayload = updatePayload || []).push(propKey, null)
     }
   }
-  //遍历新的属性对象
-  for (propKey in nextProps) {
-    const nextProp = nextProps[propKey] //新属性中的值
-    const lastProp = lastProps !== null ? lastProps[propKey] : undefined //老属性中的值
+  // 遍历新属性 - 添加属性
+  for (let propKey in newProps) {
+    const newProp = newProps[propKey] // 新属性中的值
+    const oldProp = oldProps !== null ? oldProps[propKey] : undefined // 老属性中的值
+    // 新无 || 新旧相等 || 新旧都等于null => 继续下一个
     if (
-      !nextProps.hasOwnProperty(propKey) ||
-      nextProp === lastProp ||
-      (nextProp === null && lastProp === null)
+      !newProps.hasOwnProperty(propKey) ||
+      newProp === oldProp ||
+      (newProp === null && oldProp === null)
     ) {
       continue
     }
+    // 处理样式
     if (propKey === STYLE) {
-      if (lastProp) {
-        //计算要删除的行内样式
-        for (styleName in lastProp) {
-          //如果此样式对象里在的某个属性老的style里有，新的style里没有
+      const oldStyle = oldProp
+      if (oldStyle) {
+        // 计算要删除的行内样式
+        for (let styleName in oldStyle) {
+          // 老有新无 删除
           if (
-            lastProp.hasOwnProperty(styleName) &&
-            (!nextProp || !nextProp.hasOwnProperty(styleName))
+            oldStyle.hasOwnProperty(styleName) &&
+            (!newProp || !newProp.hasOwnProperty(styleName))
           ) {
             if (!styleUpdates) styleUpdates = {}
             styleUpdates[styleName] = ''
           }
         }
-        //遍历新的样式对象
-        for (styleName in nextProp) {
-          //如果说新的属性有，并且新属性的值和老属性不一样
+        // 遍历新的样式对象
+        const newStyle = newProp
+        for (let styleName in newStyle) {
+          // 如果说新的属性有，并且新属性的值和老属性不一样
           if (
-            nextProp.hasOwnProperty(styleName) &&
-            lastProp[styleName] !== nextProp[styleName]
+            newStyle.hasOwnProperty(styleName) &&
+            oldProp[styleName] !== newStyle[styleName]
           ) {
             if (!styleUpdates) styleUpdates = {}
-            styleUpdates[styleName] = nextProp[styleName]
+            styleUpdates[styleName] = newStyle[styleName]
           }
         }
       } else {
-        styleUpdates = nextProp
+        styleUpdates = newProp
       }
     } else if (propKey === CHILDREN) {
-      if (typeof nextProp === 'string' || typeof nextProp === 'number') {
-        ;(updatePayload = updatePayload || []).push(propKey, nextProp)
+      if (typeof newProp === 'string' || typeof newProp === 'number') {
+        ;(updatePayload = updatePayload || []).push(propKey, newProp)
       }
     } else {
-      ;(updatePayload = updatePayload || []).push(propKey, nextProp)
+      ;(updatePayload = updatePayload || []).push(propKey, newProp)
     }
   }
   if (styleUpdates) {
     ;(updatePayload = updatePayload || []).push(STYLE, styleUpdates)
   }
-  return updatePayload //[key1,value1,key2,value2]
+  return updatePayload // [key1,value1,key2,value2]
 }

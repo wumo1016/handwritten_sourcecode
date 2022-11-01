@@ -32,30 +32,23 @@ export function commitMutationEffectsOnFiber(fiber, root) {
       break
     }
     case HostComponent: {
-      //先遍历它们的子节点，处理它们的子节点上的副作用
+      // 先遍历它们的子节点，处理它们的子节点上的副作用
       recursivelyTraverseMutationEffects(root, fiber)
-      //再处理自己身上的副作用
+      // 再处理自己身上的副作用
       commitReconciliationEffects(fiber)
-      //处理DOM更新
+      // 处理DOM更新
       if (flags & Update) {
-        //获取真实DOM
-        const instance = fiber.stateNode
-        //更新真实DOM
-        if (instance !== null) {
+        // 获取真实DOM
+        const dom = fiber.stateNode
+        // 更新真实DOM
+        if (dom !== null) {
           const newProps = fiber.memoizedProps
           const oldProps = oldFiber !== null ? oldFiber.memoizedProps : newProps
           const type = fiber.type
           const updatePayload = fiber.updateQueue
           fiber.updateQueue = null
           if (updatePayload) {
-            commitUpdate(
-              instance,
-              updatePayload,
-              type,
-              oldProps,
-              newProps,
-              fiber
-            )
+            commitUpdate(dom, updatePayload, type, oldProps, newProps, fiber)
           }
         }
       }
