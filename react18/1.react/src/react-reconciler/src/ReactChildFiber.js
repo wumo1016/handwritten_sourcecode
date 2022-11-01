@@ -21,28 +21,27 @@ function createChildReconciler(shouldTrackSideEffects) {
   function reconcileSingleElement(parentFiber, oldFiberFirstChild, newChild) {
     // 新的虚拟DOM的key,也就是唯一标识
     const key = newChild.key // null
-    let child = oldFiberFirstChild // 老的FunctionComponent对应的fiber
-    while (child !== null) {
+    let childFiber = oldFiberFirstChild // 老的FunctionComponent对应的fiber
+    while (childFiber !== null) {
       // 判断此老fiber对应的key和新的虚拟DOM对象的key是否一样 null===null
-      if (child.key === key) {
+      if (childFiber.key === key) {
         // 判断老fiber对应的类型和新虚拟DOM元素对应的类型是否相同 p div
-        if (child.type === newChild.type) {
+        if (childFiber.type === newChild.type) {
           // 删除剩余的子节点
-          // deleteRemainingChildren(parentFiber, child.sibling)
+          // deleteRemainingChildren(parentFiber, childFiber.sibling)
           // 如果key一样，类型也一样，则认为此节点可以复用
-          const existing = useFiber(child, newChild.props)
+          const existing = useFiber(childFiber, newChild.props)
           existing.return = parentFiber
           return existing
         } else {
           //如果找到一key一样老fiber,但是类型不一样，不能此老fiber,把剩下的全部删除
-          // deleteRemainingChildren(parentFiber, child)
+          // deleteRemainingChildren(parentFiber, childFiber)
         }
       } else {
-        // deleteChild(parentFiber, child)
+        // deleteChild(parentFiber, childFiber)
       }
-      child = child.sibling
+      childFiber = childFiber.sibling
     }
-
     // 因为我们现实的初次挂载，老节点oldFiberFirstChild肯定是没有的
     // 根据虚拟DOM创建新的Fiber节点
     const newChildFiber = createFiberFromElement(newChild)

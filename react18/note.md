@@ -44,22 +44,46 @@
 
         - renderRootSync: 第一次从根部同步渲染
           - prepareFreshStack
-            - createWorkInProgress: 基于 oldFiber 和新属性创建一个 newFiber 和 oldFiber 使用 alternate 属性相互关联
-            - 将 创建的 newFiber 赋给 workInProgress
+            - createWorkInProgress: 基于 oldFiber 和新属性创建一个 newFiber， 并和 oldFiber 使用 alternate 属性相互关联
+              - 将 创建的 newFiber 赋给 workInProgress
+            - finishQueueingConcurrentUpdates: 将 concurrentQueue 三个一组拿出来构建 hook 的 queue 的循环链表
           - workLoopSync
             - performUnitOfWork
               - beginWork: 构建 fiber 树
                 - case 未决定组件：mountIndeterminateComponent (一种是函数组件，一种是类组件，但是它们都是都是函数)
                   - renderWithHooks
+                    - 设置 ReactCurrentDispatcher.current 的值
+                      - 首次挂载: HooksDispatcherOnMount
+                        - useReducer: mountReducer
+                          - mountWorkInProgressHook (创建一个新的 hook， 并将 hook 绑定到 fiber 的 memoizedState 上)
+                          - dispatchReducerAction => dispatch
+                            - enqueueConcurrentHookUpdate
+                              - enqueueUpdate: 将 fiber, queue, update 三个一组添加 concurrentQueue 中， concurrentQueuesIndex 递增
+                              - getRootForUpdatedFiber: 返回根节点
+                            - scheduleUpdateOnFiber: 执行重新渲染
+                      - 更新: HooksDispatcherOnUpdate
+                        - useReducer: updateReducer
+                          - updateWorkInProgressHook: 创建一个新的 hook
+                          - 然后遍历 hook 的 queue
+                            - 执行传入的 reducer，并更新 hook 状态，并返回
                     - 执行函数 获取子 vdom
-                  - reconcileChildren
+                  - reconcileChildren: 根据 fiber 创建真实 dom
+                    - 有老 fiber: reconcileChildFibers => 需要设置副作用
+                    - 无老 fiber: reconcileChildFibers => 无需设置副作用
+                    - reconcileChildFibers(以上两个方法走的都是)
+                      - 单节点
+                        - reconcileSingleElement
+                          - 遍历子 fiber
+                            - key 一致
+                              - type 一致
+                                - useFiber 复用老 fiber，并更新 props，然后直接返回当前 fiber
+                              - type 不一致
+                            - key 不一致，删除当前 child
+                        - placeSingleChild
                   - 然后返回刚刚创建的子 fiber
                 - case 根组件：updateHostRoot
                   - processUpdateQueue: 将虚拟 dom 从 updateQueue 保存到当前 fiber 的 memoizedState 上
                   - reconcileChildren
-                    - 根据子 vdom 创建子 fiber 然后赋值给 父 fiber.child
-                    - 子 fiber 的 props 就是 vdom 的 props
-                    - 如果当前只有一个文本子节点 则不创建子 fiber
                   - 然后返回刚刚创建的子 fiber
                 - case 原生节点组件: updateHostComponent
                   - reconcileChildren
@@ -72,9 +96,15 @@
                 - completeWork
                   - case 根组件 => bubbleProperties
                   - case 原生节点组件 => bubbleProperties
-                    - 创建真是 dom 节点 并赋值给 fiber.stateNode
-                    - appendAllChildren: 把所有儿子节点都添加到自己身上
-                    - finalizeInitialChildren: 处理 dom 例如：设置 dom 属性等 (纯文本节点的文本内容就是在这添加上去的)
+                    - 新建
+                      - 创建真是 dom 节点 并赋值给 fiber.stateNode
+                      - appendAllChildren: 把所有儿子节点都添加到自己身上
+                      - finalizeInitialChildren: 处理 dom 例如：设置 dom 属性等 (纯文本节点的文本内容就是在这添加上去的)
+                    - 更新
+                      - updateHostComponent
+                        - prepareUpdate
+                          - diffProperties
+                        - markUpdate
                   - case 文本组件: 创建一个真实的文本节点 并赋值给 fiber.stateNode => bubbleProperties
         - commitRoot: 提交根节点
 
@@ -126,6 +156,10 @@
 ## hooks
 
 - useReducer
+  - React.useReducer(ReactHooks.js)
+    - resolveDispatcher => ReactCurrentDispatcher.current 拿到的实际就是在 renderWithHooks 中定义的 useReducer
+    - useReducer => [state, setFn]
+      - setFn 实际执行的就是在 renderWithHooks 中定义的 dispatchReducerAction
 
 ## 备注
 
