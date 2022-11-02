@@ -85,6 +85,8 @@
                   - processUpdateQueue: 将虚拟 dom 从 updateQueue 保存到当前 fiber 的 memoizedState 上
                   - reconcileChildren
                   - 然后返回刚刚创建的子 fiber
+                - case 函数组件
+                  - updateFunctionComponent: 更新时走，效果同 mountIndeterminateComponent
                 - case 原生节点组件: updateHostComponent
                   - reconcileChildren
                   - 然后返回刚刚创建的子 fiber
@@ -95,6 +97,7 @@
               - completeUnitOfWork: 根据 fiber 创建节点 并添加
                 - completeWork
                   - case 根组件 => bubbleProperties
+                  - case 函数组件 => bubbleProperties
                   - case 原生节点组件 => bubbleProperties
                     - 新建
                       - 创建真是 dom 节点 并赋值给 fiber.stateNode
@@ -103,7 +106,7 @@
                     - 更新
                       - updateHostComponent
                         - prepareUpdate
-                          - diffProperties
+                          - diffProperties => [key1, value1, key2, value2 ...] 并保存到当前 fiber 的 updateQueue 上
                         - markUpdate
                   - case 文本组件: 创建一个真实的文本节点 并赋值给 fiber.stateNode => bubbleProperties
         - commitRoot: 提交根节点
@@ -115,6 +118,10 @@
             - commitReconciliationEffects: 再处理自己身上的副作用
               - commitPlacement: 如果当前 fiber 是新增，将自己插入到父节点中
             - 如果是原生节点 fiber
+              - 有更新 && fiber 的 updateQueue 有值
+                - commitUpdate
+                  - updateProperties: 更新 dom 上的属性 包括 children、style，纯文本节点就是在这更新的内容
+                  - updateFiberProps: 缓存属性到 dom 上
 
 ## 事件处理
 

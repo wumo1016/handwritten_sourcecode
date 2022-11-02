@@ -9,22 +9,22 @@ const CHILDREN = 'children'
  * @Descripttion:
  * @param {*} tag
  * @param {*} domElement
- * @param {*} newProps
+ * @param {*} props
  */
-function setInitialDOMProperties(tag, domElement, newProps) {
-  for (const propKey in newProps) {
-    if (newProps.hasOwnProperty(propKey)) {
-      const newProp = newProps[propKey]
-      if (propKey === STYLE) {
-        setValueForStyles(domElement, newProp)
-      } else if (propKey == CHILDREN) {
-        if (typeof newProp === 'string') {
-          setTextContent(domElement, newProp)
-        } else if (typeof newProp === 'number') {
-          setTextContent(domElement, `${newProp}`)
+function setInitialDOMProperties(tag, domElement, props) {
+  for (const key in props) {
+    if (props.hasOwnProperty(key)) {
+      const value = props[key]
+      if (key === STYLE) {
+        setValueForStyles(domElement, value)
+      } else if (key == CHILDREN) {
+        if (typeof value === 'string') {
+          setTextContent(domElement, value)
+        } else if (typeof value === 'number') {
+          setTextContent(domElement, `${value}`)
         }
-      } else if (newProp !== null) {
-        setValueForProperty(domElement, propKey, newProp)
+      } else if (value !== null) {
+        setValueForProperty(domElement, key, value)
       }
     }
   }

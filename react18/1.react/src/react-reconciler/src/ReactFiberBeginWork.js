@@ -25,9 +25,7 @@ export function beginWork(oldFiber, newFiber) {
     case IndeterminateComponent:
       return mountIndeterminateComponent(oldFiber, newFiber, newFiber.type)
     case FunctionComponent: {
-      const Component = newFiber.type
-      const nextProps = newFiber.pendingProps
-      return updateFunctionComponent(oldFiber, newFiber, Component, nextProps)
+      return updateFunctionComponent(oldFiber, newFiber, newFiber.type)
     }
     case HostRoot:
       return updateHostRoot(oldFiber, newFiber)
@@ -97,30 +95,24 @@ function updateHostComponent(oldFiber, newFiber) {
  * 挂载函数组件
  * @param {*} oldFiber  老fiber
  * @param {*} newFiber 新的fiber
- * @param {*} fn 组件类型，也就是函数组件的定义
+ * @param {*} type 组件类型，也就是函数组件的定义
  */
-export function mountIndeterminateComponent(oldFiber, newFiber, fn) {
+export function mountIndeterminateComponent(oldFiber, newFiber, type) {
   const props = newFiber.pendingProps
-  const value = renderWithHooks(oldFiber, newFiber, fn, props)
+  const value = renderWithHooks(oldFiber, newFiber, type, props)
   newFiber.tag = FunctionComponent
   reconcileChildren(oldFiber, newFiber, value)
   return newFiber.child
 }
 /**
- * @Author: wyb
- * @Descripttion: 更新函数组件
- * @param {*} oldFiber
- * @param {*} newFiber
- * @param {*} Component
- * @param {*} nextProps
+ * 更新函数组件
+ * @param {*} oldFiber  老fiber
+ * @param {*} newFiber 新的fiber
+ * @param {*} type 组件类型，也就是函数组件的定义
  */
-export function updateFunctionComponent(
-  oldFiber,
-  newFiber,
-  Component,
-  nextProps
-) {
-  const value = renderWithHooks(oldFiber, newFiber, Component, nextProps)
+export function updateFunctionComponent(oldFiber, newFiber, type) {
+  const nextProps = newFiber.pendingProps
+  const value = renderWithHooks(oldFiber, newFiber, type, nextProps)
   reconcileChildren(oldFiber, newFiber, value)
   return newFiber.child
 }
