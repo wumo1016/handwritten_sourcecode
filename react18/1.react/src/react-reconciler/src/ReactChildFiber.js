@@ -28,14 +28,14 @@ function createChildReconciler(shouldTrackSideEffects) {
         // 判断老fiber对应的类型和新虚拟DOM元素对应的类型是否相同 p div
         if (childFiber.type === newChild.type) {
           // 删除剩余的子节点
-          // deleteRemainingChildren(parentFiber, childFiber.sibling)
+          deleteRemainingChildren(parentFiber, childFiber.sibling)
           // 如果key一样，类型也一样，则认为此节点可以复用
           const existing = useFiber(childFiber, newChild.props)
           existing.return = parentFiber
           return existing
         } else {
-          //如果找到一key一样老fiber,但是类型不一样，不能此老fiber,把剩下的全部删除
-          // deleteRemainingChildren(parentFiber, childFiber)
+          // key一样，type不一样，也就是不能复用，把子节点全部删除
+          deleteRemainingChildren(parentFiber, childFiber)
         }
       } else {
         deleteChild(parentFiber, childFiber)
@@ -47,6 +47,37 @@ function createChildReconciler(shouldTrackSideEffects) {
     const newChildFiber = createFiberFromElement(newChild)
     newChildFiber.return = parentFiber
     return newChildFiber
+  }
+  /**
+   * @Author: wyb
+   * @Descripttion: 删除从 currentFirstChild 之后所有的fiber节点
+   * @param {*} parentFiber
+   * @param {*} currentFirstChild
+   */
+  function deleteRemainingChildren(parentFiber, currentFirstChild) {
+    if (!shouldTrackSideEffects) return
+    let childToDelete = currentFirstChild
+    while (childToDelete !== null) {
+      deleteChild(parentFiber, childToDelete)
+      childToDelete = childToDelete.sibling
+    }
+    return null
+  }
+  /**
+   * @Author: wyb
+   * @Descripttion:
+   * @param {*} parentFiber
+   * @param {*} childToDelete
+   */
+  function deleteChild(parentFiber, childToDelete) {
+    if (!shouldTrackSideEffects) return
+    const deletions = parentFiber.deletions
+    if (deletions === null) {
+      parentFiber.deletions = [childToDelete]
+      parentFiber.flags |= ChildDeletion
+    } else {
+      parentFiber.deletions.push(childToDelete)
+    }
   }
   /**
    * @Author: wyb
