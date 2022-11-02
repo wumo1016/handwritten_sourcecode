@@ -132,17 +132,20 @@ function updateReducer(reducer) {
     const firstUpdate = pendingQueue.next
     let update = firstUpdate
     do {
-      // if (update.hasEagerState) {
-      //   newState = update.eagerState
-      // } else {
-      //   const action = update.action
-      //   newState = reducer(newState, action)
-      // }
-      newState = reducer(newState, update.action)
+      // 如果已经计算过 直接取值
+      if (update.hasEagerState) {
+        newState = update.eagerState
+      } else {
+        const action = update.action
+        newState = reducer(newState, action)
+      }
       update = update.next
     } while (update !== null && update !== firstUpdate)
   }
   hook.memoizedState = newState
+  if (queue.lastRenderedState !== undefined) {
+    queue.lastRenderedState = newState
+  }
   return [hook.memoizedState, queue.dispatch]
 }
 /**
@@ -182,8 +185,8 @@ function mountState(initialState) {
   const queue = {
     pending: null,
     dispatch: null,
-    lastRenderedReducer: baseStateReducer, //上一个reducer
-    lastRenderedState: initialState //上一个state
+    lastRenderedReducer: baseStateReducer, // 上一个reducer
+    lastRenderedState: initialState // 上一个state
   }
   hook.queue = queue
   const dispatch = (queue.dispatch = dispatchSetState.bind(
@@ -195,7 +198,7 @@ function mountState(initialState) {
 }
 /**
  * @Author: wyb
- * @Descripttion:
+ * @Descripttion: 内置的useState的reducer函数
  * @param {*} state
  * @param {*} action
  */
@@ -212,8 +215,8 @@ function baseStateReducer(state, action) {
 function dispatchSetState(fiber, queue, action) {
   const update = {
     action,
-    hasEagerState: false, //是否有急切的更新
-    eagerState: null, //急切的更新状态
+    hasEagerState: false, // 是否计算过
+    eagerState: null, // 计算过的状态
     next: null
   }
   // 当你派发动作后，我立刻用上一次的状态和上一次的reducer计算新状态
@@ -230,7 +233,7 @@ function dispatchSetState(fiber, queue, action) {
 }
 /**
  * @Author: wyb
- * @Descripttion:
+ * @Descripttion: 更新时 hook 的方法
  */
 function updateState() {
   return updateReducer(baseStateReducer)

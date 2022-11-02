@@ -99,11 +99,17 @@ import { createRoot } from 'react-dom/client'
 
 function FunctionComponent() {
   const [number, setNumber] = React.useState(0)
-
+  // 如果setNumber传入的值和当前的一样 不需要更新
   return (
     <button
       onClick={() => {
-        setNumber(number + 1)
+        // setNumber(number + 1)
+
+        // setNumber(number)
+        // setNumber(number + 1)
+        // setNumber(number + 2)
+
+        setNumber((value) => value + 2)
       }}
     >
       {number}
