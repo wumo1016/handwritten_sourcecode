@@ -168,6 +168,10 @@
     - useReducer => [state, setFn]
       - setFn 实际执行的就是在 renderWithHooks 中定义的 dispatchReducerAction
 - useState: 是 useReducer 的一个简化(内置了 reducer)
+  - React.useState(ReactHooks.js)
+    - resolveDispatcher => ReactCurrentDispatcher.current 拿到的实际就是在 renderWithHooks 中定义的 useState
+    - useState => [state, setFn]
+      - setFn 实际执行的就是在 renderWithHooks 中定义的 dispatchReducerAction
 
 ## 备注
 
