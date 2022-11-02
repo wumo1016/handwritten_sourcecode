@@ -4,7 +4,7 @@ import {
   createFiberFromText,
   createWorkInProgress
 } from './ReactFiber'
-import { Placement } from './ReactFiberFlags'
+import { ChildDeletion, Placement } from './ReactFiberFlags'
 import isArray from 'shared/isArray'
 
 /**
@@ -38,7 +38,7 @@ function createChildReconciler(shouldTrackSideEffects) {
           // deleteRemainingChildren(parentFiber, childFiber)
         }
       } else {
-        // deleteChild(parentFiber, childFiber)
+        deleteChild(parentFiber, childFiber)
       }
       childFiber = childFiber.sibling
     }
@@ -144,6 +144,22 @@ function createChildReconciler(shouldTrackSideEffects) {
       previousNewFiber = newChildFiber
     }
     return resultingFirstChild
+  }
+  /**
+   * @Author: wyb
+   * @Descripttion:
+   * @param {*} parentFiber
+   * @param {*} childToDelete
+   */
+  function deleteChild(parentFiber, childToDelete) {
+    if (!shouldTrackSideEffects) return
+    const deletions = parentFiber.deletions
+    if (deletions === null) {
+      parentFiber.deletions = [childToDelete]
+      parentFiber.flags |= ChildDeletion
+    } else {
+      parentFiber.deletions.push(childToDelete)
+    }
   }
   /**
    * 比较子Fibers  DOM-DIFF 就是用老的子fiber链表和新的虚拟DOM进行比较的过程

@@ -49,6 +49,7 @@ export function FiberNode(tag, pendingProps, key) {
   this.subtreeFlags = NoFlags // 子节点对应的副使用标识
   this.alternate = null // 替身，轮替 dom diff时使用
   this.index = 0 // 此fiber在兄弟节点中的位置
+  this.deletions = null // 待删除的子fiber
 }
 /**
  * @Author: wyb

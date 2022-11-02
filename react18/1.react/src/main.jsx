@@ -92,8 +92,8 @@ function FunctionComponent() {
 const element = <FunctionComponent />
 const root = createRoot(document.getElementById('root'))
 root.render(element) */
-
-// 示例5-
+/* 
+// 示例5-useState
 import * as React from 'react'
 import { createRoot } from 'react-dom/client'
 
@@ -114,6 +114,37 @@ function FunctionComponent() {
     >
       {number}
     </button>
+  )
+}
+
+const element = <FunctionComponent />
+const root = createRoot(document.getElementById('root'))
+root.render(element) */
+
+// 示例5-diff key不一样，type一样
+import * as React from 'react'
+import { createRoot } from 'react-dom/client'
+
+function FunctionComponent() {
+  const [number, setNumber] = React.useState(0)
+  return number === 0 ? (
+    <div
+      key="title1"
+      onClick={() => {
+        setNumber(number + 1)
+      }}
+    >
+      title1
+    </div>
+  ) : (
+    <div
+      key="title2"
+      onClick={() => {
+        setNumber(number + 1)
+      }}
+    >
+      title2
+    </div>
   )
 }
 
