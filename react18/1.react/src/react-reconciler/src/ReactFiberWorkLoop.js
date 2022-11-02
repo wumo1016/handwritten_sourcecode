@@ -2,9 +2,20 @@ import { scheduleCallback } from 'scheduler'
 import { createWorkInProgress } from './ReactFiber'
 import { beginWork } from './ReactFiberBeginWork'
 import { completeWork } from './ReactFiberCompleteWork'
-import { NoFlags, MutationMask, Placement, Update } from './ReactFiberFlags'
+import {
+  NoFlags,
+  MutationMask,
+  Placement,
+  Update,
+  ChildDeletion
+} from './ReactFiberFlags'
 import { commitMutationEffectsOnFiber } from './ReactFiberCommitWork'
-import { HostComponent, HostRoot, HostText } from './ReactWorkTags'
+import {
+  FunctionComponent,
+  HostComponent,
+  HostRoot,
+  HostText
+} from './ReactWorkTags'
 import { finishQueueingConcurrentUpdates } from './ReactFiberConcurrentUpdates'
 
 // 正在进行的工作 当前 fiber 防止同步修改多次渲染
@@ -125,7 +136,7 @@ function completeUnitOfWork(unitOfWork) {
  */
 function commitRoot(root) {
   const { finishedWork } = root
-  // printFinishedWork(finishedWork)
+  printFinishedWork(finishedWork)
   // 判断子树有没有副作用 就是有没有新增或修改
   const subtreeHasEffects =
     (finishedWork.subtreeFlags & MutationMask) !== NoFlags
@@ -144,16 +155,25 @@ function commitRoot(root) {
  * @param {*} fiber
  */
 function printFinishedWork(fiber) {
+  const { flags, deletions } = fiber
+  if ((flags & ChildDeletion) !== NoFlags) {
+    fiber.flags &= ~ChildDeletion
+    console.log(
+      '子节点有删除' +
+        deletions.map((fiber) => `${fiber.type}#${fiber.key}`).join(',')
+    )
+  }
   let child = fiber.child
   while (child) {
     printFinishedWork(child)
     child = child.sibling
   }
-  if (fiber.flags !== 0) {
+
+  if (fiber.flags !== NoFlags) {
     console.log(
-      getFlags(fiber.flags),
+      getFlags(fiber),
       getTag(fiber.tag),
-      fiber.type,
+      typeof fiber.type === 'function' ? fiber.type.name : fiber.type,
       fiber.memoizedProps
     )
   }
@@ -163,7 +183,11 @@ function printFinishedWork(fiber) {
  * @Descripttion:
  * @param {*} flags
  */
-function getFlags(flags) {
+function getFlags(fiber) {
+  const { flags, deletions } = fiber
+  if (flags === (Placement | Update)) {
+    return '移动'
+  }
   if (flags === Placement) {
     return '插入'
   }
@@ -181,6 +205,8 @@ function getTag(tag) {
   switch (tag) {
     case HostRoot:
       return 'HostRoot'
+    case FunctionComponent:
+      return 'FunctionComponent'
     case HostComponent:
       return 'HostComponent'
     case HostText:
