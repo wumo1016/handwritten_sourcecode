@@ -121,7 +121,7 @@ const element = <FunctionComponent />
 const root = createRoot(document.getElementById('root'))
 root.render(element) */
 /* 
-// 示例5-diff key不一样，type一样
+// 示例5-单节点diff key不一样，type一样
 import * as React from 'react'
 import { createRoot } from 'react-dom/client'
 
@@ -152,30 +152,24 @@ const element = <FunctionComponent />
 const root = createRoot(document.getElementById('root'))
 root.render(element) */
 
-// 示例5-diff key一样，type不一样
+// 示例5-多节点diff1
 import * as React from 'react'
 import { createRoot } from 'react-dom/client'
 
 function FunctionComponent() {
   const [number, setNumber] = React.useState(0)
   return number === 0 ? (
-    <h1
-      key="title"
-      onClick={() => {
-        setNumber(number + 1)
-      }}
-    >
-      title1
-    </h1>
+    <ul onClick={() => setNumber(number + 1)}>
+      <li key="A">A</li>
+      <li key="B">B</li>
+      <li key="C">C</li>
+    </ul>
   ) : (
-    <div
-      key="title"
-      onClick={() => {
-        setNumber(number + 1)
-      }}
-    >
-      title2
-    </div>
+    <ul>
+      <li key="A">A1</li>
+      <li key="B">B</li>
+      <li key="C">C1</li>
+    </ul>
   )
 }
 

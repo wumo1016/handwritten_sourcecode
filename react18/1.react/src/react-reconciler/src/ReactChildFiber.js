@@ -106,6 +106,113 @@ function createChildReconciler(shouldTrackSideEffects) {
   }
   /**
    * @Author: wyb
+   * @Descripttion:
+   * @param {*} parentFiber
+   * @param {*} childToDelete
+   */
+  function deleteChild(parentFiber, childToDelete) {
+    if (!shouldTrackSideEffects) return
+    const deletions = parentFiber.deletions
+    if (deletions === null) {
+      parentFiber.deletions = [childToDelete]
+      parentFiber.flags |= ChildDeletion
+    } else {
+      parentFiber.deletions.push(childToDelete)
+    }
+  }
+  /**
+   * @Author: wyb
+   * @Descripttion: 多节点
+   * @param {*} parentFiber
+   * @param {*} oldFiberFirstChild
+   * @param {*} newChildren
+   */
+  function reconcileChildrenArray(
+    parentFiber,
+    oldFiberFirstChild,
+    newChildren
+  ) {
+    let resultingFirstChild = null // 返回的第一个新儿子
+    let previousNewFiber = null // 上一个的一个新的fiber
+
+    let oldFiber = oldFiberFirstChild // 第一个老fiber
+    let nextOldFiber = null // 下一个老fiber
+
+    // 遍历新孩子 老fiber不等于null 且 索引小于子的长度
+    for (
+      let newIdx = 0;
+      oldFiber !== null && newIdx < newChildren.length;
+      newIdx++
+    ) {
+      // 先暂存下一个老fiber
+      nextOldFiber = oldFiber.sibling
+      // 试图更新或者试图复用老的fiber
+      const newFiber = updateSlot(parentFiber, oldFiber, newChildren[newIdx])
+    }
+
+    // for (let newIdx = 0; newIdx < newChildren.length; newIdx++) {
+    //   const newChildFiber = createChild(parentFiber, newChildren[newIdx])
+    //   if (newChildFiber === null) continue
+    //   placeChild(newChildFiber, newIdx)
+    //   // 如果previousNewFiber为null，说明这是第一个fiber
+    //   if (previousNewFiber === null) {
+    //     resultingFirstChild = newChildFiber //这个 newChildFiber 就是大儿子
+    //   } else {
+    //     // 否则说明不是大儿子，就把这个 newChildFiber 添加上一个子节点后面
+    //     previousNewFiber.sibling = newChildFiber
+    //   }
+    //   // 让 newChildFiber 成为最后一个或者说上一个子fiber
+    //   previousNewFiber = newChildFiber
+    // }
+    return resultingFirstChild
+  }
+  /**
+   * @Author: wyb
+   * @Descripttion: 试图更新或者试图复用老的fiber
+   * @param {*} parentFiber
+   * @param {*} oldFiber
+   * @param {*} newChild
+   */
+  function updateSlot(parentFiber, oldFiber, newChild) {
+    const key = oldFiber !== null ? oldFiber.key : null
+    // 新孩子是一个对象
+    if (newChild !== null && typeof newChild === 'object') {
+      switch (newChild.$$typeof) {
+        case REACT_ELEMENT_TYPE: {
+          // 如果key一样，进入更新元素的逻辑
+          if (newChild.key === key) {
+            return updateElement(parentFiber, oldFiber, newChild)
+          }
+        }
+        default:
+          return null
+      }
+    }
+    return null
+  }
+  /**
+   * @Author: wyb
+   * @Descripttion:
+   * @param {*} parentFiber
+   * @param {*} current
+   * @param {*} element
+   */
+  function updateElement(parentFiber, current, element) {
+    const elementType = element.type
+    if (current !== null) {
+      //判断是否类型一样，则表示key和type都一样，可以复用老的fiber和真实DOM
+      if (current.type === elementType) {
+        const existing = useFiber(current, element.props)
+        existing.return = parentFiber
+        return existing
+      }
+    }
+    const created = createFiberFromElement(element)
+    created.return = parentFiber
+    return created
+  }
+  /**
+   * @Author: wyb
    * @Descripttion: 创建一个子 fiber
    * @param {*} parentFiber
    * @param {*} newChild
@@ -147,49 +254,6 @@ function createChildReconciler(shouldTrackSideEffects) {
       //如果父fiber节点是初次挂载，shouldTrackSideEffects=false,不需要添加flags
       //这种情况下会在完成阶段把所有的子节点全部添加到自己身上
       newFiber.flags |= Placement
-    }
-  }
-  /**
-   * @Author: wyb
-   * @Descripttion:
-   * @param {*} newFiber
-   * @param {*} oldFiberFirstChild
-   * @param {*} newChildren
-   */
-  function reconcileChildrenArray(newFiber, oldFiberFirstChild, newChildren) {
-    let resultingFirstChild = null // 返回的第一个新儿子
-    let previousNewFiber = null // 上一个的一个新的fiber
-    let newIdx = 0
-    for (; newIdx < newChildren.length; newIdx++) {
-      const newChildFiber = createChild(newFiber, newChildren[newIdx])
-      if (newChildFiber === null) continue
-      placeChild(newChildFiber, newIdx)
-      // 如果previousNewFiber为null，说明这是第一个fiber
-      if (previousNewFiber === null) {
-        resultingFirstChild = newChildFiber //这个 newChildFiber 就是大儿子
-      } else {
-        // 否则说明不是大儿子，就把这个 newChildFiber 添加上一个子节点后面
-        previousNewFiber.sibling = newChildFiber
-      }
-      // 让 newChildFiber 成为最后一个或者说上一个子fiber
-      previousNewFiber = newChildFiber
-    }
-    return resultingFirstChild
-  }
-  /**
-   * @Author: wyb
-   * @Descripttion:
-   * @param {*} parentFiber
-   * @param {*} childToDelete
-   */
-  function deleteChild(parentFiber, childToDelete) {
-    if (!shouldTrackSideEffects) return
-    const deletions = parentFiber.deletions
-    if (deletions === null) {
-      parentFiber.deletions = [childToDelete]
-      parentFiber.flags |= ChildDeletion
-    } else {
-      parentFiber.deletions.push(childToDelete)
     }
   }
   /**
