@@ -137,33 +137,83 @@ function createChildReconciler(shouldTrackSideEffects) {
 
     let oldFiber = oldFiberFirstChild // 第一个老fiber
     let nextOldFiber = null // 下一个老fiber
+    let lastPlacedIndex = 0 // 上一个不需要移动的老节点的索引
+    let newIdx = 0
 
     // 遍历新孩子 老fiber不等于null 且 索引小于子的长度
-    for (
-      let newIdx = 0;
-      oldFiber !== null && newIdx < newChildren.length;
-      newIdx++
-    ) {
+    for (; oldFiber !== null && newIdx < newChildren.length; newIdx++) {
       // 先暂存下一个老fiber
       nextOldFiber = oldFiber.sibling
       // 试图更新或者试图复用老的fiber
       const newFiber = updateSlot(parentFiber, oldFiber, newChildren[newIdx])
+      if (newFiber === null) {
+        break
+      }
+      if (shouldTrackSideEffects) {
+        // 如果是新创建的fiber 就删除老fiber
+        if (oldFiber && newFiber.alternate === null) {
+          deleteChild(parentFiber, oldFiber)
+        }
+      }
+      // 指定新fiber的位置
+      lastPlacedIndex = placeChild(newFiber, lastPlacedIndex, newIdx)
+      if (previousNewFiber === null) {
+        // 指定新头fiber
+        resultingFirstChild = newFiber
+      } else {
+        // 构建新链表
+        previousNewFiber.sibling = newFiber
+      }
+      // 执行新尾
+      previousNewFiber = newFiber
+      // 更新老fiber
+      oldFiber = nextOldFiber
     }
-
-    // for (let newIdx = 0; newIdx < newChildren.length; newIdx++) {
-    //   const newChildFiber = createChild(parentFiber, newChildren[newIdx])
-    //   if (newChildFiber === null) continue
-    //   placeChild(newChildFiber, newIdx)
-    //   // 如果previousNewFiber为null，说明这是第一个fiber
-    //   if (previousNewFiber === null) {
-    //     resultingFirstChild = newChildFiber //这个 newChildFiber 就是大儿子
-    //   } else {
-    //     // 否则说明不是大儿子，就把这个 newChildFiber 添加上一个子节点后面
-    //     previousNewFiber.sibling = newChildFiber
-    //   }
-    //   // 让 newChildFiber 成为最后一个或者说上一个子fiber
-    //   previousNewFiber = newChildFiber
-    // }
+    // 新虚拟dom已经循环完毕，但还有老fiber，就删除删除剩下的老fiber
+    if (newIdx === newChildren.length && oldFiber) {
+      deleteRemainingChildren(parentFiber, oldFiber)
+      return resultingFirstChild
+    }
+    if (oldFiber === null) {
+      // 如果老fiber没有了，新的虚拟dom还有，就插入剩余的
+      for (; newIdx < newChildren.length; newIdx++) {
+        const newChildFiber = createChild(parentFiber, newChildren[newIdx])
+        if (newChildFiber === null) continue
+        placeChild(newChildFiber, newIdx)
+        // 如果previousNewFiber为null，说明这是第一个fiber
+        if (previousNewFiber === null) {
+          resultingFirstChild = newChildFiber //这个 newChildFiber 就是大儿子
+        } else {
+          // 否则说明不是大儿子，就把这个 newChildFiber 添加上一个子节点后面
+          previousNewFiber.sibling = newChildFiber
+        }
+        // 让 newChildFiber 成为最后一个或者说上一个子fiber
+        previousNewFiber = newChildFiber
+      }
+      /* 处理移动的情况 */
+      // 老节点对应的map key => fiber
+      const existingChildrenMap = mapRemainingChildren(parentFiber, oldFiber)
+      // 开始遍历剩下的虚拟dom
+      for (; newIdx < newChildren.length; newIdx++) {
+        // 根据map进行更新
+        const newFiber = updateFromMap(
+          existingChildrenMap,
+          parentFiber,
+          newIdx,
+          newChildren[newIdx]
+        )
+        if (newFiber !== null) {
+          if (shouldTrackSideEffects) {
+            // 如果有老fiber
+            if (newFiber.alternate !== null) {
+              existingChildren.delete(
+                newFiber.key === null ? newIdx : newFiber.key
+              )
+            }
+          }
+        }
+      }
+    }
     return resultingFirstChild
   }
   /**
@@ -194,20 +244,20 @@ function createChildReconciler(shouldTrackSideEffects) {
    * @Author: wyb
    * @Descripttion:
    * @param {*} parentFiber
-   * @param {*} current
-   * @param {*} element
+   * @param {*} oldFiber
+   * @param {*} newChild
    */
-  function updateElement(parentFiber, current, element) {
-    const elementType = element.type
-    if (current !== null) {
-      //判断是否类型一样，则表示key和type都一样，可以复用老的fiber和真实DOM
-      if (current.type === elementType) {
-        const existing = useFiber(current, element.props)
+  function updateElement(parentFiber, oldFiber, newChild) {
+    const elementType = newChild.type
+    if (oldFiber !== null) {
+      // 判断是否类型一样，则表示key和type都一样，可以复用老的fiber和真实DOM
+      if (oldFiber.type === elementType) {
+        const existing = useFiber(oldFiber, newChild.props)
         existing.return = parentFiber
         return existing
       }
     }
-    const created = createFiberFromElement(element)
+    const created = createFiberFromElement(newChild)
     created.return = parentFiber
     return created
   }
@@ -243,17 +293,102 @@ function createChildReconciler(shouldTrackSideEffects) {
   }
   /**
    * @Author: wyb
-   * @Descripttion: 设置副作用 并添加索引
+   * @Descripttion:
    * @param {*} newFiber
+   * @param {*} lastPlacedIndex
    * @param {*} newIdx
    */
-  function placeChild(newFiber, newIdx) {
+  function placeChild(newFiber, lastPlacedIndex, newIdx) {
+    // 指定新的fiber在新的挂载索引
     newFiber.index = newIdx
-    if (shouldTrackSideEffects) {
-      //如果一个fiber它的flags上有Placement,说明此节点需要创建真实DOM并且插入到父容器中
-      //如果父fiber节点是初次挂载，shouldTrackSideEffects=false,不需要添加flags
-      //这种情况下会在完成阶段把所有的子节点全部添加到自己身上
+    // 如果不需要跟踪副作用
+    if (!shouldTrackSideEffects) {
+      return lastPlacedIndex
+    }
+    // 获取它的老fiber
+    const current = newFiber.alternate
+    // 存在老fiber
+    if (current !== null) {
+      const oldIndex = current.index
+      // 如果找到的老fiber的索引比lastPlacedIndex要小，则老fiber对应的DOM节点需要移动
+      if (oldIndex < lastPlacedIndex) {
+        newFiber.flags |= Placement
+        return lastPlacedIndex
+      } else {
+        return oldIndex
+      }
+    } else {
+      // 说明是新fiber，需要插入
       newFiber.flags |= Placement
+      return lastPlacedIndex
+    }
+  }
+  /**
+   * @Author: wyb
+   * @Descripttion:
+   * @param {*} parentFiber
+   * @param {*} firstOldFiber
+   */
+  function mapRemainingChildren(parentFiber, firstOldFiber) {
+    const existingChildrenMap = new Map()
+    let existingChild = firstOldFiber
+    while (existingChild != null) {
+      // 如果有key用key,如果没有key使用索引
+      if (existingChild.key !== null) {
+        existingChildrenMap.set(existingChild.key, existingChild)
+      } else {
+        existingChildrenMap.set(existingChild.index, existingChild)
+      }
+      existingChild = existingChild.sibling
+    }
+    return existingChildrenMap
+  }
+  /**
+   * @Author: wyb
+   * @Descripttion:
+   * @param {*} existingChildrenMap
+   * @param {*} parentFiber
+   * @param {*} newIdx
+   * @param {*} newChild
+   */
+  function updateFromMap(existingChildrenMap, parentFiber, newIdx, newChild) {
+    // 纯文本节点
+    if (
+      (typeof newChild === 'string' && newChild !== '') ||
+      typeof newChild === 'number'
+    ) {
+      // 纯文本没有key 所以直接用索引找
+      const matchedFiber = existingChildrenMap.get(newIdx) || null
+      return updateTextNode(parentFiber, matchedFiber, '' + newChild)
+    }
+    if (typeof newChild === 'object' && newChild !== null) {
+      switch (newChild.$$typeof) {
+        case REACT_ELEMENT_TYPE: {
+          const matchedFiber =
+            existingChildrenMap.get(
+              newChild.key === null ? newIdx : newChild.key
+            ) || null
+          return updateElement(parentFiber, matchedFiber, newChild)
+        }
+      }
+    }
+  }
+  /**
+   * @Author: wyb
+   * @Descripttion:
+   * @param {*} returnFiber
+   * @param {*} fiber
+   * @param {*} textContent
+   */
+  function updateTextNode(parentFiber, fiber, textContent) {
+    if (fiber === null || fiber.tag !== HostText) {
+      const created = createFiberFromText(textContent)
+      created.return = parentFiber
+      return created
+    } else {
+      const existing = useFiber(fiber, textContent)
+      existing.return = parentFiber
+      return existing
     }
   }
   /**
