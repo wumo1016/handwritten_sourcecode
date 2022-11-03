@@ -178,7 +178,7 @@ const element = <FunctionComponent />
 const root = createRoot(document.getElementById('root'))
 root.render(element)
  */
-
+/* 
 // 示例6-多节点diff2
 import * as React from 'react'
 import { createRoot } from 'react-dom/client'
@@ -195,6 +195,37 @@ function FunctionComponent() {
     <ul>
       <li key="A">A1</li>
       <li key="B">B1</li>
+    </ul>
+  )
+}
+
+const element = <FunctionComponent />
+const root = createRoot(document.getElementById('root'))
+root.render(element) */
+
+// 示例6-多节点diff2
+import * as React from 'react'
+import { createRoot } from 'react-dom/client'
+
+function FunctionComponent() {
+  const [number, setNumber] = React.useState(0)
+  return number === 0 ? (
+    <ul onClick={() => setNumber(number + 1)}>
+      <li key="A">A</li>
+      <li key="B">B</li>
+      <li key="C">C</li>
+      <li key="D">D</li>
+      <li key="E">E</li>
+      <li key="F">F</li>
+    </ul>
+  ) : (
+    <ul>
+      <li key="A">A</li>
+      <li key="C">C</li>
+      <li key="E">E</li>
+      <li key="B">B</li>
+      <li key="G">G</li>
+      <li key="D">D</li>
     </ul>
   )
 }

@@ -132,11 +132,11 @@ function createChildReconciler(shouldTrackSideEffects) {
     oldFiberFirstChild,
     newChildren
   ) {
-    let resultingFirstChild = null // 返回的第一个新儿子
-    let previousNewFiber = null // 上一个的一个新的fiber
+    let resultingFirstChild = null // 返回的第一个新儿子 => 返回值
+    let previousNewFiber = null // 新fiber链表的最后一个儿子 用于构建新链表
 
-    let oldFiber = oldFiberFirstChild // 第一个老fiber
-    let nextOldFiber = null // 下一个老fiber
+    let oldFiber = oldFiberFirstChild // 当前老fiber
+    let nextOldFiber = null // 缓存下一个老fiber
     let lastPlacedIndex = 0 // 上一个不需要移动的老节点的索引
     let newIdx = 0
 
@@ -157,14 +157,14 @@ function createChildReconciler(shouldTrackSideEffects) {
       }
       // 指定新fiber的位置
       lastPlacedIndex = placeChild(newFiber, lastPlacedIndex, newIdx)
+      // 指定新头fiber
       if (previousNewFiber === null) {
-        // 指定新头fiber
         resultingFirstChild = newFiber
       } else {
         // 构建新链表
         previousNewFiber.sibling = newFiber
       }
-      // 执行新尾
+      // 更新新尾
       previousNewFiber = newFiber
       // 更新老fiber
       oldFiber = nextOldFiber
@@ -174,12 +174,12 @@ function createChildReconciler(shouldTrackSideEffects) {
       deleteRemainingChildren(parentFiber, oldFiber)
       return resultingFirstChild
     }
+    // 如果老fiber没有了，新的虚拟dom还有，就插入剩余的
     if (oldFiber === null) {
-      // 如果老fiber没有了，新的虚拟dom还有，就插入剩余的
       for (; newIdx < newChildren.length; newIdx++) {
         const newChildFiber = createChild(parentFiber, newChildren[newIdx])
         if (newChildFiber === null) continue
-        placeChild(newChildFiber, newIdx)
+        lastPlacedIndex = placeChild(newChildFiber, lastPlacedIndex, newIdx)
         // 如果previousNewFiber为null，说明这是第一个fiber
         if (previousNewFiber === null) {
           resultingFirstChild = newChildFiber //这个 newChildFiber 就是大儿子
@@ -190,29 +190,44 @@ function createChildReconciler(shouldTrackSideEffects) {
         // 让 newChildFiber 成为最后一个或者说上一个子fiber
         previousNewFiber = newChildFiber
       }
-      /* 处理移动的情况 */
-      // 老节点对应的map key => fiber
-      const existingChildrenMap = mapRemainingChildren(parentFiber, oldFiber)
-      // 开始遍历剩下的虚拟dom
-      for (; newIdx < newChildren.length; newIdx++) {
-        // 根据map进行更新
-        const newFiber = updateFromMap(
-          existingChildrenMap,
-          parentFiber,
-          newIdx,
-          newChildren[newIdx]
-        )
-        if (newFiber !== null) {
-          if (shouldTrackSideEffects) {
-            // 如果有老fiber
-            if (newFiber.alternate !== null) {
-              existingChildren.delete(
-                newFiber.key === null ? newIdx : newFiber.key
-              )
-            }
+    }
+    /* 处理移动的情况 */
+    // 老节点对应的map key => fiber
+    const existingChildrenMap = mapRemainingChildren(parentFiber, oldFiber)
+    // 开始遍历剩下的虚拟dom
+    for (; newIdx < newChildren.length; newIdx++) {
+      // 根据map进行更新
+      const newFiber = updateFromMap(
+        existingChildrenMap,
+        parentFiber,
+        newIdx,
+        newChildren[newIdx]
+      )
+      if (newFiber !== null) {
+        if (shouldTrackSideEffects) {
+          // 如果有老fiber
+          if (newFiber.alternate !== null) {
+            existingChildrenMap.delete(
+              newFiber.key === null ? newIdx : newFiber.key
+            )
           }
         }
+        // 指定新的fiber存放位置 ，并且给lastPlacedIndex赋值
+        lastPlacedIndex = placeChild(newFiber, lastPlacedIndex, newIdx)
+        if (previousNewFiber === null) {
+          // 这个newFiber就是大儿子
+          resultingFirstChild = newFiber
+        } else {
+          // 否则说明不是大儿子，就把这个newFiber添加上一个子节点后面
+          previousNewFiber.sibling = newFiber
+        }
+        // 让newFiber成为最后一个或者说上一个子fiber
+        previousNewFiber = newFiber
       }
+    }
+    if (shouldTrackSideEffects) {
+      // 等全部处理完后，删除map中所有剩下的老fiber
+      existingChildrenMap.forEach((child) => deleteChild(parentFiber, child))
     }
     return resultingFirstChild
   }
@@ -417,7 +432,7 @@ function createChildReconciler(shouldTrackSideEffects) {
   }
   return reconcileChildFibers
 }
-//有老父fiber更新的时候用这个
+// 有老父fiber更新的时候用这个
 export const reconcileChildFibers = createChildReconciler(true)
-//如果没有老父fiber,初次挂载的时候用这个
+// 如果没有老父fiber,初次挂载的时候用这个
 export const mountChildFibers = createChildReconciler(false)
