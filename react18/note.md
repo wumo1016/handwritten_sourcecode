@@ -88,7 +88,14 @@
                               - type 一致
                                 - useFiber 复用老 fiber，并更新 props，然后直接返回当前 fiber
                               - type 不一致
-                            - key 不一致，删除当前 child
+                                - deleteRemainingChildren 删除包括当前 fiber 后面的所有 fiber
+                                  - 遍历当前 fiber 以及后面的兄弟 fiber，执行 deleteChild
+                                    - 将当前 fiber 添加到 parentFiber.deletions 中去
+                                - createFiberFromElement 创建新 fiber 并返回
+                            - key 不一致
+                              - 删除当前 child
+                              - 继续下一个子 fiber，走对比过程
+                              - 如果最后都没有找到，就直接 createFiberFromElement 创建新 fiber 并返回
                         - placeSingleChild
                   - 然后返回刚刚创建的子 fiber
                 - case 根组件：updateHostRoot
@@ -124,6 +131,12 @@
           - commitMutationEffectsOnFiber(如果自己或孩子有修改)
 
             - recursivelyTraverseMutationEffects: 先遍历它们的子节点，处理它们的子节点上的副作用
+              - 先查看当前 fiber 是否有 deletions
+                - 如果有，遍历执行 commitDeletionEffects
+                  - 先找到当前 fiber 的真实父 dom
+                  - commitDeletionEffectsOnFiber
+                    - 递归调用 recursivelyTraverseMutationEffects (因为要先删除子节点，处理生命周期等)
+                    - removeChild
               - commitMutationEffectsOnFiber(递归调用)
             - commitReconciliationEffects: 再处理自己身上的副作用
               - commitPlacement: 如果当前 fiber 是新增，将自己插入到父节点中
