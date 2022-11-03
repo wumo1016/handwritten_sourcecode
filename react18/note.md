@@ -56,16 +56,26 @@
                       - 首次挂载: HooksDispatcherOnMount
                         - useReducer: mountReducer
                           - mountWorkInProgressHook (创建一个新的 hook， 并将 hook 绑定到 fiber 的 memoizedState 上)
-                          - dispatchReducerAction => dispatch
+                          - dispatchReducerAction => dispatch(用户调用的时候执行)
                             - enqueueConcurrentHookUpdate
                               - enqueueUpdate: 将 fiber, queue, update 三个一组添加 concurrentQueue 中， concurrentQueuesIndex 递增
                               - getRootForUpdatedFiber: 返回根节点
                             - scheduleUpdateOnFiber: 执行重新渲染
+                        - useState: mountState
+                          - mountWorkInProgressHook (创建一个新的 hook， 并将 hook 绑定到 fiber 的 memoizedState 上)
+                          - 在 hook 上的 queue 缓存 lastRenderedReducer、lastRenderedState
+                          - dispatchSetState => dispatch(用户调用的时候执行)
+                            - 执行 lastRenderedReducer 获取更新后的状态，并在此更新缓存
+                            - 后面的操作同 dispatchReducerAction
                       - 更新: HooksDispatcherOnUpdate
                         - useReducer: updateReducer
                           - updateWorkInProgressHook: 创建一个新的 hook
                           - 然后遍历 hook 的 queue
-                            - 执行传入的 reducer，并更新 hook 状态，并返回
+                            - 看当前 update 是否有，有缓存直接取缓存
+                            - 否则执行传入的 reducer，获取新状态
+                            - 并更新 hook 状态，并返回
+                        - useState: updateState
+                          - updateReducer(baseStateReducer): 内置一个处理函数，直接走 updateReducer 逻辑
                     - 执行函数 获取子 vdom
                   - reconcileChildren: 根据 fiber 创建真实 dom
                     - 有老 fiber: reconcileChildFibers => 需要设置副作用
