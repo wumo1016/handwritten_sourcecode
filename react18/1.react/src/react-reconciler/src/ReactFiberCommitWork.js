@@ -4,13 +4,18 @@ import {
   commitUpdate,
   removeChild
 } from 'react-dom-bindings/src/client/ReactDOMHostConfig'
-import { Placement, MutationMask, Update } from './ReactFiberFlags'
+import { Placement, MutationMask, Update, Passive } from './ReactFiberFlags'
 import {
   FunctionComponent,
   HostComponent,
   HostRoot,
   HostText
 } from './ReactWorkTags'
+import {
+  HasEffect as HookHasEffect,
+  Passive as HookPassive,
+  Layout as HookLayout
+} from './ReactHookEffectTags'
 let hostParent = null
 
 /**
@@ -111,7 +116,7 @@ function commitDeletionEffects(root, parentFiber, deletedFiber) {
  * @Descripttion:
  */
 function commitDeletionEffectsOnFiber(
-  finishedRoot,
+  root,
   nearestMountedAncestor,
   deletedFiber
 ) {
@@ -124,7 +129,7 @@ function commitDeletionEffectsOnFiber(
     case HostText: {
       // 先把自己的子节点删除 (如果子组件有类组件，需要处理声明周期)
       recursivelyTraverseDeletionEffects(
-        finishedRoot,
+        root,
         nearestMountedAncestor,
         deletedFiber
       )
@@ -141,18 +146,18 @@ function commitDeletionEffectsOnFiber(
 /**
  * @Author: wyb
  * @Descripttion:
- * @param {*} finishedRoot
+ * @param {*} root
  * @param {*} nearestMountedAncestor
  * @param {*} parent
  */
 function recursivelyTraverseDeletionEffects(
-  finishedRoot,
+  root,
   nearestMountedAncestor,
   parent
 ) {
   let child = parent.child
   while (child !== null) {
-    commitDeletionEffectsOnFiber(finishedRoot, nearestMountedAncestor, child)
+    commitDeletionEffectsOnFiber(root, nearestMountedAncestor, child)
     child = child.sibling
   }
 }
@@ -277,4 +282,162 @@ function getHostParentFiber(fiber) {
  */
 function isHostParent(fiber) {
   return fiber.tag === HostComponent || fiber.tag == HostRoot //div#root
+}
+/**
+ * @Author: wyb
+ * @Descripttion: 执行挂载副作用(useEffect)
+ * @param {*} root
+ * @param {*} fiber
+ */
+export function commitPassiveMountEffects(root, fiber) {
+  commitPassiveMountOnFiber(root, fiber)
+}
+/**
+ * @Author: wyb
+ * @Descripttion:
+ * @param {*} root
+ * @param {*} fiber
+ */
+function commitPassiveMountOnFiber(root, fiber) {
+  const flags = fiber.flags
+  switch (fiber.tag) {
+    case HostRoot: {
+      recursivelyTraversePassiveMountEffects(root, fiber)
+      break
+    }
+    case FunctionComponent: {
+      recursivelyTraversePassiveMountEffects(root, fiber)
+      // 如果有 effect 就执行
+      if (flags & Passive) {
+        commitHookPassiveMountEffects(fiber, HookHasEffect | HookPassive)
+      }
+      break
+    }
+  }
+}
+/**
+ * @Author: wyb
+ * @Descripttion: 递归处理
+ * @param {*} root
+ * @param {*} parentFiber
+ */
+function recursivelyTraversePassiveMountEffects(root, parentFiber) {
+  if (parentFiber.subtreeFlags & Passive) {
+    let child = parentFiber.child
+    while (child !== null) {
+      commitPassiveMountOnFiber(root, child)
+      child = child.sibling
+    }
+  }
+}
+/**
+ * @Author: wyb
+ * @Descripttion:
+ * @param {*} fiber
+ * @param {*} hookFlags
+ */
+function commitHookPassiveMountEffects(fiber, hookFlags) {
+  commitHookEffectListMount(hookFlags, fiber)
+}
+/**
+ * @Author: wyb
+ * @Descripttion: 真实调用 effect 的函数
+ * @param {*} flags
+ * @param {*} fiber
+ */
+function commitHookEffectListMount(flags, fiber) {
+  const updateQueue = fiber.updateQueue
+  const lastEffect = updateQueue !== null ? updateQueue.lastEffect : null
+  if (lastEffect !== null) {
+    // 获取第一个effect
+    const firstEffect = lastEffect.next
+    let effect = firstEffect
+    // 遍历 effect
+    do {
+      // 如果此 effect类型和传入的相同，都是 9 HookHasEffect | PassiveEffect
+      if ((effect.tag & flags) === flags) {
+        const create = effect.create
+        effect.destroy = create() // 执行获取 destroy 方法
+      }
+      effect = effect.next
+    } while (effect !== firstEffect)
+  }
+}
+/**
+ * @Author: wyb
+ * @Descripttion: 执行卸载副作用(useEffect)
+ * @param {*} fiber
+ * @param {*} hookFlags
+ */
+export function commitPassiveUnmountEffects(fiber) {
+  commitPassiveUnmountOnFiber(fiber)
+}
+/**
+ * @Author: wyb
+ * @Descripttion:
+ * @param {*} fiber
+ */
+function commitPassiveUnmountOnFiber(fiber) {
+  const flags = fiber.flags
+  switch (fiber.tag) {
+    case HostRoot: {
+      recursivelyTraversePassiveUnmountEffects(fiber)
+      break
+    }
+    case FunctionComponent: {
+      recursivelyTraversePassiveUnmountEffects(fiber)
+      if (flags & Passive) {
+        commitHookPassiveUnmountEffects(fiber, HookHasEffect | HookPassive)
+      }
+      break
+    }
+  }
+}
+/**
+ * @Author: wyb
+ * @Descripttion:
+ * @param {*} parentFiber
+ */
+function recursivelyTraversePassiveUnmountEffects(parentFiber) {
+  if (parentFiber.subtreeFlags & Passive) {
+    let child = parentFiber.child
+    while (child !== null) {
+      commitPassiveUnmountOnFiber(child)
+      child = child.sibling
+    }
+  }
+}
+/**
+ * @Author: wyb
+ * @Descripttion:
+ * @param {*} fiber
+ * @param {*} hookFlags
+ */
+function commitHookPassiveUnmountEffects(fiber, hookFlags) {
+  commitHookEffectListUnmount(hookFlags, fiber)
+}
+/**
+ * @Author: wyb
+ * @Descripttion: 真实调用 effect 卸载 的函数
+ * @param {*} flags
+ * @param {*} fiber
+ */
+function commitHookEffectListUnmount(flags, fiber) {
+  const updateQueue = fiber.updateQueue
+  const lastEffect = updateQueue !== null ? updateQueue.lastEffect : null
+  if (lastEffect !== null) {
+    // 获取 第一个effect
+    const firstEffect = lastEffect.next
+    let effect = firstEffect
+    do {
+      // 如果此 effect类型和传入的相同，都是 9 HookHasEffect | PassiveEffect
+      if ((effect.tag & flags) === flags) {
+        const destroy = effect.destroy
+        if (destroy !== undefined) {
+          destroy()
+        }
+      }
+      effect = effect.next
+    } while (effect !== firstEffect)
+  }
 }

@@ -202,7 +202,7 @@ function FunctionComponent() {
 const element = <FunctionComponent />
 const root = createRoot(document.getElementById('root'))
 root.render(element) */
-
+/* 
 // 示例6-多节点diff2
 import * as React from 'react'
 import { createRoot } from 'react-dom/client'
@@ -228,6 +228,37 @@ function FunctionComponent() {
       <li key="D">D</li>
     </ul>
   )
+}
+
+const element = <FunctionComponent />
+const root = createRoot(document.getElementById('root'))
+root.render(element) */
+
+// 示例6-useEffect
+import * as React from 'react'
+import { createRoot } from 'react-dom/client'
+
+function FunctionComponent() {
+  const [number, setNumber] = React.useState(0)
+  React.useEffect(() => {
+    console.log('useEffect1')
+    return () => {
+      console.log('destroy useEffect1')
+    }
+  })
+  React.useEffect(() => {
+    console.log('useEffect2')
+    return () => {
+      console.log('destroy useEffect2')
+    }
+  })
+  React.useEffect(() => {
+    console.log('useEffect3')
+    return () => {
+      console.log('destroy useEffect3')
+    }
+  })
+  return <button onClick={() => setNumber(number + 1)}>{number}</button>
 }
 
 const element = <FunctionComponent />

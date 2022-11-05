@@ -1,6 +1,15 @@
 import ReactSharedInternals from 'shared/ReactSharedInternals'
 import { enqueueConcurrentHookUpdate } from './ReactFiberConcurrentUpdates'
 import { scheduleUpdateOnFiber } from './ReactFiberWorkLoop'
+import {
+  Passive as PassiveEffect,
+  Update as UpdateEffect
+} from './ReactFiberFlags'
+import {
+  Passive as HookPassive,
+  HasEffect as HookHasEffect,
+  Layout as HookLayout
+} from './ReactHookEffectTags'
 
 const { ReactCurrentDispatcher } = ReactSharedInternals
 let currentlyRenderingFiber = null
@@ -9,11 +18,13 @@ let oldHook = null // 当前 hook 对应的老hook
 
 const HooksDispatcherOnMount = {
   useReducer: mountReducer,
-  useState: mountState
+  useState: mountState,
+  useEffect: mountEffect
 }
 const HooksDispatcherOnUpdate = {
   useReducer: updateReducer,
-  useState: updateState
+  useState: updateState,
+  useEffect: updateEffect
 }
 
 /**
@@ -26,6 +37,7 @@ const HooksDispatcherOnUpdate = {
  */
 export function renderWithHooks(oldFiber, newFiber, Component, props) {
   currentlyRenderingFiber = newFiber // Function组件对应的fiber
+  newFiber.updateQueue = null
   // 如果有老的fiber,并且有老的hook链表
   if (oldFiber !== null && oldFiber.memoizedState !== null) {
     ReactCurrentDispatcher.current = HooksDispatcherOnUpdate
@@ -237,4 +249,139 @@ function dispatchSetState(fiber, queue, action) {
  */
 function updateState() {
   return updateReducer(baseStateReducer)
+}
+/**
+ * @Author: wyb
+ * @Descripttion:
+ * @param {*} create
+ * @param {*} deps
+ */
+function mountEffect(create, deps) {
+  return mountEffectImpl(PassiveEffect, HookPassive, create, deps)
+}
+/**
+ * @Author: wyb
+ * @Descripttion:
+ * @param {*} fiberFlags
+ * @param {*} hookFlags
+ * @param {*} create
+ * @param {*} deps
+ */
+function mountEffectImpl(fiberFlags, hookFlags, create, deps) {
+  const hook = mountWorkInProgressHook()
+  const nextDeps = deps === undefined ? null : deps
+  // 给当前的函数组件fiber添加flags
+  currentlyRenderingFiber.flags |= fiberFlags
+  hook.memoizedState = pushEffect(
+    HookHasEffect | hookFlags,
+    create,
+    undefined,
+    nextDeps
+  )
+}
+/**
+ * @Author: wyb
+ * @Descripttion: 构建effect链表
+ * @param {*} tag
+ * @param {*} create 创建方法
+ * @param {*} destroy 销毁方法
+ * @param {*} deps 依赖数组
+ */
+function pushEffect(tag, create, destroy, deps) {
+  const effect = {
+    tag,
+    create,
+    destroy,
+    deps,
+    next: null
+  }
+  let componentUpdateQueue = currentlyRenderingFiber.updateQueue
+  if (componentUpdateQueue === null) {
+    componentUpdateQueue = createFunctionComponentUpdateQueue()
+    currentlyRenderingFiber.updateQueue = componentUpdateQueue
+    componentUpdateQueue.lastEffect = effect.next = effect
+  } else {
+    const lastEffect = componentUpdateQueue.lastEffect
+    if (lastEffect === null) {
+      componentUpdateQueue.lastEffect = effect.next = effect
+    } else {
+      // 构建循环链表
+      const firstEffect = lastEffect.next
+      lastEffect.next = effect
+      effect.next = firstEffect
+      componentUpdateQueue.lastEffect = effect
+    }
+  }
+  return effect
+}
+/**
+ * @Author: wyb
+ * @Descripttion: 初始化函数组件的updateQueue
+ */
+function createFunctionComponentUpdateQueue() {
+  return {
+    lastEffect: null
+  }
+}
+/**
+ * @Author: wyb
+ * @Descripttion:
+ * @param {*} create
+ * @param {*} deps
+ */
+function updateEffect(create, deps) {
+  return updateEffectImpl(PassiveEffect, HookPassive, create, deps)
+}
+/**
+ * @Author: wyb
+ * @Descripttion:
+ * @param {*} fiberFlags
+ * @param {*} hookFlags
+ * @param {*} create
+ * @param {*} deps
+ */
+function updateEffectImpl(fiberFlags, hookFlags, create, deps) {
+  const hook = updateWorkInProgressHook()
+  const nextDeps = deps === undefined ? null : deps
+  let destroy
+  // 上一个老hook
+  if (oldHook !== null) {
+    // 获取此useEffect这个Hook上老的effect对象 create deps destroy
+    const prevEffect = oldHook.memoizedState
+    destroy = prevEffect.destroy
+    if (nextDeps !== null) {
+      const prevDeps = prevEffect.deps
+      // 用新数组和老数组进行对比，如果一样的话
+      if (areHookInputsEqual(nextDeps, prevDeps)) {
+        // 不管要不要重新执行，都需要把新的effect组成完整的循环链表放到 fiber.updateQueue 中
+        // 必须有 HookHasEffect 才会执行
+        hook.memoizedState = pushEffect(hookFlags, create, destroy, nextDeps)
+        return
+      }
+    }
+  }
+  // 如果要执行的话需要修改fiber的flags
+  currentlyRenderingFiber.flags |= fiberFlags
+  hook.memoizedState = pushEffect(
+    HookHasEffect | hookFlags,
+    create,
+    destroy,
+    nextDeps
+  )
+}
+/**
+ * @Author: wyb
+ * @Descripttion: 对比新旧依赖
+ * @param {*} nextDeps
+ * @param {*} prevDeps
+ */
+function areHookInputsEqual(nextDeps, prevDeps) {
+  if (prevDeps === null) return null
+  for (let i = 0; i < prevDeps.length && i < nextDeps.length; i++) {
+    if (Object.is(nextDeps[i], prevDeps[i])) {
+      continue
+    }
+    return false
+  }
+  return true
 }

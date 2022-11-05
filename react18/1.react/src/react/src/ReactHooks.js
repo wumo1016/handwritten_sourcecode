@@ -24,3 +24,13 @@ export function useState(reducer, initialArg) {
   const dispatcher = resolveDispatcher()
   return dispatcher.useState(reducer, initialArg)
 }
+/**
+ * @Author: wyb
+ * @Descripttion:
+ * @param {*} createFn
+ * @param {*} deps
+ */
+export function useEffect(createFn, deps) {
+  const dispatcher = resolveDispatcher()
+  return dispatcher.useEffect(createFn, deps)
+}

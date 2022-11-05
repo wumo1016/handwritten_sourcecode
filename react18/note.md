@@ -146,6 +146,26 @@
                   - updateProperties: 更新 dom 上的属性 包括 children、style，纯文本节点就是在这更新的内容
                   - updateFiberProps: 缓存属性到 dom 上
 
+## 多节点 diff
+
+- 三个规则
+  - 只对同级元素进行比较，不同层级不对比
+  - type 不一样 就不一样
+  - 通过 key 来标识同一个节点
+- 三轮遍历
+  - 第一轮
+    - 如果 key 不同则直接结束本轮循环
+    - newChildren 或 oldFiber 遍历完，结束本轮循环
+    - key 相同而 type 不同，标记老的 oldFiber 为删除，继续循环
+    - key 相同而 type 也相同，则可以复用老节 oldFiber 节点，继续循环
+  - 第二轮
+    - newChildren 遍历完而 oldFiber 还有，遍历剩下所有的 oldFiber 标记为删除，DIFF 结束
+    - oldFiber 遍历完了，而 newChildren 还有，将剩下的 newChildren 标记为插入，DIFF 结束
+    - newChildren 和 oldFiber 都同时遍历完成，diff 结束
+    - newChildren 和 oldFiber 都没有完成，则进行节点移动的逻辑
+  - 第三轮
+    - 处理节点移动的情况
+
 ## 事件处理
 
 - 所有的事件都委托给根容器(div.#root)处理
@@ -195,26 +215,52 @@
     - resolveDispatcher => ReactCurrentDispatcher.current 拿到的实际就是在 renderWithHooks 中定义的 useState
     - useState => [state, setFn]
       - setFn 实际执行的就是在 renderWithHooks 中定义的 dispatchReducerAction
+- useEffect
+  - 介绍
+    - 参数
+      - 第一个: 一个函数(返回一个函数)
+      - 第二个(可选): 依赖数组(对比差异，如果一样，则不会重新执行)
+    - 作用
+      - DOM 操作，调用接口等
+  - 实现
 
-## 多节点 diff
+## updateQueue
 
-- 三个规则
-  - 只对同级元素进行比较，不同层级不对比
-  - type 不一样 就不一样
-  - 通过 key 来标识同一个节点
-- 三轮遍历
-  - 第一轮
-    - 如果 key 不同则直接结束本轮循环
-    - newChildren 或 oldFiber 遍历完，结束本轮循环
-    - key 相同而 type 不同，标记老的 oldFiber 为删除，继续循环
-    - key 相同而 type 也相同，则可以复用老节 oldFiber 节点，继续循环
-  - 第二轮
-    - newChildren 遍历完而 oldFiber 还有，遍历剩下所有的 oldFiber 标记为删除，DIFF 结束
-    - oldFiber 遍历完了，而 newChildren 还有，将剩下的 newChildren 标记为插入，DIFF 结束
-    - newChildren 和 oldFiber 都同时遍历完成，diff 结束
-    - newChildren 和 oldFiber 都没有完成，则进行节点移动的逻辑
-  - 第三轮
-    - 处理节点移动的情况
+- 根 fiber
+  ```js
+  {
+    shared: {
+      pending: null
+    }
+  }
+  ```
+- 原生组件 fiber
+  ```js
+  ;[prop1, value1, prop2, value2] // 属性更新
+  ```
+- 函数组件 fiber
+  ```js
+  {
+    lastEffect: null // 保存的 hook 链表
+  }
+  ```
+
+## memoizedState
+
+- fiber
+  - 保存的 hook 对象，构建 hook 链表
+- hook
+  - useReducer/useState: 当前 hook 的状态值
+  - useEffect: 当前 effect 对象
+  ```js
+  {
+    tag,
+    create,
+    destroy,
+    deps,
+    next: null
+  }
+  ```
 
 ## 备注
 
