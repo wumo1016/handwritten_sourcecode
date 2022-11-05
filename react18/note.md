@@ -43,14 +43,19 @@
       - performConcurrentWorkOnRoot: 真正执行的函数，构建 fiber 树，渲染等等
 
         - renderRootSync: 第一次从根部同步渲染
+
           - prepareFreshStack
             - createWorkInProgress: 基于 oldFiber 和新属性创建一个 newFiber， 并和 oldFiber 使用 alternate 属性相互关联
               - 将 创建的 newFiber 赋给 workInProgress
             - finishQueueingConcurrentUpdates: 将 concurrentQueue 三个一组拿出来构建 hook 的 queue 的循环链表
           - workLoopSync
+
             - performUnitOfWork
+
               - beginWork: 构建 fiber 树
+
                 - case 未决定组件：mountIndeterminateComponent (一种是函数组件，一种是类组件，但是它们都是都是函数)
+
                   - renderWithHooks
                     - 设置 ReactCurrentDispatcher.current 的值
                       - 首次挂载: HooksDispatcherOnMount
@@ -78,6 +83,7 @@
                           - updateReducer(baseStateReducer): 内置一个处理函数，直接走 updateReducer 逻辑
                     - 执行函数 获取子 vdom
                   - reconcileChildren: 根据 fiber 创建真实 dom
+
                     - 有老 fiber: reconcileChildFibers => 需要设置副作用
                     - 无老 fiber: reconcileChildFibers => 无需设置副作用
                     - reconcileChildFibers(以上两个方法走的都是)
@@ -97,7 +103,23 @@
                               - 继续下一个子 fiber，走对比过程
                               - 如果最后都没有找到，就直接 createFiberFromElement 创建新 fiber 并返回
                         - placeSingleChild
-                  - 然后返回刚刚创建的子 fiber
+                      - 多节点
+                        - reconcileChildrenArray
+                          - 第一次循环: 遍历老虚拟 dom(索引小于总长度 && 有老 fiber)
+                            - updateSlot: 试图复用 oldFiber(key 一样)，如果没有直接跳出循环，继续向下执行
+                            - 如果是新创建的(key 一样，type 不一样)
+                              - deleteChild: 删除老 fiber
+                          - 如果新虚拟 dom 已经循环完毕且 oldFiber 还有值
+                            - deleteRemainingChildren: 删除剩余的老 fiber，然后`直接返回`
+                          - 第二次循环: 遍历新虚拟 dom(如果没有老 fiber && 索引小于总长度)
+                            - createChild: 都是新增的 fiber
+                          - 剩下的情况就是，老 fiber 有值 且 新虚拟 dom 还有，先将老 fiber 的 key 和值做一个 map 映射
+                          - 第三次循环: 遍历新虚拟 dom(索引小于总长度)
+                            - updateFromMap: 根据 map 进行更新，有就复用(并在 map 中删除)，没有就新建
+                          - deleteChild: 遍历 map 执行，删除剩余的老 fiber
+
+                  - 然后返回刚刚创建的子 fiber(索引小于总长度 && 有老 fiber)
+
                 - case 根组件：updateHostRoot
                   - processUpdateQueue: 将虚拟 dom 从 updateQueue 保存到当前 fiber 的 memoizedState 上
                   - reconcileChildren
@@ -111,6 +133,7 @@
                 - 返回当前 fiber 的子 fiber
                   - 有值 继续走 completeUnitOfWork
                   - 为 null 就走下面的 completeUnitOfWork
+
               - completeUnitOfWork: 根据 fiber 创建节点 并添加
                 - completeWork
                   - case 根组件 => bubbleProperties
@@ -126,6 +149,7 @@
                           - diffProperties => [key1, value1, key2, value2 ...] 并保存到当前 fiber 的 updateQueue 上
                         - markUpdate
                   - case 文本组件: 创建一个真实的文本节点 并赋值给 fiber.stateNode => bubbleProperties
+
         - commitRoot: 提交根节点
 
           - commitMutationEffectsOnFiber(如果自己或孩子有修改)
