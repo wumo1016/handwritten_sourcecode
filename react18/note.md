@@ -247,6 +247,13 @@
     - 作用
       - DOM 操作，调用接口等
   - 实现
+- useLayoutEffect
+  - 介绍
+    - 与 useEffect 基本一致
+    - 不同的是，useLayoutEffect 会在所有 DOM 变更之后立即调用 effect
+    - useEffect 不会阻塞浏览器渲染，而 useLayoutEffect 会
+    - useEffect 类似一个宏任务，useLayoutEffect 在 DOM 变更后同步执行
+  - 实现
 
 ## updateQueue
 

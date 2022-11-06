@@ -11,6 +11,7 @@ import {
   Passive
 } from './ReactFiberFlags'
 import {
+  commitLayoutEffects,
   commitMutationEffectsOnFiber,
   commitPassiveMountEffects,
   commitPassiveUnmountEffects
@@ -162,7 +163,13 @@ function commitRoot(root) {
   const rootHasEffect = (finishedWork.flags & MutationMask) !== NoFlags
   // 如果自己的副作用或者子节点有副作用就进行提交DOM操作
   if (subtreeHasEffects || rootHasEffect) {
+    // 执行 fiber 的副作用
     commitMutationEffectsOnFiber(finishedWork, root)
+    console.log(
+      'DOM执行变更后commitLayoutEffects~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~'
+    )
+    // 执行layout Effect
+    commitLayoutEffects(finishedWork, root)
     if (rootDoesHavePassiveEffect) {
       rootDoesHavePassiveEffect = false
       rootWithPendingPassiveEffects = root

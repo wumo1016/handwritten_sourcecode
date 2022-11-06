@@ -19,12 +19,14 @@ let oldHook = null // 当前 hook 对应的老hook
 const HooksDispatcherOnMount = {
   useReducer: mountReducer,
   useState: mountState,
-  useEffect: mountEffect
+  useEffect: mountEffect,
+  useLayoutEffect: mountLayoutEffect
 }
 const HooksDispatcherOnUpdate = {
   useReducer: updateReducer,
   useState: updateState,
-  useEffect: updateEffect
+  useEffect: updateEffect,
+  useLayoutEffect: updateLayoutEffect
 }
 
 /**
@@ -384,4 +386,22 @@ function areHookInputsEqual(nextDeps, prevDeps) {
     return false
   }
   return true
+}
+/**
+ * @Author: wyb
+ * @Descripttion:
+ * @param {*} create
+ * @param {*} deps
+ */
+function mountLayoutEffect(create, deps) {
+  return mountEffectImpl(UpdateEffect, HookLayout, create, deps)
+}
+/**
+ * @Author: wyb
+ * @Descripttion:
+ * @param {*} create
+ * @param {*} deps
+ */
+function updateLayoutEffect(create, deps) {
+  return updateEffectImpl(UpdateEffect, HookLayout, create, deps)
 }

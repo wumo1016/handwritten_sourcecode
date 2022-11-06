@@ -34,3 +34,13 @@ export function useEffect(createFn, deps) {
   const dispatcher = resolveDispatcher()
   return dispatcher.useEffect(createFn, deps)
 }
+/**
+ * @Author: wyb
+ * @Descripttion:
+ * @param {*} create
+ * @param {*} deps
+ */
+export function useLayoutEffect(create, deps) {
+  const dispatcher = resolveDispatcher()
+  return dispatcher.useLayoutEffect(create, deps)
+}
