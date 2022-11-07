@@ -72,6 +72,14 @@
                           - dispatchSetState => dispatch(用户调用的时候执行)
                             - 执行 lastRenderedReducer 获取更新后的状态，并在此更新缓存
                             - 后面的操作同 dispatchReducerAction
+                        - useEffect: mountEffect
+                          - mountEffectImpl
+                            - mountWorkInProgressHook (创建一个新的 hook， 并将 hook 绑定到 fiber 的 memoizedState 上)
+                            - pushEffect => 创建 effect 赋值给 hook.memoizedState
+                              - 创建一个 effect
+                              - 构建 effect 循环链表，指向 fiber.updateQueue.lastEffect
+                        - useLayoutEffect: mountLayoutEffect
+                          - 执行 mountEffect 中的 mountEffectImpl
                       - 更新: HooksDispatcherOnUpdate
                         - useReducer: updateReducer
                           - updateWorkInProgressHook: 创建一个新的 hook
@@ -81,6 +89,11 @@
                             - 并更新 hook 状态，并返回
                         - useState: updateState
                           - updateReducer(baseStateReducer): 内置一个处理函数，直接走 updateReducer 逻辑
+                        - useEffect: updateEffect
+                          - updateEffectImpl
+                            - updateWorkInProgressHook
+                              - 对比新旧依赖，都执行 pushEffect(有且新旧依赖都一样就不添加副作用)
+                        - useLayoutEffect: updateLayoutEffect
                     - 执行函数 获取子 vdom
                   - reconcileChildren: 根据 fiber 创建真实 dom
 
@@ -152,6 +165,17 @@
 
         - commitRoot: 提交根节点
 
+          - scheduleCallback(flushPassiveEffect) => 开启一个新的宏任务
+            - commitPassiveUnmountEffects: 执行卸载 effect
+              - commitPassiveUnmountOnFiber
+                - recursivelyTraversePassiveUnmountEffects: 子节点递归执行 commitPassiveUnmountOnFiber
+                - commitHookPassiveUnmountEffects
+                  - commitHookEffectListUnmount: 遍历 fiber.updateQueue.lastEffect 循环链表，执行 destroy 方法
+            - commitPassiveMountEffects: 执行挂载 effect
+              - commitPassiveMountOnFiber
+                - recursivelyTraversePassiveMountEffects: 子节点递归执行 commitPassiveMountOnFiber
+                - commitHookPassiveMountEffects
+                  - commitHookEffectListMount: 遍历 fiber.updateQueue.lastEffect 循环链表，执行 create 方法并赋值给 fiber.destroy
           - commitMutationEffectsOnFiber(如果自己或孩子有修改)
 
             - recursivelyTraverseMutationEffects: 先遍历它们的子节点，处理它们的子节点上的副作用
@@ -169,6 +193,16 @@
                 - commitUpdate
                   - updateProperties: 更新 dom 上的属性 包括 children、style，纯文本节点就是在这更新的内容
                   - updateFiberProps: 缓存属性到 dom 上
+            - 如果是函数组件
+              - commitHookEffectListUnmount
+                - 遍历 fiber.updateQueue.lastEffect 循环链表，执行 destroy 方法
+
+          - commitLayoutEffects(如果自己或孩子有修改)
+            - commitLayoutEffects
+              - commitLayoutEffectOnFiber
+                - recursivelyTraverseLayoutEffects: 子节点递归调用 commitLayoutEffectOnFiber
+                - commitHookLayoutEffects
+                  - commitHookEffectListMount: 遍历 fiber.updateQueue.lastEffect 循环链表，执行 create 方法并赋值给 fiber.destroy
 
 ## 多节点 diff
 
@@ -247,6 +281,8 @@
     - 作用
       - DOM 操作，调用接口等
   - 实现
+    - React.useEffect(ReactHooks.js)
+      - resolveDispatcher => ReactCurrentDispatcher.current 拿到的实际就是在 renderWithHooks 中定义的 useEffect
 - useLayoutEffect
   - 介绍
     - 与 useEffect 基本一致
@@ -254,6 +290,8 @@
     - useEffect 不会阻塞浏览器渲染，而 useLayoutEffect 会
     - useEffect 类似一个宏任务，useLayoutEffect 在 DOM 变更后同步执行
   - 实现
+    - React.useLayoutEffect(ReactHooks.js)
+      - resolveDispatcher => ReactCurrentDispatcher.current 拿到的实际就是在 renderWithHooks 中定义的 useLayoutEffect
 
 ## updateQueue
 
@@ -272,7 +310,7 @@
 - 函数组件 fiber
   ```js
   {
-    lastEffect: null // 保存的 hook 链表
+    lastEffect: null // 保存的 effect 链表
   }
   ```
 

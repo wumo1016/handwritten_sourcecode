@@ -369,7 +369,7 @@ function commitHookEffectListMount(flags, fiber) {
     let effect = firstEffect
     // 遍历 effect
     do {
-      // 如果此 effect类型和传入的相同，都是 9 HookHasEffect | PassiveEffect
+      // 如果此 effect类型和传入的相同，都是 9 HookHasEffect | HookLayout
       if ((effect.tag & flags) === flags) {
         const create = effect.create
         effect.destroy = create() // 执行获取 destroy 方法
