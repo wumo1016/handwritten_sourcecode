@@ -1,4 +1,11 @@
-import { scheduleCallback } from 'scheduler'
+import {
+  scheduleCallback,
+  shouldYield,
+  ImmediatePriority as ImmediateSchedulerPriority,
+  UserBlockingPriority as UserBlockingSchedulerPriority,
+  NormalPriority as NormalSchedulerPriority,
+  IdlePriority as IdleSchedulerPriority
+} from 'scheduler'
 import { createWorkInProgress } from './ReactFiber'
 import { beginWork } from './ReactFiberBeginWork'
 import { completeWork } from './ReactFiberCompleteWork'
@@ -48,14 +55,17 @@ function ensureRootIsScheduled(root) {
   if (workInProgressRoot) return
   workInProgressRoot = root
   // 告诉浏览器要执行performConcurrentWorkOnRoot
-  scheduleCallback(performConcurrentWorkOnRoot.bind(null, root))
+  scheduleCallback(
+    NormalSchedulerPriority,
+    performConcurrentWorkOnRoot.bind(null, root)
+  )
 }
 /**
  * @Author: wyb
  * @Descripttion: 根据fiber构建fiber树 => 要创建真实的DOM节点 => 还需要把真实的DOM节点插入容器
  * @param {*} root
  */
-function performConcurrentWorkOnRoot(root) {
+function performConcurrentWorkOnRoot(root, timeout) {
   // 第一次渲染以同步的方式渲染根节点，初次渲染的时候，都是同步
   renderRootSync(root)
   // 开始进入提交 阶段，就是执行副作用，修改真实DOM
@@ -152,7 +162,7 @@ function commitRoot(root) {
   ) {
     if (!rootDoesHavePassiveEffect) {
       rootDoesHavePassiveEffect = true
-      scheduleCallback(flushPassiveEffect)
+      scheduleCallback(NormalSchedulerPriority, flushPassiveEffect)
     }
   }
   // printFinishedWork(finishedWork)

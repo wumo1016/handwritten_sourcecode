@@ -331,6 +331,10 @@
   }
   ```
 
+## MessageChannel
+
+- 由于 requestIdleCallback 只有 chrome 支持
+
 ## 备注
 
 - path.posix: 返回 linux 下的路径等

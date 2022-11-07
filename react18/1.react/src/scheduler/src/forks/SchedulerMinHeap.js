@@ -3,9 +3,11 @@ export function push(heap, node) {
   heap.push(node)
   siftUp(heap, node, index)
 }
+
 export function peek(heap) {
   return heap.length === 0 ? null : heap[0]
 }
+
 export function pop(heap) {
   if (heap.length === 0) {
     return null
@@ -18,6 +20,7 @@ export function pop(heap) {
   }
   return first
 }
+
 function siftUp(heap, node, i) {
   let index = i
   while (index > 0) {
@@ -32,6 +35,7 @@ function siftUp(heap, node, i) {
     }
   }
 }
+
 function siftDown(heap, node, i) {
   let index = i
   const length = heap.length
@@ -60,6 +64,7 @@ function siftDown(heap, node, i) {
     }
   }
 }
+
 function compare(a, b) {
   const diff = a.sortIndex - b.sortIndex
   return diff !== 0 ? diff : a.id - b.id
