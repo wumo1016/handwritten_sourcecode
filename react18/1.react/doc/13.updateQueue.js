@@ -71,16 +71,58 @@ function processUpdateQueue(fiber, renderLanes) {
   }
   // 遍历队列
   if (firstBaseUpdate !== null) {
+    // 上次跳过更新前的状态
+    let newState = queue.baseState
+    // 尚未执行的更新的lane
+    let newLanes = NoLanes
+    // 本次跳过更新前的状态
+    let newBaseState = null
+
+    let newFirstBaseUpdate = null // 将要跳过的链表头
+    let newLastBaseUpdate = null // 将要跳过的链表尾
     let update = firstBaseUpdate
-    let currentState = fiber.memoizedState
     do {
-      // 如果更新优先级比渲染优先级高(值越小越高)，才生效
-      if (update.lane <= renderLanes) {
-        currentState = update.payload(currentState)
+      // 获取此更新车道
+      const updateLane = update.lane
+      // 是否需要跳过本次更新，如果是就先克隆一份
+      if (!(renderLanes & updateLane) === updateLane) {
+        const clone = {
+          id: update.id,
+          lane: updateLane,
+          payload: update.payload
+        }
+        // 第一个跳过的更新
+        if (newLastBaseUpdate === null) {
+          newFirstBaseUpdate = clone
+          newLastBaseUpdate = clone
+          newBaseState = newState
+        } else {
+          // 构建跳过链表
+          newLastBaseUpdate.next = clone
+          newLastBaseUpdate = clone
+        }
+        // 更新Lane
+        newLanes = newLanes | updateLane
+      } else {
+        if (newLastBaseUpdate !== null) {
+          const clone = {
+            id: update.id,
+            lane: 0,
+            payload: update.payload
+          }
+          // 构建跳过链表
+          newLastBaseUpdate.next = clone
+          newLastBaseUpdate = clone
+        }
+        newState = update.payload(newState)
       }
       update = update.next
     } while (update)
-    fiber.memoizedState = currentState
+    queue.baseState = newBaseState || newState
+    queue.firstBaseUpdate = newFirstBaseUpdate
+    queue.lastBaseUpdate = newLastBaseUpdate
+    fiber.lanes = newLanes
+    fiber.memoizedState = newState
   }
 }
 
@@ -117,19 +159,19 @@ initializeUpdateQueue(fiber)
 processUpdateQueue(fiber, SyncLane) // 1
 console.log(fiber.memoizedState) // BD
 
-//
-;(function () {
-  debugger
-  const updateE = {
-    id: 'E',
-    payload: (state) => state + 'E',
-    lane: InputContinuousHydrationLane
-  }
-  enqueueUpdate(fiber, updateE)
+// //
+// ;(function () {
+//   debugger
+//   const updateE = {
+//     id: 'E',
+//     payload: (state) => state + 'E',
+//     lane: InputContinuousHydrationLane
+//   }
+//   enqueueUpdate(fiber, updateE)
 
-  const updateF = { id: 'F', payload: (state) => state + 'F', lane: SyncLane }
-  enqueueUpdate(fiber, updateF)
-})()
+//   const updateF = { id: 'F', payload: (state) => state + 'F', lane: SyncLane }
+//   enqueueUpdate(fiber, updateF)
+// })()
 
-processUpdateQueue(fiber, InputContinuousHydrationLane)
-console.log(fiber.memoizedState) //ABCDEF
+// processUpdateQueue(fiber, InputContinuousHydrationLane)
+// console.log(fiber.memoizedState) //ABCDEF
