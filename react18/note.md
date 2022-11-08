@@ -336,6 +336,13 @@
 - 由于 requestIdleCallback 只有 chrome 支持
 - 优先使用 MessageChannel，如果没有就使用 setTimeout
 
+## 优先级
+
+- 车道优先级
+- 事件优先级
+  - 有车道优先级转换
+- scheduler 优先级(Priority)
+
 ## 备注
 
 - path.posix: 返回 linux 下的路径等
