@@ -55,10 +55,10 @@ function processUpdateQueue(fiber, renderLanes) {
     queue.shared.pending = null
     // 新链表尾部
     const lastPendingUpdate = pendingQueue
-    // 将新链表尾指向断开，变成单链表
-    lastPendingUpdate.next = null
     // 新链表头
     const firstPendingUpdate = lastPendingUpdate.next
+    // 将新链表尾指向断开，变成单链表
+    lastPendingUpdate.next = null
     // 如果没有老链表，将其指向新的链表头
     if (lastBaseUpdate === null) {
       firstBaseUpdate = firstPendingUpdate
