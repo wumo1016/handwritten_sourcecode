@@ -331,9 +331,10 @@
   }
   ```
 
-## MessageChannel
+## scheduleCallback
 
 - 由于 requestIdleCallback 只有 chrome 支持
+- 优先使用 MessageChannel，如果没有就使用 setTimeout
 
 ## 备注
 
