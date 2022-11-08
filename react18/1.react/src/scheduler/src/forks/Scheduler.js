@@ -58,7 +58,7 @@ export function scheduleCallback(priorityLevel, callback) {
     expirationTime, // 任务的过期时间
     sortIndex: expirationTime // 排序依赖
   }
-  //向任务最小堆里添加任务，排序的依据是过期时间
+  // 向任务最小堆里添加任务，排序的依据是过期时间
   push(taskQueue, newTask)
   // flushWork 执行工作，刷新工作，执行任务，司机接人
   requestHostCallback(workLoop)
@@ -148,7 +148,7 @@ function workLoop(startTime) {
   // 取出优先级最高的任务
   currentTask = peek(taskQueue)
   while (currentTask !== null) {
-    // 如果此任务的过期时间小于当前时间，也就是说没有过期,并且需要放弃执行 时间片到期
+    // 如果此任务的过期时间大于任务开始时间(说明没有过期)，并且需要放弃执行 时间片到期
     if (currentTask.expirationTime > currentTime && shouldYieldToHost()) {
       break // 跳出工作循环
     }
@@ -183,17 +183,17 @@ function workLoop(startTime) {
 }
 /**
  * @Author: wyb
- * @Descripttion:
+ * @Descripttion: 本次任务执行是否已经超过5ms
  */
 function shouldYieldToHost() {
   // 用当前时间减去开始的时间就是过去的时间
   const timeElapsed = getCurrentTime() - startTime
-  // 如果流逝或者说经过的时间小于5毫秒，那就不需要放弃执行
-  if (timeElapsed < frameInterval) {
-    return false
-  }
   // 否则就是表示5毫秒用完了，需要放弃执行
-  return true
+  if (frameInterval >= timeElapsed) {
+    return true
+  }
+  // 如果流逝或者说经过的时间小于5毫秒，那就不需要放弃执行
+  return false
 }
 
 export {
