@@ -85,7 +85,7 @@ function processUpdateQueue(fiber, renderLanes) {
       // 获取此更新车道
       const updateLane = update.lane
       // 是否需要跳过本次更新，如果是就先克隆一份
-      if (!(renderLanes & updateLane) === updateLane) {
+      if (updateLane > renderLanes) {
         const clone = {
           id: update.id,
           lane: updateLane,
@@ -118,7 +118,10 @@ function processUpdateQueue(fiber, renderLanes) {
       }
       update = update.next
     } while (update)
-    queue.baseState = newBaseState || newState
+
+    if (newBaseState) {
+      queue.baseState = newBaseState
+    }
     queue.firstBaseUpdate = newFirstBaseUpdate
     queue.lastBaseUpdate = newLastBaseUpdate
     fiber.lanes = newLanes
@@ -159,19 +162,18 @@ initializeUpdateQueue(fiber)
 processUpdateQueue(fiber, SyncLane) // 1
 console.log(fiber.memoizedState) // BD
 
-// //
-// ;(function () {
-//   debugger
-//   const updateE = {
-//     id: 'E',
-//     payload: (state) => state + 'E',
-//     lane: InputContinuousHydrationLane
-//   }
-//   enqueueUpdate(fiber, updateE)
+//
+;(function () {
+  const updateE = {
+    id: 'E',
+    payload: (state) => state + 'E',
+    lane: InputContinuousHydrationLane
+  }
+  enqueueUpdate(fiber, updateE)
 
-//   const updateF = { id: 'F', payload: (state) => state + 'F', lane: SyncLane }
-//   enqueueUpdate(fiber, updateF)
-// })()
+  const updateF = { id: 'F', payload: (state) => state + 'F', lane: SyncLane }
+  enqueueUpdate(fiber, updateF)
+})()
 
-// processUpdateQueue(fiber, InputContinuousHydrationLane)
-// console.log(fiber.memoizedState) //ABCDEF
+processUpdateQueue(fiber, InputContinuousHydrationLane)
+console.log(fiber.memoizedState) //ABCDEF
