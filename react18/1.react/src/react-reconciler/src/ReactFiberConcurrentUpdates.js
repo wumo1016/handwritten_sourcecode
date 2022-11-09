@@ -1,5 +1,5 @@
 import { HostRoot } from './ReactWorkTags'
-const concurrentQueue = []
+const concurrentQueues = []
 let concurrentQueuesIndex = 0
 
 /**
@@ -25,8 +25,8 @@ export function markUpdateLaneFromFiberToRoot(sourceFiber) {
  * @param {*} queue 要更新的hook对应的更新队列
  * @param {*} update 更新对象
  */
-export function enqueueConcurrentHookUpdate(fiber, queue, update) {
-  enqueueUpdate(fiber, queue, update)
+export function enqueueConcurrentHookUpdate(fiber, queue, update, lane) {
+  enqueueUpdate(fiber, queue, update, lane)
   return getRootForUpdatedFiber(fiber)
 }
 /**
@@ -35,12 +35,13 @@ export function enqueueConcurrentHookUpdate(fiber, queue, update) {
  * @param {*} queue
  * @param {*} update
  */
-function enqueueUpdate(fiber, queue, update) {
-  // 三个一组缓存起来
+function enqueueUpdate(fiber, queue, update, lane) {
+  // 四个一组缓存起来
   // 012 setNumber1 345 setNumber2 678 setNumber3
-  concurrentQueue[concurrentQueuesIndex++] = fiber // 函数组件对应的fiber
-  concurrentQueue[concurrentQueuesIndex++] = queue // 要更新的hook对应的更新队列
-  concurrentQueue[concurrentQueuesIndex++] = update // 更新对象
+  concurrentQueues[concurrentQueuesIndex++] = fiber // 函数组件对应的fiber
+  concurrentQueues[concurrentQueuesIndex++] = queue // 要更新的hook对应的更新队列
+  concurrentQueues[concurrentQueuesIndex++] = update // 更新对象
+  concurrentQueues[concurrentQueuesIndex++] = lane // 更新车道
 }
 /**
  * @Author: wyb
@@ -58,16 +59,17 @@ function getRootForUpdatedFiber(sourceFiber) {
 }
 /**
  * @Author: wyb
- * @Descripttion: 在工作循环 workLoopSync 之前调用
+ * @Descripttion: 将更新放到更新队列里 (在工作循环 workLoopSync 之前调用)
  */
 export function finishQueueingConcurrentUpdates() {
   const endIndex = concurrentQueuesIndex
   concurrentQueuesIndex = 0
   let i = 0
   while (i < endIndex) {
-    const fiber = concurrentQueue[i++]
-    const queue = concurrentQueue[i++]
-    const update = concurrentQueue[i++]
+    const fiber = concurrentQueues[i++]
+    const queue = concurrentQueues[i++]
+    const update = concurrentQueues[i++]
+    const lane = concurrentQueues[i++]
     if (queue !== null && update !== null) {
       const pending = queue.pending
       if (pending === null) {
@@ -79,4 +81,16 @@ export function finishQueueingConcurrentUpdates() {
       queue.pending = update
     }
   }
+}
+/**
+ * @Author: wyb
+ * @Descripttion: 
+ * @param {*} fiber
+ * @param {*} queue
+ * @param {*} update
+ * @param {*} lane
+ */
+export function enqueueConcurrentClassUpdate(fiber, queue, update, lane) {
+  enqueueUpdate(fiber, queue, update, lane);
+  return getRootForUpdatedFiber(fiber);
 }

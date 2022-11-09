@@ -1,3 +1,5 @@
+import { DefaultEventPriority } from 'react-reconciler/src/ReactEventPriorities'
+import { getEventPriority } from '../events/ReactDOMEventListener'
 import { setValueForStyles } from './CSSPropertyOperations'
 import { setValueForProperty } from './DOMPropertyOperations'
 import { diffProperties, setInitialProperties } from './ReactDOMComponent'
@@ -135,4 +137,15 @@ function updateDOMProperties(domElement, updatePayload) {
       setValueForProperty(domElement, propKey, propValue)
     }
   }
+}
+/**
+ * @Author: wyb
+ * @Descripttion: 获取当前事件优先级
+ */
+export function getCurrentEventPriority() {
+  const currentEvent = window.event;
+  if (currentEvent === undefined) {
+    return DefaultEventPriority;
+  }
+  return getEventPriority(currentEvent.type);
 }

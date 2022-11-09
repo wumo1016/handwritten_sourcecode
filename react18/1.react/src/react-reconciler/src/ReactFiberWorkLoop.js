@@ -30,6 +30,12 @@ import {
   HostText
 } from './ReactWorkTags'
 import { finishQueueingConcurrentUpdates } from './ReactFiberConcurrentUpdates'
+import {
+  NoLanes, markRootUpdated, getNextLanes,
+  getHighestPriorityLane, SyncLane
+} from './ReactFiberLane';
+import { getCurrentUpdatePriority } from './ReactEventPriorities'
+import { getCurrentEventPriority } from 'react-dom-bindings/src/client/ReactDOMHostConfig'
 
 // 正在进行的工作 当前 fiber 防止同步修改多次渲染
 let workInProgress = null
@@ -41,8 +47,12 @@ let rootWithPendingPassiveEffects = null // 具有useEffect副作用的根节点
  * @Author: wyb
  * @Descripttion: 计划更新root 源码中此处有一个任务的功能
  * @param {*} root
+ * @param {*} fiber
+ * @param {*} lane
  */
-export function scheduleUpdateOnFiber(root) {
+export function scheduleUpdateOnFiber(root, fiber, lane) {
+  // 标记根赛道
+  markRootUpdated(root, lane);
   // 确保调度执行root上的更新
   ensureRootIsScheduled(root)
 }
@@ -267,4 +277,16 @@ function getTag(tag) {
     default:
       return tag
   }
+}
+/**
+ * @Author: wyb
+ * @Descripttion: 请求一个更新优先级
+ */
+export function requestUpdateLane() {
+  const updateLane = getCurrentUpdatePriority();
+  if (updateLane !== NoLanes) {
+    return updateLane;
+  }
+  const eventLane = getCurrentEventPriority();
+  return eventLane;
 }

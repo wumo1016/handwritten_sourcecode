@@ -1,4 +1,4 @@
-import { markUpdateLaneFromFiberToRoot } from './ReactFiberConcurrentUpdates'
+import { enqueueConcurrentClassUpdate, markUpdateLaneFromFiberToRoot } from './ReactFiberConcurrentUpdates'
 
 export const UpdateState = 0
 
@@ -20,7 +20,7 @@ export function initialUpdateQueue(fiber) {
  * @Descripttion:
  */
 export function createUpdate() {
-  const update = { tag: UpdateState }
+  const update = { tag: UpdateState, lane, next: null }
   return update
 }
 /**
@@ -29,19 +29,27 @@ export function createUpdate() {
  * @param {*} fiber
  * @param {*} update
  */
-export function enqueueUpdate(fiber, update) {
-  const updateQueue = fiber.updateQueue
-  const pending = updateQueue.shared.pending
-  if (pending === null) {
-    update.next = update
-  } else {
-    update.next = pending.next
-    pending.next = update
-  }
-  // pending要指向最后一个更新，最后一个更新 next指向第一个更新
-  // 单向循环链表
-  updateQueue.shared.pending = update
-  return markUpdateLaneFromFiberToRoot(fiber)
+export function enqueueUpdate(fiber, update, lane) {
+  // const updateQueue = fiber.updateQueue
+  // const pending = updateQueue.shared.pending
+  // if (pending === null) {
+  //   update.next = update
+  // } else {
+  //   update.next = pending.next
+  //   pending.next = update
+  // }
+  // // pending要指向最后一个更新，最后一个更新 next指向第一个更新
+  // // 单向循环链表
+  // updateQueue.shared.pending = update
+  // return markUpdateLaneFromFiberToRoot(fiber)
+
+  
+  // 获取更新队列
+  const updateQueue = fiber.updateQueue;
+  // 获取共享队列 
+  const sharedQueue = updateQueue.shared;
+  
+  return enqueueConcurrentClassUpdate(fiber, sharedQueue, update, lane);
 }
 /**
  * @Author: wyb
