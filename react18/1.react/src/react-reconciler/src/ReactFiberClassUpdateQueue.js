@@ -1,7 +1,9 @@
+import assign from 'shared/assign'
 import {
   enqueueConcurrentClassUpdate,
   markUpdateLaneFromFiberToRoot
 } from './ReactFiberConcurrentUpdates'
+import { NoLanes } from './ReactFiberLane'
 
 export const UpdateState = 0
 
@@ -12,10 +14,10 @@ export const UpdateState = 0
  */
 export function initialUpdateQueue(fiber) {
   const queue = {
+    baseState: fiber.memoizedState, // 本次状态
+    firstBaseUpdate: null, // 上次跳过的链表头部
+    lastBaseUpdate: null, // 上次跳过的链表尾部
     shared: {
-      baseState: fiber.memoizedState, // 本次状态
-      firstBaseUpdate: null, // 上次跳过的链表头部
-      lastBaseUpdate: null, // 上次跳过的链表尾部
       pending: null
     }
   }
@@ -173,14 +175,14 @@ export function processUpdateQueue(fiber, nextProps, renderLanes) {
 function getStateFromUpdate(update, prevState, nextProps) {
   switch (update.tag) {
     case UpdateState:
-      const { payload } = update;
-      let partialState;
+      const { payload } = update
+      let partialState
       if (typeof payload === 'function') {
-        partialState = payload.call(null, prevState, nextProps);
+        partialState = payload.call(null, prevState, nextProps)
       } else {
-        partialState = payload;
+        partialState = payload
       }
-      return assign({}, prevState, partialState);
+      return assign({}, prevState, partialState)
   }
 }
 /**
