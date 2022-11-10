@@ -6,7 +6,7 @@ import {
   IndeterminateComponent,
   FunctionComponent
 } from './ReactWorkTags'
-import { processUpdateQueue } from './ReactFiberClassUpdateQueue'
+import { cloneUpdateQueue, processUpdateQueue } from './ReactFiberClassUpdateQueue'
 import { mountChildFibers, reconcileChildFibers } from './ReactChildFiber'
 import { shouldSetTextContent } from 'react-dom-bindings/src/client/ReactDOMHostConfig'
 import { renderWithHooks } from 'react-reconciler/src/ReactFiberHooks'
@@ -16,21 +16,32 @@ import { renderWithHooks } from 'react-reconciler/src/ReactFiberHooks'
  * @Descripttion:
  * @param {*} oldFiber 老fiber
  * @param {*} newFiber 新的fiber
+ * @param {*} renderLanes 渲染车道
  */
-export function beginWork(oldFiber, newFiber) {
+export function beginWork(oldFiber, newFiber, renderLanes) {
   // logger(' '.repeat(indent.number) + 'beginWork', newFiber)
   indent.number += 2
   switch (newFiber.tag) {
     // 因为在React里组件其实有两种，一种是函数组件，一种是类组件，但是它们都是都是函数
     case IndeterminateComponent:
-      return mountIndeterminateComponent(oldFiber, newFiber, newFiber.type)
+      return mountIndeterminateComponent(
+        oldFiber,
+        newFiber,
+        newFiber.type,
+        renderLanes
+      )
     case FunctionComponent: {
-      return updateFunctionComponent(oldFiber, newFiber, newFiber.type)
+      return updateFunctionComponent(
+        oldFiber,
+        newFiber,
+        newFiber.type,
+        renderLanes
+      )
     }
     case HostRoot:
-      return updateHostRoot(oldFiber, newFiber)
+      return updateHostRoot(oldFiber, newFiber, renderLanes)
     case HostComponent:
-      return updateHostComponent(oldFiber, newFiber)
+      return updateHostComponent(oldFiber, newFiber, renderLanes)
     case HostText:
       return null
     default:
@@ -42,10 +53,13 @@ export function beginWork(oldFiber, newFiber) {
  * @Descripttion: 更新根节点
  * @param {*} oldFiber 老fiber
  * @param {*} newFiber 新的fiber
+ * @param {*} renderLanes 渲染车道
  */
-function updateHostRoot(oldFiber, newFiber) {
+function updateHostRoot(oldFiber, newFiber, renderLanes) {
+  const nextProps = newFiber.pendingProps
+  cloneUpdateQueue(oldFiber, newFiber)
   // 将虚拟dom 从更新队列中保存到 memoizedState 中
-  processUpdateQueue(newFiber)
+  processUpdateQueue(newFiber, nextProps, renderLanes)
   // 新的子虚拟 dom
   const nextChildren = newFiber.memoizedState.element // h1
   // 根据新的虚拟DOM生成子fiber链表 就是给 chlid 赋值

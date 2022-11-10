@@ -188,8 +188,8 @@ function workLoop(startTime) {
 function shouldYieldToHost() {
   // 用当前时间减去开始的时间就是过去的时间
   const timeElapsed = getCurrentTime() - startTime
-  // 否则就是表示5毫秒用完了，需要放弃执行
-  if (frameInterval >= timeElapsed) {
+  // 如果执行时间大于指定时间 则需要中断执行
+  if (timeElapsed >= frameInterval) {
     return true
   }
   // 如果流逝或者说经过的时间小于5毫秒，那就不需要放弃执行
@@ -197,12 +197,13 @@ function shouldYieldToHost() {
 }
 
 export {
+  scheduleCallback as unstable_scheduleCallback,
   shouldYieldToHost as shouldYield,
-  ImmediatePriority,
-  UserBlockingPriority,
-  NormalPriority,
-  LowPriority,
-  IdlePriority
+  ImmediatePriority as unstable_ImmediatePriority,
+  UserBlockingPriority as unstable_UserBlockingPriority,
+  NormalPriority as unstable_NormalPriority,
+  LowPriority as unstable_LowPriority,
+  IdlePriority as unstable_IdlePriority
 }
 
 /* 

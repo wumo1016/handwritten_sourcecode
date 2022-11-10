@@ -85,7 +85,8 @@ function processUpdateQueue(fiber, renderLanes) {
       // 获取此更新车道
       const updateLane = update.lane
       // 是否需要跳过本次更新，如果是就先克隆一份
-      if (updateLane > renderLanes) {
+      // 如果当前更新车道是当前渲染车道的子集，就执行，否则就跳过
+      if (!((renderLanes & updateLane) === updateLane)) {
         const clone = {
           id: update.id,
           lane: updateLane,
@@ -140,29 +141,35 @@ initializeUpdateQueue(fiber)
   const updateA = {
     id: 'A',
     payload: (state) => state + 'A',
-    lane: InputContinuousHydrationLane
+    lane: SyncLane
   }
   enqueueUpdate(fiber, updateA)
 
-  const updateB = { id: 'B', payload: (state) => state + 'B', lane: SyncLane }
+  const updateB = {
+    id: 'B',
+    payload: (state) => state + 'B',
+    lane: InputContinuousHydrationLane
+  }
   enqueueUpdate(fiber, updateB)
 
   const updateC = {
     id: 'C',
     payload: (state) => state + 'C',
-    lane: InputContinuousHydrationLane
+    lane: SyncLane
   }
   enqueueUpdate(fiber, updateC)
 
-  const updateD = { id: 'D', payload: (state) => state + 'D', lane: SyncLane }
+  const updateD = {
+    id: 'D',
+    payload: (state) => state + 'D',
+    lane: InputContinuousHydrationLane
+  }
   enqueueUpdate(fiber, updateD)
 })()
 
 // 处理新队列，在处理的时候需要指定一个渲染优先级
 processUpdateQueue(fiber, SyncLane) // 1
 console.log(fiber.memoizedState) // BD
-
-//
 ;(function () {
   const updateE = {
     id: 'E',
@@ -171,7 +178,7 @@ console.log(fiber.memoizedState) // BD
   }
   enqueueUpdate(fiber, updateE)
 
-  const updateF = { id: 'F', payload: (state) => state + 'F', lane: SyncLane }
+  const updateF = { id: 'F', payload: (state) => state + 'F', lane: InputContinuousHydrationLane }
   enqueueUpdate(fiber, updateF)
 })()
 

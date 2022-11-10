@@ -1,4 +1,7 @@
-import { enqueueConcurrentClassUpdate, markUpdateLaneFromFiberToRoot } from './ReactFiberConcurrentUpdates'
+import {
+  enqueueConcurrentClassUpdate,
+  markUpdateLaneFromFiberToRoot
+} from './ReactFiberConcurrentUpdates'
 
 export const UpdateState = 0
 
@@ -19,7 +22,7 @@ export function initialUpdateQueue(fiber) {
  * @Author: wyb
  * @Descripttion:
  */
-export function createUpdate() {
+export function createUpdate(lane) {
   const update = { tag: UpdateState, lane, next: null }
   return update
 }
@@ -43,13 +46,12 @@ export function enqueueUpdate(fiber, update, lane) {
   // updateQueue.shared.pending = update
   // return markUpdateLaneFromFiberToRoot(fiber)
 
-  
   // 获取更新队列
-  const updateQueue = fiber.updateQueue;
-  // 获取共享队列 
-  const sharedQueue = updateQueue.shared;
-  
-  return enqueueConcurrentClassUpdate(fiber, sharedQueue, update, lane);
+  const updateQueue = fiber.updateQueue
+  // 获取共享队列
+  const sharedQueue = updateQueue.shared
+
+  return enqueueConcurrentClassUpdate(fiber, sharedQueue, update, lane)
 }
 /**
  * @Author: wyb
@@ -87,5 +89,26 @@ function getStateFromUpdate(update, prevState) {
     case UpdateState:
       const { payload } = update
       return Object.assign({}, prevState, payload)
+  }
+}
+/**
+ * @Author: wyb
+ * @Descripttion: 克隆 fiber 的 updateQueue
+ * @param {*} oldFiber
+ * @param {*} newFiber
+ */
+export function cloneUpdateQueue(oldFiber, newFiber) {
+  const newUpdatequeue = newFiber.updateQueue
+  const oldUpdatequeue = oldFiber.updateQueue
+  // 如果新的队列和老的队列是同一个对象的话
+  if (oldUpdatequeue === newUpdatequeue) {
+    const clone = {
+      baseState: oldUpdatequeue.baseState,
+      firstBaseUpdate: oldUpdatequeue.firstBaseUpdate,
+      firstBaseUpdate: oldUpdatequeue.firstBaseUpdate,
+      lastBaseUpdate: oldUpdatequeue.lastBaseUpdate,
+      shared: oldUpdatequeue.shared
+    }
+    newFiber.updateQueue = clone
   }
 }
