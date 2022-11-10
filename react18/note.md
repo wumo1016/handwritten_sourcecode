@@ -31,12 +31,18 @@
 - render => (ReactDOMRoot.js)
 - updateContainer(vdom, container) => (ReactFiberReconciler.js)
 
-  - createUpdate: 创建一个对象 { payload: { element: vdom } }
+  - requestUpdateLane: 获取一个更新车道
+    - getCurrentUpdatePriority: 获取当前更新车道 currentUpdatePriority(ReactEventPriorities.js)
+    - 如果 currentUpdatePriority 为 NoLane，就是没有
+      - getCurrentEventPriority: 获取当前事件车道
+        - 如果没有就返回 DefaultEventPriority(默认事件车道)
+        - 如果有事件，事件类习惯 => 事件优先级 => 对应的车道
+  - createUpdate: 创建一个对象 { tag, lane, next }
   - enqueueUpdate: 返回根节点 FiberRootNode
-    - 设置当前 fiber 的 updateQueue
-    - markUpdateLaneFromFiberToRoot: 找到 FiberRootNode 并返回
+    - enqueueConcurrentClassUpdate
+      - enqueueUpdate: 将 `fiber, fiber.updateQueue.shared(queue), update,lane` 添加进 concurrentQueues 中
   - scheduleUpdateOnFiber
-
+    - markRootUpdated: 标记根节点的更新车道 root.pendingLanes |= lane
     - ensureRootIsScheduled
 
       - scheduleCallback(performConcurrentWorkOnRoot): scheduleCallback 为调度器 空闲的时候执行 performConcurrentWorkOnRoot
