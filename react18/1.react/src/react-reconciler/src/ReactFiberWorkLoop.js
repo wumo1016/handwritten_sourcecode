@@ -244,6 +244,7 @@ function renderRootSync(root, renderLanes) {
   }
   // 同步递归构建 fiber 树
   workLoopSync()
+  return RootCompleted
 }
 /**
  * @Author: wyb
