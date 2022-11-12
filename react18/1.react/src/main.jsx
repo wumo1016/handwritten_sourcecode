@@ -307,11 +307,28 @@ const root = createRoot(document.getElementById("root"));
 root.render(element); 
 */
 
+/* 
+// 微任务同步渲染
 import * as React from 'react'
 import { createRoot } from 'react-dom/client'
 
 function FunctionComponent() {
   const [number, setNumber] = React.useState(0)
+  return <button onClick={() => setNumber(number + 1)}>{number}</button>
+}
+let element = <FunctionComponent />
+const root = createRoot(document.getElementById('root'))
+root.render(element) */
+
+// 微任务同步并发渲染
+import * as React from 'react'
+import { createRoot } from 'react-dom/client'
+
+function FunctionComponent() {
+  const [number, setNumber] = React.useState(0)
+  React.useEffect(() => {
+    setNumber(number + 1)
+  }, [])
   return <button onClick={() => setNumber(number + 1)}>{number}</button>
 }
 let element = <FunctionComponent />

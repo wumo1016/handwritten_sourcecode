@@ -1,3 +1,5 @@
+import { allowConcurrentByDefault } from "shared/ReactFeatureFlags"
+
 export const TotalLanes = 31
 export const NoLanes = 0b0000000000000000000000000000000
 export const NoLane = 0b0000000000000000000000000000000
@@ -54,10 +56,10 @@ export function getHighestPriorityLane(lanes) {
 }
 /**
  * @Author: wyb
- * @Descripttion: 
+ * @Descripttion:
  * @param {*} lanes
  * 源码此处的逻辑有大的改变动
- * 
+ *
  * 以前
  * pendingLanes= 001100
  * 找到最右边的1  000100
@@ -74,21 +76,33 @@ export function includesNonIdleWork(lanes) {
 }
 /**
  * @Author: wyb
- * @Descripttion: 
+ * @Descripttion:
  * @param {*} set
  * @param {*} subset
  */
- export function isSubsetOfLanes(set, subset) {
+export function isSubsetOfLanes(set, subset) {
   return (set & subset) === subset
 }
 /**
  * @Author: wyb
- * @Descripttion: 
+ * @Descripttion:
  * @param {*} a
  * @param {*} b
  */
 export function mergeLanes(a, b) {
   return a | b
 }
-
-
+/**
+ * @Author: wyb
+ * @Descripttion:
+ * @param {*} root
+ * @param {*} lanes
+ */
+export function includesBlockingLane(root, lanes) {
+  // 如果允许默认并行渲染
+  if (allowConcurrentByDefault) {
+    return false
+  }
+  const SyncDefaultLanes = InputContinuousLane | DefaultLane
+  return (lanes & SyncDefaultLanes) !== NoLane
+}
