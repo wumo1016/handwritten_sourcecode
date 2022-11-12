@@ -1,7 +1,13 @@
 import getEventTarget from './getEventTarget'
 import { getClosestInstanceFromNode } from '../client/ReactDOMComponentTree'
 import { dispatchEventForPluginEventSystem } from './DOMPluginEventSystem'
-import { ContinuousEventPriority, DefaultEventPriority, DiscreteEventPriority } from 'react-reconciler/src/ReactEventPriorities'
+import {
+  ContinuousEventPriority,
+  DefaultEventPriority,
+  DiscreteEventPriority,
+  getCurrentUpdatePriority,
+  setCurrentUpdatePriority
+} from 'react-reconciler/src/ReactEventPriorities'
 
 /**
  * @Author: wyb
@@ -33,6 +39,17 @@ function dispatchDiscreteEvent(
   container,
   nativeEvent
 ) {
+  // 在你是点击按钮的时候，需要设置更新优先级
+  // 先获取当前老的更新优先级
+  const previousPriority = getCurrentUpdatePriority()
+  try {
+    // 把当前的更新优先级设置为离散事件优先级 1
+    setCurrentUpdatePriority(DiscreteEventPriority)
+    dispatchEvent(domEventName, eventSystemFlags, container, nativeEvent)
+  } finally {
+    // 执行完事件再重置
+    setCurrentUpdatePriority(previousPriority)
+  }
   dispatchEvent(domEventName, eventSystemFlags, container, nativeEvent)
 }
 /**
@@ -69,10 +86,10 @@ export function dispatchEvent(
 export function getEventPriority(domEventName) {
   switch (domEventName) {
     case 'click':
-      return DiscreteEventPriority;
+      return DiscreteEventPriority
     case 'drag':
-      return ContinuousEventPriority;
+      return ContinuousEventPriority
     default:
-      return DefaultEventPriority;
+      return DefaultEventPriority
   }
 }

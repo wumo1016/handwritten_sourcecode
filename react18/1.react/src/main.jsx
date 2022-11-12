@@ -297,10 +297,48 @@ const element = <FunctionComponent />
 const root = createRoot(document.getElementById('root'))
 root.render(element)
  */
-
+/* 
+// 同步渲染
 import * as React from 'react';
 import { createRoot } from "react-dom/client";
 
 let element = <h1 >hello</h1>
 const root = createRoot(document.getElementById("root"));
-root.render(element);
+root.render(element); 
+*/
+
+import * as React from 'react'
+import { createRoot } from 'react-dom/client'
+
+function FunctionComponent() {
+  const [number, setNumber] = React.useState(0)
+  return <button onClick={() => setNumber(number + 1)}>{number}</button>
+}
+let element = <FunctionComponent />
+const root = createRoot(document.getElementById('root'))
+root.render(element)
+
+// import * as React from 'react'
+// import { createRoot } from 'react-dom/client'
+
+// function FunctionComponent() {
+//   console.log('FunctionComponent')
+//   const [numbers, setNumbers] = React.useState(new Array(10).fill('A'))
+//   React.useEffect(() => {
+//     setNumbers((numbers) => numbers.map((number) => number + 'B'))
+//   }, [])
+//   return (
+//     <button
+//       onClick={() =>
+//         setNumbers((numbers) => numbers.map((number) => number + 'C'))
+//       }
+//     >
+//       {numbers.map((number, index) => (
+//         <span key={index}>{number}</span>
+//       ))}
+//     </button>
+//   )
+// }
+// let element = <FunctionComponent />
+// const root = createRoot(document.getElementById('root'))
+// root.render(element)

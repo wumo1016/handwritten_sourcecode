@@ -1,6 +1,6 @@
 import ReactSharedInternals from 'shared/ReactSharedInternals'
 import { enqueueConcurrentHookUpdate } from './ReactFiberConcurrentUpdates'
-import { scheduleUpdateOnFiber } from './ReactFiberWorkLoop'
+import { requestUpdateLane, scheduleUpdateOnFiber } from './ReactFiberWorkLoop'
 import {
   Passive as PassiveEffect,
   Update as UpdateEffect
@@ -10,6 +10,7 @@ import {
   HasEffect as HookHasEffect,
   Layout as HookLayout
 } from './ReactHookEffectTags'
+import { NoLanes } from './ReactFiberLane'
 
 const { ReactCurrentDispatcher } = ReactSharedInternals
 let currentlyRenderingFiber = null
@@ -227,12 +228,28 @@ function baseStateReducer(state, action) {
  * @param {*} action
  */
 function dispatchSetState(fiber, queue, action) {
+  // 获取当前的更新赛道 1
+  const lane = requestUpdateLane()
   const update = {
+    lane,
     action,
     hasEagerState: false, // 是否计算过
     eagerState: null, // 计算过的状态
     next: null
   }
+  // const alternate = fiber.alternate;
+  // if ( 
+  //   fiber.lanes === NoLanes &&
+  //   (alternate === null || alternate.lanes == NoLanes)
+  // ) {
+  //   const { lastRenderedReducer, lastRenderedState } = queue
+  //   const eagerState = lastRenderedReducer(lastRenderedState, action)
+  //   update.hasEagerState = true
+  //   update.eagerState = eagerState
+  //   if (Object.is(eagerState, lastRenderedState)) {
+  //     return
+  //   }
+  // }
   // 当你派发动作后，我立刻用上一次的状态和上一次的reducer计算新状态
   const { lastRenderedReducer, lastRenderedState } = queue
   const eagerState = lastRenderedReducer(lastRenderedState, action)
@@ -242,8 +259,8 @@ function dispatchSetState(fiber, queue, action) {
     return
   }
   // 下面是真正的入队更新，并调度更新逻辑
-  const root = enqueueConcurrentHookUpdate(fiber, queue, update)
-  scheduleUpdateOnFiber(root)
+  const root = enqueueConcurrentHookUpdate(fiber, queue, update, lane)
+  scheduleUpdateOnFiber(root, fiber, lane)
 }
 /**
  * @Author: wyb

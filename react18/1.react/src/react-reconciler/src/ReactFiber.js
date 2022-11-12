@@ -1,4 +1,5 @@
 import { NoFlags } from './ReactFiberFlags'
+import { NoLanes } from './ReactFiberLane'
 import {
   HostComponent,
   HostRoot,
@@ -50,6 +51,7 @@ export function FiberNode(tag, pendingProps, key) {
   this.alternate = null // 替身，轮替 dom diff时使用
   this.index = 0 // 此fiber在兄弟节点中的位置
   this.deletions = null // 待删除的子fiber
+  this.lanes = NoLanes
 }
 /**
  * @Author: wyb

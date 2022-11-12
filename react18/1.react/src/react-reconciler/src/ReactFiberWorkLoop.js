@@ -42,16 +42,21 @@ import {
   DiscreteEventPriority,
   ContinuousEventPriority,
   DefaultEventPriority,
-  IdleEventPriority
+  IdleEventPriority,
+  setCurrentUpdatePriority
 } from './ReactEventPriorities'
 import { getCurrentEventPriority } from 'react-dom-bindings/src/client/ReactDOMHostConfig'
+import {
+  flushSyncCallbacks,
+  scheduleSyncCallback
+} from './ReactFiberSyncTaskQueue'
 
 // 正在进行的工作 当前 fiber 防止同步修改多次渲染
 let workInProgress = null
 let workInProgressRoot = null
 let rootDoesHavePassiveEffect = false // 此根节点上有没有useEffect类似的副作用
 let rootWithPendingPassiveEffects = null // 具有useEffect副作用的根节点 FiberRootNode,根fiber.stateNode
-let workInProgressRenderLanes = NoLanes // 当前正在进行的渲染优先级
+let workInProgressRootRenderLanes = NoLanes // 当前正在进行的渲染优先级
 
 /**
  * @Author: wyb
@@ -76,8 +81,13 @@ function ensureRootIsScheduled(root) {
   const nextLanes = getNextLanes(root, NoLanes)
   // 获取新的调度优先级
   const newCallbackPriority = getHighestPriorityLane(nextLanes)
-  // 如果是同步
+  // 如果是同步(事件等)
+  // 新的回调任务
   if (newCallbackPriority === SyncLane) {
+    // 先把performSyncWorkOnRoot添回到同步队列中
+    scheduleSyncCallback(performSyncWorkOnRoot.bind(null, root))
+    // 将执行同步队列方法 放入微任务中
+    queueMicrotask(flushSyncCallbacks)
   } else {
     // 如果不是同步，就需要调度一个新的任务
     // 将lane转换为 SchedulerPriority => 调度优先级
@@ -104,17 +114,26 @@ function ensureRootIsScheduled(root) {
       performConcurrentWorkOnRoot.bind(null, root)
     )
   }
-  // if (workInProgressRoot) return
-  // workInProgressRoot = root
-  // // 告诉浏览器要执行performConcurrentWorkOnRoot
-  // scheduleCallback(
-  //   NormalSchedulerPriority,
-  //   performConcurrentWorkOnRoot.bind(null, root)
-  // )
 }
 /**
  * @Author: wyb
- * @Descripttion: 根据fiber构建fiber树 => 要创建真实的DOM节点 => 还需要把真实的DOM节点插入容器
+ * @Descripttion: 在根上执行同步工作
+ * @param {*} root
+ */
+function performSyncWorkOnRoot(root) {
+  // 获得最高优的lane
+  const lanes = getNextLanes(root)
+  // 渲染新的fiber树
+  renderRootSync(root, lanes)
+  // 获取新渲染完成的fiber根节点
+  const newRootFiber = root.current.alternate
+  root.finishedWork = newRootFiber
+  commitRoot(root)
+  return null
+}
+/**
+ * @Author: wyb
+ * @Descripttion: 在根上执行异步工作 根据fiber构建fiber树 => 要创建真实的DOM节点 => 还需要把真实的DOM节点插入容器
  * @param {*} root
  */
 function performConcurrentWorkOnRoot(root, timeout) {
@@ -130,9 +149,6 @@ function performConcurrentWorkOnRoot(root, timeout) {
   root.finishedWork = newRootFiber
   // 提交根节点
   commitRoot(root)
-  // 清空
-  workInProgressRoot = null
-  workInProgressRenderLanes = NoLanes
 }
 /**
  * @Author: wyb
@@ -140,8 +156,14 @@ function performConcurrentWorkOnRoot(root, timeout) {
  * @param {*} root
  */
 function renderRootSync(root, renderLanes) {
-  // 准备一个新的栈 根fiber
-  prepareFreshStack(root, renderLanes)
+  // 如果新的根和老的根不一样，或者新的渲染优先级和老的渲染优先级不一样
+  if (
+    root !== workInProgressRoot ||
+    workInProgressRootRenderLanes !== renderLanes
+  ) {
+    // 准备一个新的栈 根fiber
+    prepareFreshStack(root, renderLanes)
+  }
   // 同步递归构建 fiber 树
   workLoopSync()
 }
@@ -153,11 +175,11 @@ function renderRootSync(root, renderLanes) {
 function prepareFreshStack(root, renderLanes) {
   if (
     root !== workInProgressRoot ||
-    workInProgressRenderLanes !== renderLanes
+    workInProgressRootRenderLanes !== renderLanes
   ) {
     workInProgress = createWorkInProgress(root.current, null)
   }
-  workInProgressRenderLanes = renderLanes
+  workInProgressRootRenderLanes = renderLanes
   workInProgressRoot = root
   finishQueueingConcurrentUpdates()
 }
@@ -179,7 +201,7 @@ function performUnitOfWork(curFiber) {
   // 获取老fiber
   const oldFiber = curFiber.alternate
   // 完成当前fiber的子fiber链表构建后
-  const next = beginWork(oldFiber, curFiber, workInProgressRenderLanes)
+  const next = beginWork(oldFiber, curFiber, workInProgressRootRenderLanes)
   curFiber.memoizedProps = curFiber.pendingProps
   if (next === null) {
     // 如果没有子节点表示当前的fiber已经完成了
@@ -219,7 +241,25 @@ function completeUnitOfWork(unitOfWork) {
  * @param {*} root
  */
 function commitRoot(root) {
+  const previousUpdatePriority = getCurrentUpdatePriority()
+  try {
+    // 把当前的更新优先级设置为1
+    setCurrentUpdatePriority(DiscreteEventPriority)
+    commitRootImpl(root)
+  } finally {
+    setCurrentUpdatePriority(previousUpdatePriority)
+  }
+}
+/**
+ * @Author: wyb
+ * @Descripttion:
+ * @param {*} root
+ */
+function commitRootImpl(root) {
   const { finishedWork } = root
+  // 清空
+  workInProgressRoot = null
+  workInProgressRootRenderLanes = NoLanes
   // 自己或子有延迟副作用
   if (
     (finishedWork.subtreeFlags & Passive) !== NoFlags ||
