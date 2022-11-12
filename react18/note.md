@@ -51,6 +51,15 @@
       - 是否是同步车道
 
         - 是
+          - scheduleSyncCallback(performSyncWorkOnRoot.bind(null, root))
+            - scheduleSyncCallback: 将同步回调添加进同步队列
+            - performSyncWorkOnRoot: 在根上执行同步工作(在 flushSyncCallbacks 的时候执行)
+              - getNextLanes: 获得最高优的 lane
+              - renderRootSync: 同下
+              - commitRoot: 同下
+              - return null
+          - queueMicrotask(flushSyncCallbacks): 将执行同步队列方法 放入微任务中
+            - flushSyncCallbacks: 执行同步队列 syncQueue 中的回调
         - 否
 
           - 根据调用车道获取调度优先级
@@ -182,44 +191,46 @@
 
             - commitRoot: 提交根节点
 
-              - scheduleCallback(flushPassiveEffect) => 开启一个新的宏任务
-                - commitPassiveUnmountEffects: 执行卸载 effect
-                  - commitPassiveUnmountOnFiber
-                    - recursivelyTraversePassiveUnmountEffects: 子节点递归执行 commitPassiveUnmountOnFiber
-                    - commitHookPassiveUnmountEffects
-                      - commitHookEffectListUnmount: 遍历 fiber.updateQueue.lastEffect 循环链表，执行 destroy 方法
-                - commitPassiveMountEffects: 执行挂载 effect
-                  - commitPassiveMountOnFiber
-                    - recursivelyTraversePassiveMountEffects: 子节点递归执行 commitPassiveMountOnFiber
-                    - commitHookPassiveMountEffects
-                      - commitHookEffectListMount: 遍历 fiber.updateQueue.lastEffect 循环链表，执行 create 方法并赋值给 fiber.destroy
-              - commitMutationEffectsOnFiber(如果自己或孩子有修改)
+              - commitRootImpl
 
-                - recursivelyTraverseMutationEffects: 先遍历它们的子节点，处理它们的子节点上的副作用
-                  - 先查看当前 fiber 是否有 deletions
-                    - 如果有，遍历执行 commitDeletionEffects
-                      - 先找到当前 fiber 的真实父 dom
-                      - commitDeletionEffectsOnFiber
-                        - 递归调用 recursivelyTraverseMutationEffects (因为要先删除子节点，处理生命周期等)
-                        - removeChild
-                  - commitMutationEffectsOnFiber(递归调用)
-                - commitReconciliationEffects: 再处理自己身上的副作用
-                  - commitPlacement: 如果当前 fiber 是新增，将自己插入到父节点中
-                - 如果是原生节点 fiber
-                  - 有更新 && fiber 的 updateQueue 有值
-                    - commitUpdate
-                      - updateProperties: 更新 dom 上的属性 包括 children、style，纯文本节点就是在这更新的内容
-                      - updateFiberProps: 缓存属性到 dom 上
-                - 如果是函数组件
-                  - commitHookEffectListUnmount
-                    - 遍历 fiber.updateQueue.lastEffect 循环链表，执行 destroy 方法
+                - scheduleCallback(flushPassiveEffect) => 开启一个新的宏任务
+                  - commitPassiveUnmountEffects: 执行卸载 effect
+                    - commitPassiveUnmountOnFiber
+                      - recursivelyTraversePassiveUnmountEffects: 子节点递归执行 commitPassiveUnmountOnFiber
+                      - commitHookPassiveUnmountEffects
+                        - commitHookEffectListUnmount: 遍历 fiber.updateQueue.lastEffect 循环链表，执行 destroy 方法
+                  - commitPassiveMountEffects: 执行挂载 effect
+                    - commitPassiveMountOnFiber
+                      - recursivelyTraversePassiveMountEffects: 子节点递归执行 commitPassiveMountOnFiber
+                      - commitHookPassiveMountEffects
+                        - commitHookEffectListMount: 遍历 fiber.updateQueue.lastEffect 循环链表，执行 create 方法并赋值给 fiber.destroy
+                - commitMutationEffectsOnFiber(如果自己或孩子有修改)
 
-              - commitLayoutEffects(如果自己或孩子有修改)
-                - commitLayoutEffects
-                  - commitLayoutEffectOnFiber
-                    - recursivelyTraverseLayoutEffects: 子节点递归调用 commitLayoutEffectOnFiber
-                    - commitHookLayoutEffects
-                      - commitHookEffectListMount: 遍历 fiber.updateQueue.lastEffect 循环链表，执行 create 方法并赋值给 fiber.destroy
+                  - recursivelyTraverseMutationEffects: 先遍历它们的子节点，处理它们的子节点上的副作用
+                    - 先查看当前 fiber 是否有 deletions
+                      - 如果有，遍历执行 commitDeletionEffects
+                        - 先找到当前 fiber 的真实父 dom
+                        - commitDeletionEffectsOnFiber
+                          - 递归调用 recursivelyTraverseMutationEffects (因为要先删除子节点，处理生命周期等)
+                          - removeChild
+                    - commitMutationEffectsOnFiber(递归调用)
+                  - commitReconciliationEffects: 再处理自己身上的副作用
+                    - commitPlacement: 如果当前 fiber 是新增，将自己插入到父节点中
+                  - 如果是原生节点 fiber
+                    - 有更新 && fiber 的 updateQueue 有值
+                      - commitUpdate
+                        - updateProperties: 更新 dom 上的属性 包括 children、style，纯文本节点就是在这更新的内容
+                        - updateFiberProps: 缓存属性到 dom 上
+                  - 如果是函数组件
+                    - commitHookEffectListUnmount
+                      - 遍历 fiber.updateQueue.lastEffect 循环链表，执行 destroy 方法
+
+                - commitLayoutEffects(如果自己或孩子有修改)
+                  - commitLayoutEffects
+                    - commitLayoutEffectOnFiber
+                      - recursivelyTraverseLayoutEffects: 子节点递归调用 commitLayoutEffectOnFiber
+                      - commitHookLayoutEffects
+                        - commitHookEffectListMount: 遍历 fiber.updateQueue.lastEffect 循环链表，执行 create 方法并赋值给 fiber.destroy
 
 ## 多节点 diff
 
