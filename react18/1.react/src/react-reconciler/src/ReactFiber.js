@@ -52,6 +52,7 @@ export function FiberNode(tag, pendingProps, key) {
   this.index = 0 // 此fiber在兄弟节点中的位置
   this.deletions = null // 待删除的子fiber
   this.lanes = NoLanes
+  this.ref = null;
 }
 /**
  * @Author: wyb
@@ -80,6 +81,7 @@ export function createWorkInProgress(current, pendingProps) {
   workInProgress.updateQueue = current.updateQueue
   workInProgress.sibling = current.sibling
   workInProgress.index = current.index
+  workInProgress.ref = current.ref;
   return workInProgress
 }
 

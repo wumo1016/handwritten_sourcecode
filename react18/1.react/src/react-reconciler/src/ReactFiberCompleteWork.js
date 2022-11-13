@@ -6,7 +6,7 @@ import {
   finalizeInitialChildren,
   prepareUpdate
 } from 'react-dom-bindings/src/client/ReactDOMHostConfig'
-import { NoFlags, Update } from './ReactFiberFlags'
+import { NoFlags, Ref, Update } from './ReactFiberFlags'
 
 import {
   FunctionComponent,
@@ -35,6 +35,9 @@ export function completeWork(oldFiber, newFiber) {
       // 如果老fiber存在 且新fiber上存在真实dom 走更新逻辑
       if (oldFiber !== null && newFiber.stateNode !== null) {
         updateHostComponent(oldFiber, newFiber, type, newProps)
+        if (current.ref !== newFiber.ref !== null) {
+          markRef(newFiber);
+        }
       } else {
         // 创建真实的DOM节点
         const dom = createInstance(type, newProps, newFiber)
@@ -43,6 +46,9 @@ export function completeWork(oldFiber, newFiber) {
         newFiber.stateNode = dom
         // 处理已经完成挂载的dom 例如：设置dom属性等
         finalizeInitialChildren(dom, type, newProps)
+        if (newFiber.ref !== null) {
+          markRef(newFiber)
+        }
       }
       bubbleProperties(newFiber)
       break
@@ -135,4 +141,12 @@ function bubbleProperties(curFiber) {
  */
 function markUpdate(fiber) {
   fiber.flags |= Update // 给当前的fiber添加更新的副作用
+}
+/**
+ * @Author: wyb
+ * @Descripttion: 
+ * @param {*} newFiber
+ */
+function markRef(newFiber) {
+  newFiber.flags |= Ref;
 }

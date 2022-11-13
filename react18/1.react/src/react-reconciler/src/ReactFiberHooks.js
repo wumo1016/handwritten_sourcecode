@@ -21,13 +21,15 @@ const HooksDispatcherOnMount = {
   useReducer: mountReducer,
   useState: mountState,
   useEffect: mountEffect,
-  useLayoutEffect: mountLayoutEffect
+  useLayoutEffect: mountLayoutEffect,
+  useRef: mountRef
 }
 const HooksDispatcherOnUpdate = {
   useReducer: updateReducer,
   useState: updateState,
   useEffect: updateEffect,
-  useLayoutEffect: updateLayoutEffect
+  useLayoutEffect: updateLayoutEffect,
+  useRef: updateRef
 }
 
 /**
@@ -53,6 +55,54 @@ export function renderWithHooks(oldFiber, newFiber, Component, props) {
   oldHook = null
   return children
 }
+/**
+ * @Author: wyb
+ * @Descripttion: 挂载构建中的hook
+ */
+function mountWorkInProgressHook() {
+  const hook = {
+    memoizedState: null, // hook的状态 0
+    queue: null, // 存放本hook的更新队列 queue.pending=update 的循环链表
+    next: null // 指向下一个hook,一个函数里可以会有多个hook,它们会组成一个单向链表
+  }
+  if (workInProgressHook === null) {
+    // 当前函数对应的fiber的状态等于第一个hook对象
+    workInProgressHook = hook
+    currentlyRenderingFiber.memoizedState = hook // 将 fiber 与hook关联
+  } else {
+    // 构建 hook 链表
+    workInProgressHook.next = hook
+    workInProgressHook = hook
+  }
+  return hook
+}
+/**
+ * @Author: wyb
+ * @Descripttion: 构建新的 hook
+ */
+function updateWorkInProgressHook() {
+  // 获取将要构建的新的hook的老hook
+  if (oldHook === null) {
+    const current = currentlyRenderingFiber.alternate
+    oldHook = current.memoizedState
+  } else {
+    oldHook = oldHook.next
+  }
+  //根据老hook创建新hook
+  const newHook = {
+    memoizedState: oldHook.memoizedState,
+    queue: oldHook.queue,
+    next: null
+  }
+  // 构建新的hook链表
+  if (workInProgressHook === null) {
+    currentlyRenderingFiber.memoizedState = workInProgressHook = newHook
+  } else {
+    workInProgressHook = workInProgressHook.next = newHook
+  }
+  return newHook
+}
+/* --------------------------------------------- useReducer --------------------------------------------- */
 /**
  * @Author: wyb
  * @Descripttion: 挂载 Reducer
@@ -89,27 +139,6 @@ function mountReducer(reducer, initialArg) {
   )
   queue.dispatch = dispatch
   return [hook.memoizedState, dispatch]
-}
-/**
- * @Author: wyb
- * @Descripttion: 挂载构建中的hook
- */
-function mountWorkInProgressHook() {
-  const hook = {
-    memoizedState: null, // hook的状态 0
-    queue: null, // 存放本hook的更新队列 queue.pending=update 的循环链表
-    next: null // 指向下一个hook,一个函数里可以会有多个hook,它们会组成一个单向链表
-  }
-  if (workInProgressHook === null) {
-    // 当前函数对应的fiber的状态等于第一个hook对象
-    workInProgressHook = hook
-    currentlyRenderingFiber.memoizedState = hook // 将 fiber 与hook关联
-  } else {
-    // 构建 hook 链表
-    workInProgressHook.next = hook
-    workInProgressHook = hook
-  }
-  return hook
 }
 /**
  * 执行派发动作的方法，它要更新状态，并且让界面重新更新
@@ -164,32 +193,7 @@ function updateReducer(reducer) {
   }
   return [hook.memoizedState, queue.dispatch]
 }
-/**
- * @Author: wyb
- * @Descripttion: 构建新的 hook
- */
-function updateWorkInProgressHook() {
-  // 获取将要构建的新的hook的老hook
-  if (oldHook === null) {
-    const current = currentlyRenderingFiber.alternate
-    oldHook = current.memoizedState
-  } else {
-    oldHook = oldHook.next
-  }
-  //根据老hook创建新hook
-  const newHook = {
-    memoizedState: oldHook.memoizedState,
-    queue: oldHook.queue,
-    next: null
-  }
-  // 构建新的hook链表
-  if (workInProgressHook === null) {
-    currentlyRenderingFiber.memoizedState = workInProgressHook = newHook
-  } else {
-    workInProgressHook = workInProgressHook.next = newHook
-  }
-  return newHook
-}
+/* --------------------------------------------- useState --------------------------------------------- */
 /**
  * @Author: wyb
  * @Descripttion: 初次挂载 useState hook
@@ -264,6 +268,7 @@ function dispatchSetState(fiber, queue, action) {
 function updateState(initialState) {
   return updateReducer(baseStateReducer, initialState)
 }
+/* --------------------------------------------- useEffect --------------------------------------------- */
 /**
  * @Author: wyb
  * @Descripttion:
@@ -399,6 +404,7 @@ function areHookInputsEqual(nextDeps, prevDeps) {
   }
   return true
 }
+/* --------------------------------------------- useLayoutEffect --------------------------------------------- */
 /**
  * @Author: wyb
  * @Descripttion:
@@ -416,4 +422,26 @@ function mountLayoutEffect(create, deps) {
  */
 function updateLayoutEffect(create, deps) {
   return updateEffectImpl(UpdateEffect, HookLayout, create, deps)
+}
+/* --------------------------------------------- useLayoutEffect --------------------------------------------- */
+/**
+ * @Author: wyb
+ * @Descripttion:
+ * @param {*} initialValue
+ */
+function mountRef(initialValue) {
+  const hook = mountWorkInProgressHook()
+  const ref = {
+    current: initialValue
+  }
+  hook.memoizedState = ref
+  return ref
+}
+/**
+ * @Author: wyb
+ * @Descripttion:
+ */
+function updateRef() {
+  const hook = updateWorkInProgressHook()
+  return hook.memoizedState
 }

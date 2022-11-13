@@ -9,7 +9,8 @@ import {
   MutationMask,
   Update,
   Passive,
-  LayoutMask
+  LayoutMask,
+  Ref
 } from './ReactFiberFlags'
 import {
   FunctionComponent,
@@ -56,6 +57,10 @@ export function commitMutationEffectsOnFiber(fiber, root) {
       recursivelyTraverseMutationEffects(root, fiber)
       // 再处理自己身上的副作用
       commitReconciliationEffects(fiber)
+      // 处理ref
+      if (flags & Ref) {
+        commitAttachRef(fiber)
+      }
       // 处理DOM更新
       if (flags & Update) {
         // 获取真实DOM
@@ -514,4 +519,20 @@ function recursivelyTraverseLayoutEffects(root, parentFiber) {
  */
 function commitHookLayoutEffects(fiber, hookFlags) {
   commitHookEffectListMount(hookFlags, fiber)
+}
+/**
+ * @Author: wyb
+ * @Descripttion:
+ * @param {*} fiber
+ */
+function commitAttachRef(fiber) {
+  const ref = fiber.ref
+  if (ref !== null) {
+    const instance = fiber.stateNode
+    if (typeof ref === 'function') {
+      ref(instance)
+    } else {
+      ref.current = instance
+    }
+  }
 }

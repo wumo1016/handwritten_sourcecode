@@ -44,3 +44,12 @@ export function useLayoutEffect(create, deps) {
   const dispatcher = resolveDispatcher()
   return dispatcher.useLayoutEffect(create, deps)
 }
+/**
+ * @Author: wyb
+ * @Descripttion:
+ * @param {*} initialValue
+ */
+export function useRef(initialValue) {
+  const dispatcher = resolveDispatcher()
+  return dispatcher.useRef(initialValue)
+}

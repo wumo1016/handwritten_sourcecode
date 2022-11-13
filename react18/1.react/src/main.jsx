@@ -338,7 +338,7 @@ function FunctionComponent() {
 let element = <FunctionComponent />
 const root = createRoot(document.getElementById('root'))
 root.render(element) */
-
+/* 
 // 高优先级打断低优先级  ABCABCABCABCABCABCABCABCABCABCABC => ACBACBACBACBACBACBACBACBACBACB
 import * as React from 'react'
 import { createRoot } from 'react-dom/client'
@@ -358,6 +358,33 @@ function FunctionComponent() {
       {numbers.map((number, index) => (
         <span key={index}>{number}</span>
       ))}
+    </button>
+  )
+}
+let element = <FunctionComponent />
+const root = createRoot(document.getElementById('root'))
+root.render(element) */
+
+// 示例-useRef
+import * as React from 'react'
+import { createRoot } from 'react-dom/client'
+
+function FunctionComponent() {
+  console.log('FunctionComponent')
+  const [number, setNumber] = React.useState(0)
+  const buttonRef = React.useRef()
+  React.useEffect(() => {
+    console.log(buttonRef.current)
+  }, [])
+  return (
+    <button
+      ref={buttonRef}
+      // ref={(buttonDom) => (buttonDom.style.color = 'red')}
+      onClick={() => {
+        setNumber((number) => number + 1)
+      }}
+    >
+      {number}
     </button>
   )
 }
