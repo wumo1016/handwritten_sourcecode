@@ -50,7 +50,6 @@ function dispatchDiscreteEvent(
     // 执行完事件再重置
     setCurrentUpdatePriority(previousPriority)
   }
-  dispatchEvent(domEventName, eventSystemFlags, container, nativeEvent)
 }
 /**
  * 此方法就是委托给容器的回调，当容器#root在捕获或者说冒泡阶段处理事件的时候会执行此函数
