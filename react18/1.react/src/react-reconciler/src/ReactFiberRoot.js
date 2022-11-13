@@ -1,6 +1,6 @@
 import { createHostRootFiber } from './ReactFiber'
 import { initialUpdateQueue } from './ReactFiberClassUpdateQueue'
-import { NoLanes } from './ReactFiberLane'
+import { NoLane, NoLanes } from './ReactFiberLane'
 
 /**
  * @Author: wyb
@@ -28,4 +28,6 @@ function FiberRootNode(containerInfo) {
   this.containerInfo = containerInfo
   // 表示此根上有哪些赛道等待被处理
   this.pendingLanes = NoLanes
+  this.callbackNode = null
+  this.callbackPriority = NoLane
 }

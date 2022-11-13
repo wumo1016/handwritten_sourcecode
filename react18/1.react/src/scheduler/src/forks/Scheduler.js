@@ -195,6 +195,14 @@ function shouldYieldToHost() {
   // 如果流逝或者说经过的时间小于5毫秒，那就不需要放弃执行
   return false
 }
+/**
+ * @Author: wyb
+ * @Descripttion:
+ * @param {*} task
+ */
+function cancelCallback(task) {
+  task.callback = null
+}
 
 export {
   scheduleCallback as unstable_scheduleCallback,
@@ -203,7 +211,8 @@ export {
   UserBlockingPriority as unstable_UserBlockingPriority,
   NormalPriority as unstable_NormalPriority,
   LowPriority as unstable_LowPriority,
-  IdlePriority as unstable_IdlePriority
+  IdlePriority as unstable_IdlePriority,
+  cancelCallback as unstable_cancelCallback
 }
 
 /* 

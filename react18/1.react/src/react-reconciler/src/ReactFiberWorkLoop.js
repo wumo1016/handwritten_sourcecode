@@ -4,7 +4,8 @@ import {
   UserBlockingPriority as UserBlockingSchedulerPriority,
   NormalPriority as NormalSchedulerPriority,
   IdlePriority as IdleSchedulerPriority,
-  shouldYield
+  shouldYield,
+  cancelCallback as Scheduler_cancelCallback
 } from './scheduler'
 import { createWorkInProgress } from './ReactFiber'
 import { beginWork } from './ReactFiberBeginWork'
@@ -36,7 +37,8 @@ import {
   getNextLanes,
   getHighestPriorityLane,
   SyncLane,
-  includesBlockingLane
+  includesBlockingLane,
+  NoLane
 } from './ReactFiberLane'
 import {
   getCurrentUpdatePriority,
@@ -87,16 +89,29 @@ export function scheduleUpdateOnFiber(root, fiber, lane) {
  * @param {*} root
  */
 function ensureRootIsScheduled(root) {
+  // 先获取当前根上执行任务
+  const existingCallbackNode = root.callbackNode
   // 获取当前优先级最高的车道
-  const nextLanes = getNextLanes(root, NoLanes)
+  const nextLanes = getNextLanes(root, workInProgressRootRenderLanes)
   // 如果没有要执行的任务
   if (nextLanes === NoLanes) {
     return
+  }
+  // 如果已存在任务 先取消 (高优操作打断低优操作)
+  if (existingCallbackNode !== null) {
+    console.log('cancelCallback')
+    Scheduler_cancelCallback(existingCallbackNode)
   }
   // 新的回调任务
   let newCallbackNode = null
   // 获取新的调度优先级
   const newCallbackPriority = getHighestPriorityLane(nextLanes)
+  // 获取现在根上正在运行的优先级
+  const existingCallbackPriority = root.callbackPriority
+  // 如果新的优先级和老的优先级一样，则可以进行批量更新
+  if (existingCallbackPriority === newCallbackPriority) {
+    return
+  }
   // 如果是同步(事件等)
   // 新的回调任务
   if (newCallbackPriority === SyncLane) {
@@ -132,9 +147,10 @@ function ensureRootIsScheduled(root) {
       schedulerPriorityLevel,
       performConcurrentWorkOnRoot.bind(null, root)
     )
-    // 在根节点的执行的任务是newCallbackNode
-    root.callbackNode = newCallbackNode
   }
+  // 在根节点的执行的任务是newCallbackNode
+  root.callbackNode = newCallbackNode
+  root.callbackPriority = newCallbackPriority
 }
 /**
  * @Author: wyb
@@ -215,7 +231,7 @@ function renderRootConcurrent(root, lanes) {
 function workLoopConcurrent() {
   // 如果有下一个要构建的fiber并且时间片没有过期
   while (workInProgress !== null && !shouldYield()) {
-    sleep(100)
+    sleep(100) // 每个fiber多执行一会
     performUnitOfWork(workInProgress)
   }
 }
@@ -330,6 +346,7 @@ function commitRootImpl(root) {
   workInProgressRoot = null
   workInProgressRootRenderLanes = NoLanes
   root.callbackNode = null
+  root.callbackPriority = NoLane
   // 自己或子有延迟副作用
   if (
     (finishedWork.subtreeFlags & Passive) !== NoFlags ||
@@ -350,9 +367,9 @@ function commitRootImpl(root) {
   if (subtreeHasEffects || rootHasEffect) {
     // 执行 fiber 的副作用
     commitMutationEffectsOnFiber(finishedWork, root)
-    console.log(
-      'DOM执行变更后commitLayoutEffects~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~'
-    )
+    // console.log(
+    //   'DOM执行变更后commitLayoutEffects~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~'
+    // )
     // 执行layout Effect
     commitLayoutEffects(finishedWork, root)
     if (rootDoesHavePassiveEffect) {
@@ -362,13 +379,15 @@ function commitRootImpl(root) {
   }
   // 等DOM变更后，就可以把让root的current指向新的fiber树
   root.current = finishedWork
+  // root.pendingLanes = 16
+  // ensureRootIsScheduled(root);
 }
 /**
  * @Author: wyb
  * @Descripttion:
  */
 function flushPassiveEffect() {
-  console.log('下一个宏任务中flushPassiveEffect~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~')
+  // console.log('下一个宏任务中flushPassiveEffect~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~')
   if (rootWithPendingPassiveEffects !== null) {
     const root = rootWithPendingPassiveEffects
     // 执行卸载副作用，destroy

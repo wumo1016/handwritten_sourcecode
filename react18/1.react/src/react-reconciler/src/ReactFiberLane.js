@@ -1,4 +1,4 @@
-import { allowConcurrentByDefault } from "shared/ReactFeatureFlags"
+import { allowConcurrentByDefault } from 'shared/ReactFeatureFlags'
 
 export const TotalLanes = 31
 export const NoLanes = 0b0000000000000000000000000000000
@@ -28,14 +28,22 @@ export function markRootUpdated(root, updateLane) {
  * @Author: wyb
  * @Descripttion: 获取最高优先级车道
  * @param {*} root
+ * @param {*} wipLanes 新的渲染车道
  */
-export function getNextLanes(root) {
-  //先获取所有的有更新的车道
+export function getNextLanes(root, wipLanes) {
+  // 先获取所有的有更新的车道
   const pendingLanes = root.pendingLanes
   if (pendingLanes == NoLanes) {
     return NoLanes
   }
+  // 获取所有的车道中最高优先级的车道
   const nextLanes = getHighestPriorityLanes(pendingLanes)
+  if (wipLanes !== NoLane && wipLanes !== nextLanes) {
+    // 新的车道值比渲染中的车道大，说明新的车道优先级更低
+    if (nextLanes > wipLanes) {
+      return wipLanes
+    }
+  }
   return nextLanes
 }
 /**

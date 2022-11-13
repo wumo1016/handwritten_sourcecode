@@ -320,6 +320,7 @@ let element = <FunctionComponent />
 const root = createRoot(document.getElementById('root'))
 root.render(element) */
 
+/* 
 // 微任务同步并发渲染
 import * as React from 'react'
 import { createRoot } from 'react-dom/client'
@@ -333,29 +334,30 @@ function FunctionComponent() {
 }
 let element = <FunctionComponent />
 const root = createRoot(document.getElementById('root'))
+root.render(element) */
+
+// 高优先级打断低优先级  ABCABCABCABCABCABCABCABCABCABCABC => ACBACBACBACBACBACBACBACBACBACB
+import * as React from 'react'
+import { createRoot } from 'react-dom/client'
+
+function FunctionComponent() {
+  console.log('FunctionComponent')
+  const [numbers, setNumbers] = React.useState(new Array(10).fill('A'))
+  React.useEffect(() => {
+    setNumbers((numbers) => numbers.map((number) => number + 'B'))
+  }, [])
+  return (
+    <button
+      onClick={() => {
+        setNumbers((numbers) => numbers.map((number) => number + 'C'))
+      }}
+    >
+      {numbers.map((number, index) => (
+        <span key={index}>{number}</span>
+      ))}
+    </button>
+  )
+}
+let element = <FunctionComponent />
+const root = createRoot(document.getElementById('root'))
 root.render(element)
-
-// import * as React from 'react'
-// import { createRoot } from 'react-dom/client'
-
-// function FunctionComponent() {
-//   console.log('FunctionComponent')
-//   const [numbers, setNumbers] = React.useState(new Array(10).fill('A'))
-//   React.useEffect(() => {
-//     setNumbers((numbers) => numbers.map((number) => number + 'B'))
-//   }, [])
-//   return (
-//     <button
-//       onClick={() =>
-//         setNumbers((numbers) => numbers.map((number) => number + 'C'))
-//       }
-//     >
-//       {numbers.map((number, index) => (
-//         <span key={index}>{number}</span>
-//       ))}
-//     </button>
-//   )
-// }
-// let element = <FunctionComponent />
-// const root = createRoot(document.getElementById('root'))
-// root.render(element)
