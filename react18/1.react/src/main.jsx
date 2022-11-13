@@ -307,18 +307,21 @@ const root = createRoot(document.getElementById("root"));
 root.render(element); 
 */
 
-/* 
+
 // 微任务同步渲染
 import * as React from 'react'
 import { createRoot } from 'react-dom/client'
 
 function FunctionComponent() {
   const [number, setNumber] = React.useState(0)
-  return <button onClick={() => setNumber(number + 1)}>{number}</button>
+  return <button onClick={() => {
+    setNumber(number => number + 1)
+    setNumber(number => number + 2)
+  }}>{number}</button>
 }
 let element = <FunctionComponent />
 const root = createRoot(document.getElementById('root'))
-root.render(element) */
+root.render(element)
 
 /* 
 // 微任务同步并发渲染
@@ -336,28 +339,28 @@ let element = <FunctionComponent />
 const root = createRoot(document.getElementById('root'))
 root.render(element) */
 
-// 高优先级打断低优先级  ABCABCABCABCABCABCABCABCABCABCABC => ACBACBACBACBACBACBACBACBACBACB
-import * as React from 'react'
-import { createRoot } from 'react-dom/client'
+// // 高优先级打断低优先级  ABCABCABCABCABCABCABCABCABCABCABC => ACBACBACBACBACBACBACBACBACBACB
+// import * as React from 'react'
+// import { createRoot } from 'react-dom/client'
 
-function FunctionComponent() {
-  console.log('FunctionComponent')
-  const [numbers, setNumbers] = React.useState(new Array(10).fill('A'))
-  React.useEffect(() => {
-    setNumbers((numbers) => numbers.map((number) => number + 'B'))
-  }, [])
-  return (
-    <button
-      onClick={() => {
-        setNumbers((numbers) => numbers.map((number) => number + 'C'))
-      }}
-    >
-      {numbers.map((number, index) => (
-        <span key={index}>{number}</span>
-      ))}
-    </button>
-  )
-}
-let element = <FunctionComponent />
-const root = createRoot(document.getElementById('root'))
-root.render(element)
+// function FunctionComponent() {
+//   console.log('FunctionComponent')
+//   const [numbers, setNumbers] = React.useState(new Array(10).fill('A'))
+//   React.useEffect(() => {
+//     setNumbers((numbers) => numbers.map((number) => number + 'B'))
+//   }, [])
+//   return (
+//     <button
+//       onClick={() => {
+//         setNumbers((numbers) => numbers.map((number) => number + 'C'))
+//       }}
+//     >
+//       {numbers.map((number, index) => (
+//         <span key={index}>{number}</span>
+//       ))}
+//     </button>
+//   )
+// }
+// let element = <FunctionComponent />
+// const root = createRoot(document.getElementById('root'))
+// root.render(element)

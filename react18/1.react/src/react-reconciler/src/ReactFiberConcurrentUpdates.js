@@ -1,3 +1,4 @@
+import { mergeLanes } from './ReactFiberLane'
 import { HostRoot } from './ReactWorkTags'
 const concurrentQueues = []
 let concurrentQueuesIndex = 0
@@ -42,6 +43,8 @@ function enqueueUpdate(fiber, queue, update, lane) {
   concurrentQueues[concurrentQueuesIndex++] = queue // 要更新的hook对应的更新队列
   concurrentQueues[concurrentQueuesIndex++] = update // 更新对象
   concurrentQueues[concurrentQueuesIndex++] = lane // 更新车道
+  // 当我们向一个fiber上添加一个更新的时候，要把此更新的赛道合并到此fiber的赛道上
+  fiber.lanes = mergeLanes(fiber.lanes, lane)
 }
 /**
  * @Author: wyb
@@ -84,13 +87,13 @@ export function finishQueueingConcurrentUpdates() {
 }
 /**
  * @Author: wyb
- * @Descripttion: 
+ * @Descripttion:
  * @param {*} fiber
  * @param {*} queue
  * @param {*} update
  * @param {*} lane
  */
 export function enqueueConcurrentClassUpdate(fiber, queue, update, lane) {
-  enqueueUpdate(fiber, queue, update, lane);
-  return getRootForUpdatedFiber(fiber);
+  enqueueUpdate(fiber, queue, update, lane)
+  return getRootForUpdatedFiber(fiber)
 }

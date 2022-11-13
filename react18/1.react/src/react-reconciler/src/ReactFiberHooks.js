@@ -158,9 +158,10 @@ function updateReducer(reducer) {
     } while (update !== null && update !== firstUpdate)
   }
   hook.memoizedState = newState
-  // if (queue.lastRenderedState !== undefined) {
-  //   queue.lastRenderedState = newState
-  // }
+  // 更新计算结果
+  if (queue.lastRenderedState !== undefined) {
+    queue.lastRenderedState = newState
+  }
   return [hook.memoizedState, queue.dispatch]
 }
 /**
@@ -196,7 +197,7 @@ function updateWorkInProgressHook() {
  */
 function mountState(initialState) {
   const hook = mountWorkInProgressHook()
-  hook.memoizedState = initialState
+  hook.memoizedState = hook.baseState = initialState
   const queue = {
     pending: null,
     dispatch: null,
@@ -237,27 +238,21 @@ function dispatchSetState(fiber, queue, action) {
     eagerState: null, // 计算过的状态
     next: null
   }
-  // const alternate = fiber.alternate;
-  // if ( 
-  //   fiber.lanes === NoLanes &&
-  //   (alternate === null || alternate.lanes == NoLanes)
-  // ) {
-  //   const { lastRenderedReducer, lastRenderedState } = queue
-  //   const eagerState = lastRenderedReducer(lastRenderedState, action)
-  //   update.hasEagerState = true
-  //   update.eagerState = eagerState
-  //   if (Object.is(eagerState, lastRenderedState)) {
-  //     return
-  //   }
-  // }
-  // 当你派发动作后，我立刻用上一次的状态和上一次的reducer计算新状态
-  // const { lastRenderedReducer, lastRenderedState } = queue
-  // const eagerState = lastRenderedReducer(lastRenderedState, action)
-  // update.hasEagerState = true
-  // update.eagerState = eagerState
-  // if (Object.is(eagerState, lastRenderedState)) {
-  //   return
-  // }
+  const alternate = fiber.alternate
+  // 只有第一次更新才进行此优化
+  if (
+    fiber.lanes === NoLanes &&
+    (alternate === null || alternate.lanes == NoLanes)
+  ) {
+    // 当你派发动作后，我立刻用上一次的状态和上一次的reducer计算新状态
+    const { lastRenderedReducer, lastRenderedState } = queue
+    const eagerState = lastRenderedReducer(lastRenderedState, action)
+    update.hasEagerState = true
+    update.eagerState = eagerState
+    if (Object.is(eagerState, lastRenderedState)) {
+      return
+    }
+  }
   // 下面是真正的入队更新，并调度更新逻辑
   const root = enqueueConcurrentHookUpdate(fiber, queue, update, lane)
   scheduleUpdateOnFiber(root, fiber, lane)
@@ -266,8 +261,8 @@ function dispatchSetState(fiber, queue, action) {
  * @Author: wyb
  * @Descripttion: 更新时 hook 的方法
  */
-function updateState() {
-  return updateReducer(baseStateReducer)
+function updateState(initialState) {
+  return updateReducer(baseStateReducer, initialState)
 }
 /**
  * @Author: wyb

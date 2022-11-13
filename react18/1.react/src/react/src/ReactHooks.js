@@ -20,9 +20,9 @@ export function useReducer(reducer, initialArg) {
  * @param {*} reducer
  * @param {*} initialArg
  */
-export function useState(reducer, initialArg) {
+export function useState(initialState) {
   const dispatcher = resolveDispatcher()
-  return dispatcher.useState(reducer, initialArg)
+  return dispatcher.useState(initialState)
 }
 /**
  * @Author: wyb
