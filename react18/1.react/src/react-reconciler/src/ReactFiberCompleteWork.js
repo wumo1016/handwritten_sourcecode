@@ -35,7 +35,7 @@ export function completeWork(oldFiber, newFiber) {
       // 如果老fiber存在 且新fiber上存在真实dom 走更新逻辑
       if (oldFiber !== null && newFiber.stateNode !== null) {
         updateHostComponent(oldFiber, newFiber, type, newProps)
-        if (current.ref !== newFiber.ref !== null) {
+        if (oldFiber.ref !== newFiber.ref !== null) {
           markRef(newFiber);
         }
       } else {
