@@ -47,6 +47,8 @@
     - ensureRootIsScheduled
 
       - getNextLanes: 获取当前优先级最高的车道
+      - 如果有 existingCallbackNode
+        - cancelCallback: 高优操作打断低优操作
       - getHighestPriorityLane: 根据优先级最高的车道获取新的调度车道
       - 是否是同步车道
 
@@ -115,6 +117,12 @@
                                       - 构建 effect 循环链表，指向 fiber.updateQueue.lastEffect
                                 - useLayoutEffect: mountLayoutEffect
                                   - 执行 mountEffect 中的 mountEffectImpl
+                                - useRef: mountRef
+                                ```
+                                hook.memoizedState = {
+                                  current: initialValue
+                                }
+                                ```
                               - 更新: HooksDispatcherOnUpdate
                                 - useReducer: updateReducer
                                   - updateWorkInProgressHook: 创建一个新的 hook
@@ -129,6 +137,7 @@
                                     - updateWorkInProgressHook
                                       - 对比新旧依赖，都执行 pushEffect(有且新旧依赖都一样就不添加副作用)
                                 - useLayoutEffect: updateLayoutEffect
+                                - useRef: updateRef
                             - 执行函数 获取子 vdom
                           - reconcileChildren: 根据 fiber 创建真实 dom
 
@@ -137,19 +146,23 @@
                             - reconcileChildFibers(以上两个方法走的都是)
                               - 单节点
                                 - reconcileSingleElement
-                                  - 遍历子 fiber
-                                    - key 一致
-                                      - type 一致
-                                        - useFiber 复用老 fiber，并更新 props，然后直接返回当前 fiber
-                                      - type 不一致
-                                        - deleteRemainingChildren 删除包括当前 fiber 后面的所有 fiber
-                                          - 遍历当前 fiber 以及后面的兄弟 fiber，执行 deleteChild
-                                            - 将当前 fiber 添加到 parentFiber.deletions 中去
-                                        - createFiberFromElement 创建新 fiber 并返回
-                                    - key 不一致
-                                      - 删除当前 child
-                                      - 继续下一个子 fiber，走对比过程
-                                      - 如果最后都没有找到，就直接 createFiberFromElement 创建新 fiber 并返回
+                                  - 第一个子 fiber 是否有值
+                                    - 有值
+                                      - 遍历子 fiber
+                                        - key 一致
+                                          - type 一致
+                                            - useFiber 复用老 fiber，并更新 props，然后直接返回当前 fiber
+                                          - type 不一致
+                                            - deleteRemainingChildren 删除包括当前 fiber 后面的所有 fiber
+                                              - 遍历当前 fiber 以及后面的兄弟 fiber，执行 deleteChild
+                                                - 将当前 fiber 添加到 parentFiber.deletions 中去
+                                            - createFiberFromElement 创建新 fiber 并返回
+                                        - key 不一致
+                                          - 删除当前 child
+                                          - 继续下一个子 fiber，走对比过程
+                                          - 如果最后都没有找到，就直接 createFiberFromElement 创建新 fiber 并返回
+                                    - 无值
+                                      - createFiberFromElement
                                 - placeSingleChild
                               - 多节点
                                 - reconcileChildrenArray
@@ -231,6 +244,8 @@
                     - commitReconciliationEffects: 再处理自己身上的副作用
                       - commitPlacement: 如果当前 fiber 是新增，将自己插入到父节点中
                     - 如果是原生节点 fiber
+                      - 如果有 ref 副作用 commitAttachRef
+                        - 给 ref.current 赋值
                       - 有更新 && fiber 的 updateQueue 有值
                         - commitUpdate
                           - updateProperties: 更新 dom 上的属性 包括 children、style，纯文本节点就是在这更新的内容
@@ -336,6 +351,10 @@
   - 实现
     - React.useLayoutEffect(ReactHooks.js)
       - resolveDispatcher => ReactCurrentDispatcher.current 拿到的实际就是在 renderWithHooks 中定义的 useLayoutEffect
+- useRef
+  - 原理
+    - 在 beginWork 中将 ref 保存到 fiber 上
+    - 在 completeWork 添加 ref 副作用
 
 ## updateQueue
 
