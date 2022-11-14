@@ -5,7 +5,8 @@ import {
   NormalPriority as NormalSchedulerPriority,
   IdlePriority as IdleSchedulerPriority,
   shouldYield,
-  cancelCallback as Scheduler_cancelCallback
+  cancelCallback as Scheduler_cancelCallback,
+  now
 } from './scheduler'
 import { createWorkInProgress } from './ReactFiber'
 import { beginWork } from './ReactFiberBeginWork'
@@ -38,7 +39,12 @@ import {
   getHighestPriorityLane,
   SyncLane,
   includesBlockingLane,
-  NoLane
+  NoLane,
+  NoTimestamp,
+  markStarvedLanesAsExpired,
+  includesExpiredLane,
+  mergeLanes,
+  markRootFinished
 } from './ReactFiberLane'
 import {
   getCurrentUpdatePriority,
@@ -68,6 +74,8 @@ const RootInProgress = 0
 const RootCompleted = 5
 // 当渲染工作结束的时候当前的fiber树处于什么状态,默认进行中
 let workInProgressRootExitStatus = RootInProgress
+// 保存当前的事件发生的时间
+let currentEventTime = NoTimestamp
 
 /**
  * @Author: wyb
@@ -76,21 +84,23 @@ let workInProgressRootExitStatus = RootInProgress
  * @param {*} fiber
  * @param {*} lane
  */
-export function scheduleUpdateOnFiber(root, fiber, lane) {
+export function scheduleUpdateOnFiber(root, fiber, lane, eventTime) {
   // 标记根赛道
   root.pendingLanes = 16
   markRootUpdated(root, lane)
   // 确保调度执行root上的更新
-  ensureRootIsScheduled(root)
+  ensureRootIsScheduled(root, eventTime)
 }
 /**
  * @Author: wyb
  * @Descripttion:
  * @param {*} root
  */
-function ensureRootIsScheduled(root) {
+function ensureRootIsScheduled(root, currentTime) {
   // 先获取当前根上执行任务
   const existingCallbackNode = root.callbackNode
+  // 把所有饿死的赛道标记为过期
+  markStarvedLanesAsExpired(root, currentTime)
   // 获取当前优先级最高的车道
   const nextLanes = getNextLanes(root, workInProgressRootRenderLanes)
   // 如果没有要执行的任务
@@ -183,7 +193,17 @@ function performConcurrentWorkOnRoot(root, didTimeout) {
   }
   // 如果不包含阻塞的车道，并且没有超时，就可以并行渲染,就是启用时间分片
   // 所以说默认更新车道是同步的,不能启用时间分片
-  const shouldTimeSlice = !includesBlockingLane(root, lanes) && !didTimeout
+  // const shouldTimeSlice = !includesBlockingLane(root, lanes) && !didTimeout
+
+  // 是否不包含阻塞车道
+  const nonIncludesBlockingLane = !includesBlockingLane(root, lanes)
+  // 是否不包含过期的车道
+  const nonIncludesExpiredLane = !includesExpiredLane(root, lanes)
+  // 时间片没有过期
+  const nonTimeout = !didTimeout
+  // 是否进行并发渲染
+  const shouldTimeSlice =
+    nonIncludesBlockingLane && nonIncludesExpiredLane && nonTimeout
   // 执行渲染，得到退出的状态
   const exitStatus = shouldTimeSlice
     ? renderRootConcurrent(root, lanes)
@@ -231,7 +251,7 @@ function renderRootConcurrent(root, lanes) {
 function workLoopConcurrent() {
   // 如果有下一个要构建的fiber并且时间片没有过期
   while (workInProgress !== null && !shouldYield()) {
-    sleep(100) // 每个fiber多执行一会
+    sleep(6) // 每个fiber多执行一会
     performUnitOfWork(workInProgress)
   }
 }
@@ -347,6 +367,9 @@ function commitRootImpl(root) {
   workInProgressRootRenderLanes = NoLanes
   root.callbackNode = null
   root.callbackPriority = NoLane
+  // 合并统计当前新的根上剩下的车道
+  const remainingLanes = mergeLanes(finishedWork.lanes, finishedWork.childLanes)
+  markRootFinished(root, remainingLanes)
   // 自己或子有延迟副作用
   if (
     (finishedWork.subtreeFlags & Passive) !== NoFlags ||
@@ -379,8 +402,8 @@ function commitRootImpl(root) {
   }
   // 等DOM变更后，就可以把让root的current指向新的fiber树
   root.current = finishedWork
-  // root.pendingLanes = 16
-  // ensureRootIsScheduled(root);
+  // 在提交之后，因为根上可能会有跳过的更新，所以需要重新再次调度
+  ensureRootIsScheduled(root, now())
 }
 /**
  * @Author: wyb
@@ -487,4 +510,12 @@ function sleep(duration) {
       return
     }
   }
+}
+/**
+ * @Author: wyb
+ * @Descripttion: 请求当前的时间
+ */
+export function requestEventTime() {
+  currentEventTime = now()
+  return currentEventTime // performance.now()
 }

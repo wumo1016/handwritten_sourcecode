@@ -14,6 +14,7 @@ import {
   HostRoot,
   HostText
 } from './ReactWorkTags'
+import { mergeLanes, NoLanes } from './ReactFiberLane'
 
 /**
  * 完成一个fiber节点
@@ -35,8 +36,8 @@ export function completeWork(oldFiber, newFiber) {
       // 如果老fiber存在 且新fiber上存在真实dom 走更新逻辑
       if (oldFiber !== null && newFiber.stateNode !== null) {
         updateHostComponent(oldFiber, newFiber, type, newProps)
-        if (oldFiber.ref !== newFiber.ref !== null) {
-          markRef(newFiber);
+        if ((oldFiber.ref !== newFiber.ref) !== null) {
+          markRef(newFiber)
         }
       } else {
         // 创建真实的DOM节点
@@ -123,15 +124,21 @@ function updateHostComponent(oldFiber, newFiber, type, newProps) {
  * @param {*} curFiber
  */
 function bubbleProperties(curFiber) {
+  let newChildLanes = NoLanes
   let subtreeFlags = NoFlags
   // 遍历当前fiber的所有子节点
   // 把所有的子节的副作用，以及子节点的子节点的副作用全部合并
   let child = curFiber.child
   while (child !== null) {
+    newChildLanes = mergeLanes(
+      newChildLanes,
+      mergeLanes(child.lanes, child.childLanes)
+    )
     subtreeFlags |= child.subtreeFlags
     subtreeFlags |= child.flags
     child = child.sibling
   }
+  curFiber.childLanes = newChildLanes
   curFiber.subtreeFlags = subtreeFlags
 }
 /**
@@ -144,9 +151,9 @@ function markUpdate(fiber) {
 }
 /**
  * @Author: wyb
- * @Descripttion: 
+ * @Descripttion:
  * @param {*} newFiber
  */
 function markRef(newFiber) {
-  newFiber.flags |= Ref;
+  newFiber.flags |= Ref
 }

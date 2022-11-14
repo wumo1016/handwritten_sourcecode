@@ -1,6 +1,6 @@
 import ReactSharedInternals from 'shared/ReactSharedInternals'
 import { enqueueConcurrentHookUpdate } from './ReactFiberConcurrentUpdates'
-import { requestUpdateLane, scheduleUpdateOnFiber } from './ReactFiberWorkLoop'
+import { requestEventTime, requestUpdateLane, scheduleUpdateOnFiber } from './ReactFiberWorkLoop'
 import {
   Passive as PassiveEffect,
   Update as UpdateEffect
@@ -10,12 +10,13 @@ import {
   HasEffect as HookHasEffect,
   Layout as HookLayout
 } from './ReactHookEffectTags'
-import { NoLanes } from './ReactFiberLane'
+import { isSubsetOfLanes, mergeLanes, NoLane, NoLanes } from './ReactFiberLane'
 
 const { ReactCurrentDispatcher } = ReactSharedInternals
 let currentlyRenderingFiber = null
 let workInProgressHook = null
 let oldHook = null // 当前 hook 对应的老hook
+let renderLanes = NoLanes
 
 const HooksDispatcherOnMount = {
   useReducer: mountReducer,
@@ -40,9 +41,19 @@ const HooksDispatcherOnUpdate = {
  * @param {*} props 组件属性
  * @returns 虚拟DOM或者说React元素
  */
-export function renderWithHooks(oldFiber, newFiber, Component, props) {
+export function renderWithHooks(
+  oldFiber,
+  newFiber,
+  Component,
+  props,
+  nextRenderLanes
+) {
+  // 当前正在渲染的车道
+  renderLanes = nextRenderLanes
   currentlyRenderingFiber = newFiber // Function组件对应的fiber
   newFiber.updateQueue = null
+  // 函数组件状态存的hooks的链表
+  newFiber.memoizedState = null
   // 如果有老的fiber,并且有老的hook链表
   if (oldFiber !== null && oldFiber.memoizedState !== null) {
     ReactCurrentDispatcher.current = HooksDispatcherOnUpdate
@@ -53,6 +64,7 @@ export function renderWithHooks(oldFiber, newFiber, Component, props) {
   currentlyRenderingFiber = null
   workInProgressHook = null
   oldHook = null
+  renderLanes = NoLanes
   return children
 }
 /**
@@ -63,7 +75,9 @@ function mountWorkInProgressHook() {
   const hook = {
     memoizedState: null, // hook的状态 0
     queue: null, // 存放本hook的更新队列 queue.pending=update 的循环链表
-    next: null // 指向下一个hook,一个函数里可以会有多个hook,它们会组成一个单向链表
+    next: null, // 指向下一个hook,一个函数里可以会有多个hook,它们会组成一个单向链表
+    baseState: null, // 第一跳过的更新前的状态
+    baseQueue: null // 跳过的更新的链表
   }
   if (workInProgressHook === null) {
     // 当前函数对应的fiber的状态等于第一个hook对象
@@ -92,7 +106,9 @@ function updateWorkInProgressHook() {
   const newHook = {
     memoizedState: oldHook.memoizedState,
     queue: oldHook.queue,
-    next: null
+    next: null,
+    baseState: oldHook.baseState,
+    baseQueue: oldHook.baseQueue
   }
   // 构建新的hook链表
   if (workInProgressHook === null) {
@@ -154,7 +170,11 @@ function dispatchReducerAction(fiber, queue, action) {
   }
   // 把当前的最新的更添的添加更新队列中，并且返回当前的根的 stateNode
   const root = enqueueConcurrentHookUpdate(fiber, queue, update)
-  scheduleUpdateOnFiber(root)
+  // 获取当前的更新赛道 1
+  const lane = requestUpdateLane()
+  // 获取当前时间
+  const eventTime = requestEventTime()
+  scheduleUpdateOnFiber(root, fiber, lane, eventTime)
 }
 /**
  * @Author: wyb
@@ -162,36 +182,107 @@ function dispatchReducerAction(fiber, queue, action) {
  * @param {*} reducer
  */
 function updateReducer(reducer) {
-  // 获取新的hook
   const hook = updateWorkInProgressHook()
-  // 获取新的hook的更新队列
   const queue = hook.queue
-  // 获取将要生效的更新队列
+  queue.lastRenderedReducer = reducer
+  const current = oldHook
+  let baseQueue = current.baseQueue
   const pendingQueue = queue.pending
-  // 初始化一个新的状态，取值为当前的状态
-  let newState = oldHook.memoizedState
+  // 把新旧更新链表合并
   if (pendingQueue !== null) {
-    // 清空更新队列
+    if (baseQueue !== null) {
+      const baseFirst = baseQueue.next
+      const pendingFirst = pendingQueue.next
+      baseQueue.next = pendingFirst
+      pendingQueue.next = baseFirst
+    }
+    current.baseQueue = baseQueue = pendingQueue
     queue.pending = null
-    const firstUpdate = pendingQueue.next
-    let update = firstUpdate
+  }
+  if (baseQueue !== null) {
+    printQueue(baseQueue)
+    const first = baseQueue.next
+    let newState = current.baseState
+    let newBaseState = null
+    let newBaseQueueFirst = null
+    let newBaseQueueLast = null
+    let update = first
     do {
-      // 如果已经计算过 直接取值
-      if (update.hasEagerState) {
-        newState = update.eagerState
+      const updateLane = update.lane
+      const shouldSkipUpdate = !isSubsetOfLanes(renderLanes, updateLane)
+      if (shouldSkipUpdate) {
+        const clone = {
+          lane: updateLane,
+          action: update.action,
+          hasEagerState: update.hasEagerState,
+          eagerState: update.eagerState,
+          next: null
+        }
+        if (newBaseQueueLast === null) {
+          newBaseQueueFirst = newBaseQueueLast = clone
+          newBaseState = newState
+        } else {
+          newBaseQueueLast = newBaseQueueLast.next = clone
+        }
+        currentlyRenderingFiber.lanes = mergeLanes(
+          currentlyRenderingFiber.lanes,
+          updateLane
+        )
       } else {
-        const action = update.action
-        newState = reducer(newState, action)
+        if (newBaseQueueLast !== null) {
+          const clone = {
+            lane: NoLane,
+            action: update.action,
+            hasEagerState: update.hasEagerState,
+            eagerState: update.eagerState,
+            next: null
+          }
+          newBaseQueueLast = newBaseQueueLast.next = clone
+        }
+        // 如果已经计算过 直接取值
+        if (update.hasEagerState) {
+          newState = update.eagerState
+        } else {
+          const action = update.action
+          newState = reducer(newState, action)
+        }
       }
       update = update.next
-    } while (update !== null && update !== firstUpdate)
+    } while (update !== null && update !== first)
+    if (newBaseQueueLast === null) {
+      newBaseState = newState
+    } else {
+      newBaseQueueLast.next = newBaseQueueFirst
+    }
+    hook.memoizedState = newState
+    hook.baseState = newBaseState
+    hook.baseQueue = newBaseQueueLast
+    // 更新计算结果
+    if (queue.lastRenderedState !== undefined) {
+      queue.lastRenderedState = newState
+    }
   }
-  hook.memoizedState = newState
-  // 更新计算结果
-  if (queue.lastRenderedState !== undefined) {
-    queue.lastRenderedState = newState
+  if (baseQueue === null) {
+    queue.lanes = NoLanes
   }
-  return [hook.memoizedState, queue.dispatch]
+  const dispatch = queue.dispatch
+  return [hook.memoizedState, dispatch]
+}
+/**
+ * @Author: wyb
+ * @Descripttion:
+ * @param {*} queue
+ */
+function printQueue(queue) {
+  const first = queue.next
+  let desc = ''
+  let update = first
+  do {
+    desc += '=>' + update.action.id
+    update = update.next
+  } while (update !== null && update !== first)
+  desc += '=>null'
+  console.log(desc)
 }
 /* --------------------------------------------- useState --------------------------------------------- */
 /**
@@ -259,7 +350,8 @@ function dispatchSetState(fiber, queue, action) {
   }
   // 下面是真正的入队更新，并调度更新逻辑
   const root = enqueueConcurrentHookUpdate(fiber, queue, update, lane)
-  scheduleUpdateOnFiber(root, fiber, lane)
+  const eventTime = requestEventTime();
+  scheduleUpdateOnFiber(root, fiber, lane, eventTime)
 }
 /**
  * @Author: wyb

@@ -6,7 +6,10 @@ import {
   IndeterminateComponent,
   FunctionComponent
 } from './ReactWorkTags'
-import { cloneUpdateQueue, processUpdateQueue } from './ReactFiberClassUpdateQueue'
+import {
+  cloneUpdateQueue,
+  processUpdateQueue
+} from './ReactFiberClassUpdateQueue'
 import { mountChildFibers, reconcileChildFibers } from './ReactChildFiber'
 import { shouldSetTextContent } from 'react-dom-bindings/src/client/ReactDOMHostConfig'
 import { renderWithHooks } from 'react-reconciler/src/ReactFiberHooks'
@@ -21,6 +24,8 @@ import { renderWithHooks } from 'react-reconciler/src/ReactFiberHooks'
 export function beginWork(oldFiber, newFiber, renderLanes) {
   // logger(' '.repeat(indent.number) + 'beginWork', newFiber)
   indent.number += 2
+  // 在构建fiber树之前清空lanes
+  newFiber.lanes = 0
   switch (newFiber.tag) {
     // 因为在React里组件其实有两种，一种是函数组件，一种是类组件，但是它们都是都是函数
     case IndeterminateComponent:
@@ -92,7 +97,7 @@ function reconcileChildren(oldFiber, newFiber, nextChildren) {
  * @param {*} oldFiber 老fiber
  * @param {*} newFiber 新fiber h1
  */
-function updateHostComponent(oldFiber, newFiber) {
+function updateHostComponent(oldFiber, newFiber, renderLanes) {
   const { type } = newFiber
   // 拿到props 里面有 children 子虚拟节点
   const nextProps = newFiber.pendingProps
@@ -111,7 +116,12 @@ function updateHostComponent(oldFiber, newFiber) {
  * @param {*} newFiber 新的fiber
  * @param {*} type 组件类型，也就是函数组件的定义
  */
-export function mountIndeterminateComponent(oldFiber, newFiber, type) {
+export function mountIndeterminateComponent(
+  oldFiber,
+  newFiber,
+  type,
+  renderLanes
+) {
   const props = newFiber.pendingProps
   const value = renderWithHooks(oldFiber, newFiber, type, props)
   newFiber.tag = FunctionComponent
@@ -124,9 +134,9 @@ export function mountIndeterminateComponent(oldFiber, newFiber, type) {
  * @param {*} newFiber 新的fiber
  * @param {*} type 组件类型，也就是函数组件的定义
  */
-export function updateFunctionComponent(oldFiber, newFiber, type) {
+export function updateFunctionComponent(oldFiber, newFiber, type, renderLanes) {
   const nextProps = newFiber.pendingProps
-  const value = renderWithHooks(oldFiber, newFiber, type, nextProps)
+  const value = renderWithHooks(oldFiber, newFiber, type, nextProps, renderLanes)
   reconcileChildren(oldFiber, newFiber, value)
   return newFiber.child
 }
