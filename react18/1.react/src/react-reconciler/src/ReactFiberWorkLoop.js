@@ -251,7 +251,7 @@ function renderRootConcurrent(root, lanes) {
 function workLoopConcurrent() {
   // 如果有下一个要构建的fiber并且时间片没有过期
   while (workInProgress !== null && !shouldYield()) {
-    sleep(6) // 每个fiber多执行一会
+    sleep(5) // 每个fiber多执行一会
     performUnitOfWork(workInProgress)
   }
 }

@@ -419,7 +419,7 @@ function FunctionComponent() {
         setNumbers(updateB) // 16
       }
       divRef.current.click() // 1
-      if (counter++ > 10) {
+      if (counter++ > 100) {
         clearInterval(timer)
       }
     })
