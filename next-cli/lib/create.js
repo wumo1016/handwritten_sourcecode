@@ -9,5 +9,5 @@ module.exports = async (projectName) => {
   // 实例化
   const creator = new Creator(projectName, targetDir)
   // 调用
-  // await creator.create()
+  await creator.create()
 }

@@ -1,6 +1,7 @@
 const inquirer = require('inquirer')
+const { chalk } = require('@vue/cli-shared-utils')
 const PromptModuleAPI = require('./PromptModuleAPI')
-const { defaults } = require('./util/preset')
+const { defaults, vuePresets } = require('./util/preset')
 const { getPromptModules } = require('./util/prompt')
 
 class Creator {
@@ -27,10 +28,6 @@ class Creator {
     const promptModule = new PromptModuleAPI(this)
     const prompts = getPromptModules()
     prompts.map((fn) => fn(promptModule))
-
-    inquirer.prompt(this.resolveFinalPrompts()).then((res) => {
-      console.log(res)
-    })
   }
   /**
    * @Author: wyb
@@ -38,9 +35,10 @@ class Creator {
    * @param {*} cliOptions
    * @param {*} preset
    */
-  async create(cliOptions = {}, preset = null) {
+  async create(cliOptions = {}) {
     // 处理用户输入
-    // const preset = await this.promptAndResolvePreset()
+    const preset = await this.promptAndResolvePreset()
+    console.log(preset)
     // // 初始化安装环境
     // await this.initPackageManagerEnv(preset)
     // // 生成项目文件，生成配置文件
@@ -143,6 +141,36 @@ class Creator {
       }
     ]
     return outroPrompts
+  }
+  /**
+   * @Author: wyb
+   * @Descripttion:
+   */
+  async promptAndResolvePreset() {
+    try {
+      let preset
+      const { name } = this
+      const answers = await inquirer.prompt(this.resolveFinalPrompts())
+      if (answers.preset && answers.preset === 'Default (Vue 2)') {
+        if (answers.preset in vuePresets) {
+          preset = vuePresets[answers.preset]
+        }
+      } else {
+        // 暂不支持 Vue3、自定义特性配置情况
+        throw new Error('哎呀，出错了，暂不支持 Vue3、自定义特性配置情况')
+      }
+      // 添加 projectName 属性
+      preset.plugins['@vue/cli-service'] = Object.assign(
+        {
+          projectName: name
+        },
+        preset
+      )
+      return preset
+    } catch (err) {
+      console.log(chalk.red(err))
+      process.exit(1)
+    }
   }
 }
 
