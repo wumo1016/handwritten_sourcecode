@@ -8,3 +8,16 @@
 - inquirer
   - 交互式命令行工具
 - ejs
+
+## 创建全局命令
+
+- 在 package.json 文件中添加属性
+
+```json
+  "bin": {
+    "next-cli": "bin/main.js"
+  },
+```
+
+- 新建 `bin/main.js`
+- 在项目根目录执行 npm link
