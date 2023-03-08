@@ -13,8 +13,8 @@ const defaultPreset = {
 
 // vue2、vue3选项预设了 babel 和 eslint
 const vuePresets = {
-  'Default (Vue 3)': Object.assign({ vueVersion: '3' }, defaultPreset),
-  'Default (Vue 2)': Object.assign({ vueVersion: '2' }, defaultPreset)
+  'Default (Vue 2)': Object.assign({ vueVersion: '2' }, defaultPreset),
+  'Default (Vue 3)': Object.assign({ vueVersion: '3' }, defaultPreset)
 }
 
 const defaults = {

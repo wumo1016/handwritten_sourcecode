@@ -8,6 +8,9 @@
 - inquirer
   - 交互式命令行工具
 - ejs
+  - 模板引擎
+- fs-extra
+  - 继承了所有 fs 的方法, 并添加了 promise
 
 ## 创建全局命令
 
