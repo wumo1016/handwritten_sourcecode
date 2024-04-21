@@ -1,9 +1,8 @@
 /*
- * @Description:
+ * @Description: reactivity 模块入口文件
  * @Author: wyb
  * @LastEditors: wyb
- * @LastEditTime: 2024-04-21 16:12:32
+ * @LastEditTime: 2024-04-21 16:25:05
  */
-import { isObject } from '@vue/shared'
-
-console.log(isObject(1))
+export * from './effect'
+export * from './reactive'
