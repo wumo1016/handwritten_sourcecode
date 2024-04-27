@@ -2,7 +2,7 @@
  * @Description: effect方法
  * @Author: wyb
  * @LastEditors: wyb
- * @LastEditTime: 2024-04-27 18:05:08
+ * @LastEditTime: 2024-04-27 18:42:35
  */
 
 /**
@@ -36,7 +36,7 @@ class ReactiveEffect {
   public active = true // 是否是响应式的
   deps: Map<unknown, unknown>[] = [] // 当前 effect 有哪些dep
   _depsLength = 0 // 当前 dep 索引, 依赖收集时使用, 每次执行前清 0
-  _running = 0
+  _running = 0 // 记录是否正在执行
 
   constructor(public fn: Function, public scheduler: Function) {}
 

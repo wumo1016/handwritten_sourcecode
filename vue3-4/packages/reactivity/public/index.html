@@ -46,7 +46,7 @@
             state.age = 60
           }, 1000)
         }, 1000)
-      })()
+      })
 
       /* 自定义调度器 */
       ;(function () {
@@ -67,6 +67,14 @@
           state.age++ // 数据变化后effect会再次重新执行
         }, 1000)
       })
+
+      /* 递归调用 */
+      ;(function () {
+        effect(() => {
+          app.innerHTML = `年龄${state.age}`
+          state.age = Math.random()
+        })
+      })()
     </script>
   </body>
 </html>
