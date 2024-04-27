@@ -2,7 +2,7 @@
  * @Description: effect方法
  * @Author: wyb
  * @LastEditors: wyb
- * @LastEditTime: 2024-04-27 12:02:17
+ * @LastEditTime: 2024-04-27 13:09:15
  */
 
 /**
@@ -26,7 +26,7 @@ class ReactiveEffect {
   _trackId = 0
   public active = true // 是否是响应式的
   deps: Map<unknown, unknown>[] = [] // 当前 effect 有哪些dep
-  _depsLength = 0 // 当前 dep 索引
+  _depsLength = 0 // 当前 dep 索引, 依赖收集时使用, 每次执行前清 0
   _running = 0
 
   constructor(public fn: Function, public scheduler: Function) {}
@@ -46,6 +46,9 @@ class ReactiveEffect {
       // 执行函数之前设置当前 effect
       activeEffect = this
 
+      // 清理无用的 dep
+      preCleanEffect(this)
+
       return this.fn()
     } finally {
       // 恢复上一个 effect
@@ -63,6 +66,16 @@ class ReactiveEffect {
 
 /**
  * @Author: wyb
+ * @Descripttion: 清理effect
+ * @param {ReactiveEffect} effect
+ */
+function preCleanEffect(effect: ReactiveEffect) {
+  effect._depsLength = 0
+  effect._trackId++ // 每次执行 id 都会累加; 如果是同一个 effect 执行，id就是相同的
+}
+
+/**
+ * @Author: wyb
  * @Descripttion: 收集 effect
  * @param {ReactiveEffect} effect
  * @param {Map} dep
@@ -71,10 +84,34 @@ export function trackEffect(
   effect: ReactiveEffect,
   dep: Map<unknown, unknown>
 ) {
-  dep.set(effect, effect._trackId)
+  // 没有收集过再收集
+  if (dep.get(effect) !== effect._trackId) {
+    dep.set(effect, effect._trackId)
 
-  // 将effect于dep关联起来
-  effect.deps[effect._depsLength++] = dep
+    /* 处理 effect 中的 deps */
+    // 从头开始 diff { flag, name } => { flag, age }
+    const oldDep = effect.deps[effect._depsLength]
+    if (oldDep !== dep) {
+      // 清理老的
+      if (oldDep) cleanDepEffect(oldDep, effect)
+
+      effect.deps[effect._depsLength++] = dep
+    } else {
+      effect._depsLength++
+    }
+  }
+}
+
+/**
+ * @Author: wyb
+ * @Descripttion: 清理dep中无用的 effect
+ * @param {Map} dep
+ * @param {*} unknown
+ * @param {ReactiveEffect} effect
+ */
+function cleanDepEffect(dep: any, effect: ReactiveEffect) {
+  dep.delete(effect)
+  if (dep.size === 0) dep.cleanup()
 }
 
 /**

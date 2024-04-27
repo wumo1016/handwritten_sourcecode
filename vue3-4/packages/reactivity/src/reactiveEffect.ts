@@ -1,19 +1,13 @@
 /*
- * @Description:
+ * @Description: effect 工具方法
  * @Author: wyb
  * @LastEditors: wyb
- * @LastEditTime: 2024-04-27 12:02:13
+ * @LastEditTime: 2024-04-27 13:08:24
  */
 import { activeEffect, trackEffect, triggerEffects } from './effect'
 
-// 存放依赖收集的关系
+// 存放依赖收集的关系 targetMap: {obj: (Map => { key: (Map => { effect: effect._trackId }) }) }
 const targetMap = new WeakMap()
-
-/* 
-targetMap: {obj: (Map => { key: (Map => { effect: effect._trackId }) }) }
-
-
-*/
 
 /**
  * @Author: wyb
