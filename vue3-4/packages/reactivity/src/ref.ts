@@ -2,7 +2,7 @@
  * @Description: ref 相关
  * @Author: wyb
  * @LastEditors: wyb
- * @LastEditTime: 2024-04-27 19:33:49
+ * @LastEditTime: 2024-04-27 19:39:07
  */
 
 import { activeEffect, trackEffect, triggerEffects } from './effect'
@@ -125,4 +125,42 @@ export function toRefs(object: object) {
     res[key] = toRef(object, key)
   }
   return res
+}
+
+/**
+ * @Author: wyb
+ * @Descripttion:
+ * @param {object} objectWithRef
+ */
+export function proxyRefs(objectWithRef: object) {
+  return new Proxy(objectWithRef, {
+    /**
+     * @Author: wyb
+     * @Descripttion:
+     * @param {*} target
+     * @param {*} key
+     * @param {*} receiver
+     */
+    get(target, key, receiver) {
+      let r = Reflect.get(target, key, receiver)
+      return r.__v_isRef ? r.value : r // 自动脱 ref
+    },
+    /**
+     * @Author: wyb
+     * @Descripttion:
+     * @param {*} target
+     * @param {*} key
+     * @param {*} value
+     * @param {*} receiver
+     */
+    set(target, key, value, receiver) {
+      const oldValue = target[key]
+      if (oldValue.__v_isRef) {
+        oldValue.value = value // 如果老值是ref 需要给ref赋值
+        return true
+      } else {
+        return Reflect.set(target, key, value, receiver)
+      }
+    }
+  })
 }
