@@ -41,3 +41,12 @@ function createReactiveObject(target: any) {
   reactiveMap.set(target, proxy)
   return proxy
 }
+
+/**
+ * @Author: wyb
+ * @Descripttion: 将一个值转成 reactive
+ * @param {unknown} value
+ */
+export function toReactive(value: unknown) {
+  return isObject(value) ? reactive(value) : value
+}
