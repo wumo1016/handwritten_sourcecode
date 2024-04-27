@@ -2,7 +2,7 @@
  * @Description: effect方法
  * @Author: wyb
  * @LastEditors: wyb
- * @LastEditTime: 2024-04-27 13:09:15
+ * @LastEditTime: 2024-04-27 16:55:48
  */
 
 /**
@@ -48,9 +48,13 @@ class ReactiveEffect {
 
       // 清理无用的 dep
       preCleanEffect(this)
+      this._running++
 
       return this.fn()
     } finally {
+      this._running--
+      postCleanEffect(this)
+
       // 恢复上一个 effect
       activeEffect = lastEffect
     }
@@ -66,12 +70,26 @@ class ReactiveEffect {
 
 /**
  * @Author: wyb
- * @Descripttion: 清理effect
+ * @Descripttion: 前置清理 effect
  * @param {ReactiveEffect} effect
  */
 function preCleanEffect(effect: ReactiveEffect) {
   effect._depsLength = 0
   effect._trackId++ // 每次执行 id 都会累加; 如果是同一个 effect 执行，id就是相同的
+}
+
+/**
+ * @Author: wyb
+ * @Descripttion: 后置清理 effect
+ * @param {ReactiveEffect} effect
+ */
+function postCleanEffect(effect: ReactiveEffect) {
+  if (effect.deps.length > effect._depsLength) {
+    for (let i = effect._depsLength; i < effect.deps.length; i++) {
+      cleanDepEffect(effect.deps[i], effect) // 删除映射表中对应的effect
+    }
+    effect.deps.length = effect._depsLength // 更新依赖列表的长度
+  }
 }
 
 /**

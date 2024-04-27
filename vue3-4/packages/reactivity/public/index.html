@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <div id="app"></div>
+    <script type="module">
+      // 原生的
+      // import {
+      //   reactive,
+      //   effect
+      // } from '/node_modules/@vue/reactivity/dist/reactivity.esm-browser.js'
+
+      // 自己的
+      import { reactive, effect } from '../dist/reactivity.js'
+
+      const obj = { name: 'jw', age: 30 }
+
+      const state = reactive(obj)
+
+      effect(() => {
+        app.innerHTML = `姓名${state.name} 年龄${state.age}`
+      })
+
+      setTimeout(() => {
+        state.age++ // 数据变化后effect会再次重新执行
+      }, 1000)
+    </script>
+  </body>
+</html>
