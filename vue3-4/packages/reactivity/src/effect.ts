@@ -2,7 +2,7 @@
  * @Description: effect方法
  * @Author: wyb
  * @LastEditors: wyb
- * @LastEditTime: 2024-04-27 16:55:48
+ * @LastEditTime: 2024-04-27 17:48:58
  */
 
 /**
@@ -10,13 +10,22 @@
  * @Descripttion:
  * @param {*} fn
  */
-export function effect(fn: Function) {
+export function effect(fn: Function, options?: object) {
   // 创建一个effect
   const _effect = new ReactiveEffect(fn, () => {
     _effect.run()
   })
   _effect.run()
-  return _effect
+
+  // 覆盖内置选项
+  if (options) {
+    Object.assign(_effect, options)
+  }
+
+  const runner = _effect.run.bind(_effect)
+  runner.effect = _effect
+
+  return runner
 }
 
 // 当前激活的 effect

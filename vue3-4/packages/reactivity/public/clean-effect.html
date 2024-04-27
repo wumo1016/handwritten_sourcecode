@@ -21,10 +21,12 @@
 
       const state = reactive(obj)
 
+      /* {flag name} => { flag age } */
       // effect(() => {
       //   app.innerHTML = state.flag ? `姓名${state.name}` : `年龄${state.age}`
       // })
 
+      /* {flag name age} => { flag name } */
       effect(() => {
         app.innerHTML = state.flag
           ? `姓名${state.name} 年龄${state.age}`
