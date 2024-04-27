@@ -2,7 +2,7 @@
  * @Description: effect方法
  * @Author: wyb
  * @LastEditors: wyb
- * @LastEditTime: 2024-04-21 18:36:15
+ * @LastEditTime: 2024-04-27 12:02:17
  */
 
 /**
@@ -20,10 +20,14 @@ export function effect(fn: Function) {
 }
 
 // 当前激活的 effect
-export let activeEffect: typeof ReactiveEffect.prototype
+export let activeEffect: ReactiveEffect
 
 class ReactiveEffect {
+  _trackId = 0
   public active = true // 是否是响应式的
+  deps: Map<unknown, unknown>[] = [] // 当前 effect 有哪些dep
+  _depsLength = 0 // 当前 dep 索引
+  _running = 0
 
   constructor(public fn: Function, public scheduler: Function) {}
 
@@ -54,5 +58,37 @@ class ReactiveEffect {
    */
   stop() {
     this.active = false
+  }
+}
+
+/**
+ * @Author: wyb
+ * @Descripttion: 收集 effect
+ * @param {ReactiveEffect} effect
+ * @param {Map} dep
+ */
+export function trackEffect(
+  effect: ReactiveEffect,
+  dep: Map<unknown, unknown>
+) {
+  dep.set(effect, effect._trackId)
+
+  // 将effect于dep关联起来
+  effect.deps[effect._depsLength++] = dep
+}
+
+/**
+ * @Author: wyb
+ * @Descripttion: 派发 effect
+ * @param {*} dep
+ */
+export function triggerEffects(dep) {
+  for (const effect of dep.keys()) {
+    if (!effect._running) {
+      if (effect.scheduler) {
+        // 如果不是正在执行，才能执行
+        effect.scheduler() // -> effect.run()
+      }
+    }
   }
 }
