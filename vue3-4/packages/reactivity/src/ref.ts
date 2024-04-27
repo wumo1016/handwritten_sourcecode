@@ -2,7 +2,7 @@
  * @Description: ref 相关
  * @Author: wyb
  * @LastEditors: wyb
- * @LastEditTime: 2024-04-27 19:17:47
+ * @LastEditTime: 2024-04-27 19:33:49
  */
 
 import { activeEffect, trackEffect, triggerEffects } from './effect'
@@ -112,4 +112,17 @@ class ObjectRefImpl {
  */
 export function toRef(object: object, key: string) {
   return new ObjectRefImpl(object, key)
+}
+
+/**
+ * @Author: wyb
+ * @Descripttion:
+ * @param {object} object
+ */
+export function toRefs(object: object) {
+  const res = {}
+  for (let key in object) {
+    res[key] = toRef(object, key)
+  }
+  return res
 }

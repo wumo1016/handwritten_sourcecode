@@ -13,11 +13,18 @@
       //   reactive,
       //   ref,
       //   effect,
-      //   toRef
+      //   toRef,
+      //   toRefs,
       // } from '/node_modules/@vue/reactivity/dist/reactivity.esm-browser.js'
 
       // 自己的
-      import { reactive, ref, effect, toRef } from '../dist/reactivity.js'
+      import {
+        reactive,
+        ref,
+        effect,
+        toRef,
+        toRefs
+      } from '../dist/reactivity.js'
 
       /* 普通 ref */
       ;(function () {
@@ -37,6 +44,21 @@
         const state = reactive({ name: 'wyb', age: 18 })
 
         const name = toRef(state, 'name')
+
+        effect(() => {
+          app.innerHTML = `姓名${name.value}`
+        })
+
+        setTimeout(() => {
+          name.value = '李四'
+        }, 1000)
+      })
+
+      /* toRefs */
+      ;(function () {
+        const state = reactive({ name: 'wyb', age: 18 })
+
+        const { name } = toRefs(state)
 
         effect(() => {
           app.innerHTML = `姓名${name.value}`
