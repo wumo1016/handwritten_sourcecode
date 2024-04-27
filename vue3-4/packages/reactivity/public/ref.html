@@ -10,23 +10,40 @@
     <script type="module">
       // 原生的
       // import {
+      //   reactive,
       //   ref,
-      //   effect
+      //   effect,
+      //   toRef
       // } from '/node_modules/@vue/reactivity/dist/reactivity.esm-browser.js'
 
       // 自己的
-      import { ref, effect } from '../dist/reactivity.js'
-
-      const flag = ref(true)
+      import { reactive, ref, effect, toRef } from '../dist/reactivity.js'
 
       /* 普通 ref */
       ;(function () {
+        const flag = ref(true)
+
         effect(() => {
           app.innerHTML = `姓名${flag.value ? '张三' : '李四'}`
         })
 
         setTimeout(() => {
           flag.value = false
+        }, 1000)
+      })
+
+      /* toRef */
+      ;(function () {
+        const state = reactive({ name: 'wyb', age: 18 })
+
+        const name = toRef(state, 'name')
+
+        effect(() => {
+          app.innerHTML = `姓名${name.value}`
+        })
+
+        setTimeout(() => {
+          name.value = '李四'
         }, 1000)
       })()
     </script>

@@ -89,3 +89,27 @@ export const createDep = (cleanup: Function, key: unknown) => {
   dep.name = key // 自定义的为了标识这个映射表是给哪个属性服务的
   return dep
 }
+
+class ObjectRefImpl {
+  public __v_isRef = true // 增加ref标识
+
+  constructor(public _object: object, public _key: string) {}
+
+  get value() {
+    return this._object[this._key]
+  }
+
+  set value(newValue) {
+    this._object[this._key] = newValue
+  }
+}
+
+/**
+ * @Author: wyb
+ * @Descripttion:
+ * @param {object} object
+ * @param {string} key
+ */
+export function toRef(object: object, key: string) {
+  return new ObjectRefImpl(object, key)
+}
