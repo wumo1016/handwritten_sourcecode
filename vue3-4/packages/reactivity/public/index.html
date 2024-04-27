@@ -17,7 +17,7 @@
       // 自己的
       import { reactive, effect } from '../dist/reactivity.js'
 
-      const obj = { name: 'jw', age: 30, flag: true }
+      const obj = { name: 'jw', age: 30, flag: true, data: { a: 1 } }
 
       const state = reactive(obj)
 
@@ -48,7 +48,7 @@
         }, 1000)
       })
 
-      /* 自定义调度器 */
+      /*  effect自定义调度器 */
       ;(function () {
         effect(() => {
           app.innerHTML = `姓名${state.name} 年龄${state.age}`
@@ -68,12 +68,22 @@
         }, 1000)
       })
 
-      /* 递归调用 */
+      /* effect 递归调用 */
       ;(function () {
         effect(() => {
           app.innerHTML = `年龄${state.age}`
           state.age = Math.random()
         })
+      })
+
+      /* reactive 深层代理 */
+      ;(function () {
+        effect(() => {
+          app.innerHTML = `年龄${state.data.a}`
+        })
+        setTimeout(() => {
+          state.data.a++
+        }, 1000)
       })()
     </script>
   </body>
