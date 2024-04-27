@@ -2,7 +2,7 @@
  * @Description: effect方法
  * @Author: wyb
  * @LastEditors: wyb
- * @LastEditTime: 2024-04-27 17:48:58
+ * @LastEditTime: 2024-04-27 18:05:08
  */
 
 /**
@@ -95,7 +95,7 @@ function preCleanEffect(effect: ReactiveEffect) {
 function postCleanEffect(effect: ReactiveEffect) {
   if (effect.deps.length > effect._depsLength) {
     for (let i = effect._depsLength; i < effect.deps.length; i++) {
-      cleanDepEffect(effect.deps[i], effect) // 删除映射表中对应的effect
+      cleanupDepEffect(effect.deps[i], effect) // 删除映射表中对应的effect
     }
     effect.deps.length = effect._depsLength // 更新依赖列表的长度
   }
@@ -120,7 +120,7 @@ export function trackEffect(
     const oldDep = effect.deps[effect._depsLength]
     if (oldDep !== dep) {
       // 清理老的
-      if (oldDep) cleanDepEffect(oldDep, effect)
+      if (oldDep) cleanupDepEffect(oldDep, effect)
 
       effect.deps[effect._depsLength++] = dep
     } else {
@@ -136,9 +136,13 @@ export function trackEffect(
  * @param {*} unknown
  * @param {ReactiveEffect} effect
  */
-function cleanDepEffect(dep: any, effect: ReactiveEffect) {
-  dep.delete(effect)
-  if (dep.size === 0) dep.cleanup()
+function cleanupDepEffect(dep: any, effect: ReactiveEffect) {
+  // 防止删除当前还在使用的 effect
+  const trackId = dep.get(effect)
+  if (trackId !== undefined && effect._trackId !== trackId) {
+    dep.delete(effect)
+    if (dep.size === 0) dep.cleanup()
+  }
 }
 
 /**
