@@ -2,8 +2,9 @@
  * @Description: reactivity 模块入口文件
  * @Author: wyb
  * @LastEditors: wyb
- * @LastEditTime: 2024-04-27 18:53:42
+ * @LastEditTime: 2024-04-28 19:50:12
  */
 export * from './effect'
 export * from './reactive'
 export * from './ref'
+export * from './computed'

@@ -2,10 +2,11 @@
  * @Description: reactive方法
  * @Author: wyb
  * @LastEditors: wyb
- * @LastEditTime: 2024-04-21 16:47:02
+ * @LastEditTime: 2024-04-28 20:03:12
  */
 import { isObject } from '@vue/shared'
-import { ReactiveFlags, mutableHandlers } from './baseHandler'
+import { mutableHandlers } from './baseHandler'
+import { ReactiveFlags } from './constants'
 
 // 记录代理结果
 const reactiveMap = new WeakMap()

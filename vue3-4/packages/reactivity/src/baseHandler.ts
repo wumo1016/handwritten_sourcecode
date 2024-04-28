@@ -7,16 +7,7 @@
 import { isObject } from '@vue/shared'
 import { track, trigger } from './reactiveEffect'
 import { reactive } from './reactive'
-
-/*
- * @Description:
- * @Author: wyb
- * @LastEditors: wyb
- * @LastEditTime: 2024-04-27 11:19:58
- */
-export enum ReactiveFlags {
-  IS_REACTIVE = '__v_isReactive' // 是否被代理过
-}
+import { ReactiveFlags } from './constants'
 
 /**
  * @Author: wyb

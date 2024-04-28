@@ -2,7 +2,7 @@
  * @Description: ref 相关
  * @Author: wyb
  * @LastEditors: wyb
- * @LastEditTime: 2024-04-27 19:39:07
+ * @LastEditTime: 2024-04-28 20:21:33
  */
 
 import { activeEffect, trackEffect, triggerEffects } from './effect'
@@ -58,7 +58,7 @@ class RefImpl {
  * @Descripttion: 收集ref依赖
  * @param {*} ref
  */
-function trackRefValue(ref: RefImpl) {
+export function trackRefValue(ref: any) {
   if (activeEffect) {
     trackEffect(
       activeEffect,
@@ -72,7 +72,7 @@ function trackRefValue(ref: RefImpl) {
  * @Descripttion: 触发ref更新
  * @param {*} ref
  */
-function triggerRefValue(ref: RefImpl) {
+export function triggerRefValue(ref: any) {
   const dep = ref.dep
   if (dep) triggerEffects(dep)
 }

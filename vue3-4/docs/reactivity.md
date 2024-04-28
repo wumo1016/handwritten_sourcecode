@@ -26,3 +26,8 @@
   - proxyRefs
 - 备注
   - 如果传入的是一个对象, 将会采用 react 处理
+
+## computed
+
+- 备注
+  - 维护了一个 dirty 属性, 默认 true, 执行过一次之后, 就会变成 false

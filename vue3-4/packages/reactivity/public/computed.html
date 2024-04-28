@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <div id="app"></div>
+    <script type="module">
+      // 原生的
+      // import {
+      //   reactive,
+      //   computed,
+      //   effect
+      // } from '/node_modules/@vue/reactivity/dist/reactivity.esm-browser.js'
+
+      // 自己的
+      import { reactive, computed, effect } from '../dist/reactivity.js'
+
+      const state = reactive({
+        name: 'jw',
+        age: 30,
+        flag: true,
+        data: { a: 1 }
+      })
+
+      /* 普通 effect */
+      ;(function () {
+        const allName = computed(() => {
+          console.log('获取allName啦')
+          return '**' + state.name
+        })
+
+        effect(() => {
+          console.log(allName.value)
+          console.log(allName.value)
+          console.log(allName.value)
+        })
+
+        setTimeout(() => {
+          state.name = '123'
+        }, 1000)
+      })()
+    </script>
+  </body>
+</html>

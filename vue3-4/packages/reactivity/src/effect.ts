@@ -2,8 +2,10 @@
  * @Description: effect方法
  * @Author: wyb
  * @LastEditors: wyb
- * @LastEditTime: 2024-04-27 18:42:35
+ * @LastEditTime: 2024-04-28 20:31:14
  */
+
+import { DirtyLevels } from './constants'
 
 /**
  * @Author: wyb
@@ -31,20 +33,30 @@ export function effect(fn: Function, options?: object) {
 // 当前激活的 effect
 export let activeEffect: ReactiveEffect
 
-class ReactiveEffect {
+export class ReactiveEffect {
   _trackId = 0
   public active = true // 是否是响应式的
   deps: Map<unknown, unknown>[] = [] // 当前 effect 有哪些dep
   _depsLength = 0 // 当前 dep 索引, 依赖收集时使用, 每次执行前清 0
   _running = 0 // 记录是否正在执行
+  _dirtyLevel = DirtyLevels.Dirty
 
   constructor(public fn: Function, public scheduler: Function) {}
+
+  public get dirty() {
+    return this._dirtyLevel === DirtyLevels.Dirty
+  }
+
+  public set dirty(v) {
+    this._dirtyLevel = v ? DirtyLevels.Dirty : DirtyLevels.NotDirty
+  }
 
   /**
    * @Author: wyb
    * @Descripttion: 执行fn,后续依赖的属性变化了,需要再次调用
    */
   run() {
+    this._dirtyLevel = DirtyLevels.NotDirty // 每次运行后 effect 变为不脏
     // 执行 fn
     if (!this.active) return this.fn() // 不是激活的，执行后，什么都不用做
 
@@ -152,6 +164,11 @@ function cleanupDepEffect(dep: any, effect: ReactiveEffect) {
  */
 export function triggerEffects(dep) {
   for (const effect of dep.keys()) {
+    // 如果是不脏的 触发更新需要变为脏值
+    if (effect._dirtyLevel < DirtyLevels.Dirty) {
+      effect._dirtyLevel = DirtyLevels.Dirty
+    }
+
     if (!effect._running) {
       if (effect.scheduler) {
         // 如果不是正在执行，才能执行
