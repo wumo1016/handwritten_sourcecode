@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <div id="app"></div>
+    <script type="module">
+      // 原生的
+      // import {
+      //   reactive,
+      //   watch
+      // } from '/node_modules/vue/dist/vue.esm-browser.js'
+
+      // 自己的
+      import { reactive, watch } from '../dist/reactivity.js'
+
+      /* 普通 watch */
+      ;(function () {
+        const state = reactive({ name: 'wyb', obj: { a: 1 } })
+
+        watch(state, (oldValue, newValue) => {
+          console.log(oldValue, newValue)
+        })
+
+        setTimeout(() => {
+          state.name = '123'
+        }, 1000)
+      })
+
+      /* 深度 watch */
+      ;(function () {
+        const state = reactive({ obj: { a: 1 } })
+
+        watch(
+          state,
+          (oldValue, newValue) => {
+            console.log(oldValue, newValue)
+          },
+          {
+            deep: false
+          }
+        )
+
+        setTimeout(() => {
+          state.obj.a = 2
+        }, 1000)
+      })()
+    </script>
+  </body>
+</html>
