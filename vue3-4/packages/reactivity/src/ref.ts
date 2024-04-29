@@ -2,7 +2,7 @@
  * @Description: ref 相关
  * @Author: wyb
  * @LastEditors: wyb
- * @LastEditTime: 2024-04-29 19:42:33
+ * @LastEditTime: 2024-04-29 21:43:48
  */
 
 import { activeEffect, trackEffect, triggerEffects } from './effect'
@@ -62,7 +62,7 @@ export function trackRefValue(ref: any) {
   if (activeEffect) {
     trackEffect(
       activeEffect,
-      (ref.dep = createDep(() => (ref.dep = undefined), 'undefined'))
+      ref.dep || (ref.dep = createDep(() => (ref.dep = undefined), 'undefined'))
     )
   }
 }
