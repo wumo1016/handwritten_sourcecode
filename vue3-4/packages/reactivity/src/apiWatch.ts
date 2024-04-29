@@ -2,7 +2,7 @@
  * @Description: watch相关
  * @Author: wyb
  * @LastEditors: wyb
- * @LastEditTime: 2024-04-29 19:49:06
+ * @LastEditTime: 2024-04-29 20:15:07
  */
 import { isObject, isFunction } from '@vue/shared'
 import { ReactiveEffect } from './effect'
@@ -10,8 +10,11 @@ import { isReactive } from './reactive'
 import { isRef } from './ref'
 
 export function watch(source, cb, options = {} as any) {
-  // watchEffect 也是基于doWatch来实现的
   return doWatch(source, cb, options)
+}
+
+export function watchEffect(source, options = {} as any) {
+  return doWatch(source, null, options)
 }
 
 /**
@@ -38,18 +41,26 @@ function doWatch(source, cb, { deep, immediate }) {
   let oldValue
 
   const job = () => {
-    const newValue = effect.run()
-    cb(oldValue, newValue)
-    oldValue = newValue
+    if (cb) {
+      const newValue = effect.run()
+      cb(oldValue, newValue)
+      oldValue = newValue
+    } else {
+      effect.run()
+    }
   }
 
   const effect = new ReactiveEffect(getter, job)
 
-  // 立即执行一次
-  if (immediate) {
-    job()
+  if (cb) {
+    // 立即执行一次
+    if (immediate) {
+      job()
+    } else {
+      oldValue = effect.run()
+    }
   } else {
-    oldValue = effect.run()
+    effect.run()
   }
 }
 

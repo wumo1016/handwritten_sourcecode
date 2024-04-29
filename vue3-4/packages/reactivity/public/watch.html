@@ -11,11 +11,12 @@
       // 原生的
       // import {
       //   reactive,
-      //   watch
+      //   watch,
+      //   watchEffect,
       // } from '/node_modules/vue/dist/vue.esm-browser.js'
 
       // 自己的
-      import { reactive, watch } from '../dist/reactivity.js'
+      import { reactive, watch, watchEffect } from '../dist/reactivity.js'
 
       /* 普通 watch */
       ;(function () {
@@ -49,7 +50,7 @@
         }, 1000)
       })
 
-      /* 深度 watch */
+      /* 立即执行 watch */
       ;(function () {
         const state = reactive({ obj: { a: 1 } })
 
@@ -66,6 +67,19 @@
 
         setTimeout(() => {
           state.obj.a = 2
+        }, 1000)
+      })
+
+      /* 立即执行 watch */
+      ;(function () {
+        const state = reactive({ name: 'wyb' })
+
+        watchEffect(() => {
+          console.log(state.name)
+        })
+
+        setTimeout(() => {
+          state.name = 2
         }, 1000)
       })()
     </script>
