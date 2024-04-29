@@ -12,7 +12,7 @@
       // import {
       //   reactive,
       //   watch,
-      //   watchEffect,
+      //   watchEffect
       // } from '/node_modules/vue/dist/vue.esm-browser.js'
 
       // 自己的
@@ -70,7 +70,7 @@
         }, 1000)
       })
 
-      /* 立即执行 watch */
+      /* watchEffect */
       ;(function () {
         const state = reactive({ name: 'wyb' })
 
@@ -80,6 +80,23 @@
 
         setTimeout(() => {
           state.name = 2
+        }, 1000)
+      })
+
+      /* unWatch 取消监听 */
+      ;(function () {
+        const state = reactive({ name: 'wyb' })
+
+        const unwatch = watchEffect(() => {
+          console.log(state.name)
+        })
+
+        setTimeout(() => {
+          state.name = 2
+          setTimeout(() => {
+            unwatch()
+            state.name = 3
+          }, 1000)
         }, 1000)
       })()
     </script>

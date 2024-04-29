@@ -2,7 +2,7 @@
  * @Description: effect方法
  * @Author: wyb
  * @LastEditors: wyb
- * @LastEditTime: 2024-04-28 20:31:14
+ * @LastEditTime: 2024-04-29 20:21:19
  */
 
 import { DirtyLevels } from './constants'
@@ -85,7 +85,11 @@ export class ReactiveEffect {
    * @Descripttion: 停止当前 effect 的响应式
    */
   stop() {
-    this.active = false
+    if (this.active) {
+      this.active = false
+      preCleanEffect(this)
+      postCleanEffect(this)
+    }
   }
 }
 

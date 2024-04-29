@@ -2,7 +2,7 @@
  * @Description: watch相关
  * @Author: wyb
  * @LastEditors: wyb
- * @LastEditTime: 2024-04-29 20:15:07
+ * @LastEditTime: 2024-04-29 20:22:57
  */
 import { isObject, isFunction } from '@vue/shared'
 import { ReactiveEffect } from './effect'
@@ -62,6 +62,12 @@ function doWatch(source, cb, { deep, immediate }) {
   } else {
     effect.run()
   }
+
+  const unwatch = () => {
+    effect.stop()
+  }
+
+  return unwatch
 }
 
 /**
