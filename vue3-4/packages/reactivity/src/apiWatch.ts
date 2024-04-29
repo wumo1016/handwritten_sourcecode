@@ -2,7 +2,7 @@
  * @Description: watch相关
  * @Author: wyb
  * @LastEditors: wyb
- * @LastEditTime: 2024-04-29 20:22:57
+ * @LastEditTime: 2024-04-29 21:02:07
  */
 import { isObject, isFunction } from '@vue/shared'
 import { ReactiveEffect } from './effect'
@@ -40,10 +40,21 @@ function doWatch(source, cb, { deep, immediate }) {
 
   let oldValue
 
+  let clean
+  const onCleanup = fn => {
+    clean = () => {
+      fn()
+      clean = undefined
+    }
+  }
+
   const job = () => {
     if (cb) {
       const newValue = effect.run()
-      cb(oldValue, newValue)
+
+      if (clean) clean()
+
+      cb(oldValue, newValue, onCleanup)
       oldValue = newValue
     } else {
       effect.run()

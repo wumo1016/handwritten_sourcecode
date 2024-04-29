@@ -98,6 +98,43 @@
             state.name = 3
           }, 1000)
         }, 1000)
+      })
+
+      /* cleanup */
+      ;(function () {
+        const state = reactive({ name: 'wyb' })
+
+        let timer = 3000
+
+        watch(
+          state,
+          async (oldValue, newValue, onCleanup) => {
+            let flag = true
+            onCleanup(() => {
+              flag = false
+            })
+            const res = await new Promise(r => {
+              setTimeout(
+                timer => {
+                  r(timer)
+                },
+                timer,
+                timer
+              )
+              timer = 1000
+            })
+            console.log(res)
+            if (flag) app.innerHTML = res
+          },
+          {
+            flush: 'sync'
+          }
+        )
+
+        setTimeout(() => {
+          state.name = '1'
+          state.name = '2'
+        }, 1000)
       })()
     </script>
   </body>
