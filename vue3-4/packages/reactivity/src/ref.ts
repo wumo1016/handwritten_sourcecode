@@ -2,7 +2,7 @@
  * @Description: ref 相关
  * @Author: wyb
  * @LastEditors: wyb
- * @LastEditTime: 2024-04-28 20:21:33
+ * @LastEditTime: 2024-04-29 19:42:33
  */
 
 import { activeEffect, trackEffect, triggerEffects } from './effect'
@@ -163,4 +163,13 @@ export function proxyRefs(objectWithRef: object) {
       }
     }
   })
+}
+
+/**
+ * @Author: wyb
+ * @Descripttion:
+ * @param {*} value
+ */
+export function isRef(value) {
+  return value && value.__v_isRef
 }

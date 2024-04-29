@@ -40,7 +40,26 @@
             console.log(oldValue, newValue)
           },
           {
-            deep: false
+            deep: true
+          }
+        )
+
+        setTimeout(() => {
+          state.obj.a = 2
+        }, 1000)
+      })
+
+      /* 深度 watch */
+      ;(function () {
+        const state = reactive({ obj: { a: 1 } })
+
+        watch(
+          state,
+          (oldValue, newValue) => {
+            console.log(oldValue, newValue)
+          },
+          {
+            deep: true
           }
         )
 

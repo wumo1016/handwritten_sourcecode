@@ -2,10 +2,12 @@
  * @Description: watch相关
  * @Author: wyb
  * @LastEditors: wyb
- * @LastEditTime: 2024-04-28 21:38:13
+ * @LastEditTime: 2024-04-29 19:46:50
  */
-import { isObject } from '@vue/shared'
+import { isObject, isFunction } from '@vue/shared'
 import { ReactiveEffect } from './effect'
+import { isReactive } from './reactive'
+import { isRef } from './ref'
 
 export function watch(source, cb, options = {} as any) {
   // watchEffect 也是基于doWatch来实现的
@@ -23,8 +25,15 @@ function doWatch(source, cb, { deep, immediate }) {
   const reactiveGetter = source =>
     traverse(source, deep === false ? 1 : undefined)
 
+  let getter
   // 产生一个可以给ReactiveEffect 来使用的getter， 需要对这个对象进行取值操作，会关联当前的reactiveEffect
-  let getter = () => reactiveGetter(source)
+  if (isReactive(source)) {
+    getter = () => reactiveGetter(source)
+  } else if (isRef(source)) {
+    getter = () => source.value
+  } else if (isFunction(source)) {
+    getter = source
+  }
 
   let oldValue
 

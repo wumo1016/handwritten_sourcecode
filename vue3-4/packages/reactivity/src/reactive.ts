@@ -51,3 +51,12 @@ function createReactiveObject(target: any) {
 export function toReactive(value: unknown) {
   return isObject(value) ? reactive(value) : value
 }
+
+/**
+ * @Author: wyb
+ * @Descripttion: 
+ * @param {unknown} value
+ */
+export function isReactive(value: unknown) {
+  return !!(value && value[ReactiveFlags.IS_REACTIVE])
+}
