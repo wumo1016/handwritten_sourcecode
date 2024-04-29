@@ -2,7 +2,7 @@
  * @Description: watch相关
  * @Author: wyb
  * @LastEditors: wyb
- * @LastEditTime: 2024-04-29 19:46:50
+ * @LastEditTime: 2024-04-29 19:49:06
  */
 import { isObject, isFunction } from '@vue/shared'
 import { ReactiveEffect } from './effect'
@@ -45,7 +45,12 @@ function doWatch(source, cb, { deep, immediate }) {
 
   const effect = new ReactiveEffect(getter, job)
 
-  oldValue = effect.run()
+  // 立即执行一次
+  if (immediate) {
+    job()
+  } else {
+    oldValue = effect.run()
+  }
 }
 
 /**
