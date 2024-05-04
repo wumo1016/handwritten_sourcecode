@@ -20,7 +20,7 @@
 
       /* h + render */
       ;(function () {
-        const h1 = h('h1', '张三')
+        const h1 = h('h1', { style: { color: 'red' } }, '张三')
 
         render(h1, app)
       })()
