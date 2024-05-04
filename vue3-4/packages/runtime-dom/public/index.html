@@ -9,18 +9,21 @@
     <div id="app"></div>
     <script type="module">
       // 原生的
-      import {
-        // createRenderer,
-        // render,
-        h
-      } from '/node_modules/vue/dist/vue.esm-browser.js'
+      import // createRenderer,
+      // render,
+      // h
+      '/node_modules/vue/dist/vue.esm-browser.js'
 
       // 自己的
-      import { createRenderer, render } from '../dist/runtime-dom.js'
+      import {
+        // createRenderer,
+        render,
+        h
+      } from '../dist/runtime-dom.js'
 
       /* h + render */
       ;(function () {
-        const h1 = h('h1', { style: { color: 'red' } }, '张三')
+        const h1 = h('h1', {}, h('div', 1), h('div', 1))
 
         render(h1, app)
       })()
