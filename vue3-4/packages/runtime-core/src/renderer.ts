@@ -2,7 +2,7 @@
  * @Description:
  * @Author: wyb
  * @LastEditors: wyb
- * @LastEditTime: 2024-05-04 17:50:59
+ * @LastEditTime: 2024-05-12 17:15:09
  */
 import { ShapeFlags } from '@vue/shared'
 
@@ -20,6 +20,13 @@ export function createRenderer(renderOptions) {
   } = renderOptions
 
   // 渲染 + 更新
+  /**
+   * @Author: wyb
+   * @Descripttion:
+   * @param {*} n1 旧 vnode
+   * @param {*} n2 新 vnode
+   * @param {*} container
+   */
   const patch = (n1, n2, container) => {
     if (n1 == n2) return
     // 初始化操作
@@ -37,7 +44,7 @@ export function createRenderer(renderOptions) {
   const mountElement = (vnode, container) => {
     const { type, children, props, shapeFlag } = vnode
     // 创建元素
-    const el = hostCreateElement(type)
+    const el = (vnode.el = hostCreateElement(type))
     // 处理属性
     if (props) {
       for (let key in props) {
@@ -66,9 +73,26 @@ export function createRenderer(renderOptions) {
     }
   }
 
+  /**
+   * @Author: wyb
+   * @Descripttion:
+   * @param {*} vnode
+   */
+  const unmount = vnode => hostRemove(vnode.el)
+
   // 多次调用render 会进行虚拟节点的比较，在进行更新
   const render = (vnode, container) => {
+    // 卸载元素
+    if (vnode == null) {
+      if (container._vnode) {
+        unmount(container._vnode)
+      }
+    }
+
     patch(container._vnode || null, vnode, container)
+
+    // 挂载旧的vnode
+    container._vnode = vnode
   }
 
   return {

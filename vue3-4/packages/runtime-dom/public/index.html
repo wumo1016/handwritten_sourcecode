@@ -9,10 +9,11 @@
     <div id="app"></div>
     <script type="module">
       // 原生的
-      import // createRenderer,
+      // import {
+      // createRenderer,
       // render,
       // h
-      '/node_modules/vue/dist/vue.esm-browser.js'
+      // } from '/node_modules/vue/dist/vue.esm-browser.js'
 
       // 自己的
       import {
@@ -23,9 +24,13 @@
 
       /* h + render */
       ;(function () {
-        const h1 = h('h1', {}, h('div', 1), h('div', 1))
+        const h1 = h('h1', {}, 123)
 
         render(h1, app)
+
+        setTimeout(() => {
+          render(null, app)
+        }, 1000)
       })()
     </script>
   </body>
