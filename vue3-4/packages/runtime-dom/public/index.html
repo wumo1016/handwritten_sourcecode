@@ -24,12 +24,17 @@
 
       /* h + render */
       ;(function () {
-        const h1 = h('h1', {}, 123)
-
-        render(h1, app)
-
+        render(h('h1', {}, 123), app)
         setTimeout(() => {
           render(null, app)
+        }, 1000)
+      })
+
+      /* diff1 - 元素变化 */
+      ;(function () {
+        render(h('h1', {}, 123), app)
+        setTimeout(() => {
+          render(h('div', {}, 123), app)
         }, 1000)
       })()
     </script>

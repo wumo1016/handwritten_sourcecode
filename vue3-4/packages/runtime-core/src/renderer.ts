@@ -2,9 +2,10 @@
  * @Description:
  * @Author: wyb
  * @LastEditors: wyb
- * @LastEditTime: 2024-05-12 17:15:09
+ * @LastEditTime: 2024-05-12 17:25:58
  */
 import { ShapeFlags } from '@vue/shared'
+import { isSameVnode } from './createVnode'
 
 export function createRenderer(renderOptions) {
   const {
@@ -29,6 +30,13 @@ export function createRenderer(renderOptions) {
    */
   const patch = (n1, n2, container) => {
     if (n1 == n2) return
+
+    // 如果不是同一个dom 直接移除旧的
+    if (n1 && !isSameVnode(n1, n2)) {
+      unmount(n1)
+      n1 = null
+    }
+
     // 初始化操作
     if (n1 === null) {
       mountElement(n2, container)

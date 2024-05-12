@@ -2,7 +2,7 @@
  * @Description:
  * @Author: wyb
  * @LastEditors: wyb
- * @LastEditTime: 2024-05-04 17:58:17
+ * @LastEditTime: 2024-05-12 17:23:59
  */
 import { ShapeFlags, isString } from '@vue/shared'
 
@@ -13,6 +13,16 @@ import { ShapeFlags, isString } from '@vue/shared'
  */
 export function isVnode(value) {
   return value?.__v_isVnode
+}
+
+/**
+ * @Author: wyb
+ * @Descripttion: 是否是同一个vnode
+ * @param {*} n1
+ * @param {*} n2
+ */
+export function isSameVnode(n1, n2) {
+  return n1.type === n2.type && n1.key === n2.key
 }
 
 export function createVnode(type, props, children?) {
